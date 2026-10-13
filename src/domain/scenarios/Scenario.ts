@@ -1,5 +1,5 @@
-import { GameSystem } from "../../core/GameSystem";
 import type { GameState } from "../../core/GameState";
+import { GameSystem } from "../../core/GameSystem";
 import type { LearningObjective } from "../../types/LearningObjective";
 import type { ReasoningProcess } from "../../types/ReasoningProcess";
 import type { SuggestedSkill } from "../../types/SuggestedSkill";
@@ -121,7 +121,13 @@ export class ComparisonRow {
     public readonly rightAnswerText: string;
     public readonly isSimilarity: boolean;
 
-    constructor(rowIdentifier: string, criterionText: string, leftAnswerText: string, rightAnswerText: string, isSimilarity: boolean) {
+    constructor(
+        rowIdentifier: string,
+        criterionText: string,
+        leftAnswerText: string,
+        rightAnswerText: string,
+        isSimilarity: boolean,
+    ) {
         this.rowIdentifier = rowIdentifier;
         this.criterionText = criterionText;
         this.leftAnswerText = leftAnswerText;
@@ -186,7 +192,12 @@ export class ArgumentPrompt {
     public readonly evidencePrompts: string[];
     public readonly counterargumentPrompts: string[];
 
-    constructor(promptIdentifier: string, promptText: string, evidencePrompts: string[], counterargumentPrompts: string[]) {
+    constructor(
+        promptIdentifier: string,
+        promptText: string,
+        evidencePrompts: string[],
+        counterargumentPrompts: string[],
+    ) {
         this.promptIdentifier = promptIdentifier;
         this.promptText = promptText;
         this.evidencePrompts = evidencePrompts;
@@ -251,7 +262,12 @@ export class TestimonyRecord {
     public readonly testimonySourceText: string;
     public readonly reflectionPrompt: string;
 
-    constructor(testimonyIdentifier: string, testimonyTitle: string, testimonySourceText: string, reflectionPrompt: string) {
+    constructor(
+        testimonyIdentifier: string,
+        testimonyTitle: string,
+        testimonySourceText: string,
+        reflectionPrompt: string,
+    ) {
         this.testimonyIdentifier = testimonyIdentifier;
         this.testimonyTitle = testimonyTitle;
         this.testimonySourceText = testimonySourceText;
