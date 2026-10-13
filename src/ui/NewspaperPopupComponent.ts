@@ -74,7 +74,7 @@ export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
                 : null;
         if (mastheadTextObject !== null) {
             mastheadTextObject.setOrigin(0.5, 0);
-            mastheadHeightPx = mastheadTextObject.height;
+            mastheadHeightPx = mastheadTextObject.displayHeight;
         }
 
         const datelineTextObject = scene.add.text(0, 0, `SPECIAL EDITION — 1914 — DISPATCHES FROM ${nationCode}`, {
@@ -103,16 +103,16 @@ export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
             bodyParagraphs.slice(paragraphSplitIndex).join("\n\n"),
             columnWidthPx,
         );
-        const columnHeightPx = Math.max(leftColumnTextObject.height, rightColumnTextObject.height);
+        const columnHeightPx = Math.max(leftColumnTextObject.displayHeight, rightColumnTextObject.displayHeight);
 
         const panelHeightPx =
             NewspaperPopupComponent.PAGE_PADDING_PX +
             mastheadHeightPx +
             10 +
             14 +
-            datelineTextObject.height +
+            datelineTextObject.displayHeight +
             10 +
-            headlineTextObject.height +
+            headlineTextObject.displayHeight +
             14 +
             8 +
             columnHeightPx +
@@ -153,11 +153,11 @@ export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
 
         datelineTextObject.setPosition(0, contentY);
         contentContainer.add(datelineTextObject);
-        contentY += datelineTextObject.height + 10;
+        contentY += datelineTextObject.displayHeight + 10;
 
         headlineTextObject.setPosition(0, contentY);
         contentContainer.add(headlineTextObject);
-        contentY += headlineTextObject.height + 14;
+        contentY += headlineTextObject.displayHeight + 14;
 
         ruleGraphics.lineStyle(1, UiPalette.NEAR_BLACK_LEATHER, 0.8);
         ruleGraphics.lineBetween(innerLeftX, contentY, innerLeftX + innerWidthPx, contentY);
