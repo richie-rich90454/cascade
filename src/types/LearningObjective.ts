@@ -1,6 +1,4 @@
 import { ThematicFocus } from "./ThematicFocus";
-import type { SuggestedSkill } from "./SuggestedSkill";
-import type { ReasoningProcess } from "./ReasoningProcess";
 
 export class LearningObjective {
     public static readonly OBJECTIVE_A = new LearningObjective(
