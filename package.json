@@ -19,7 +19,9 @@
         "assets:verify": "tsx .opencode/tools/VerifyAssets.ts",
         "assets:sync": "tsx .opencode/tools/SyncManifest.ts",
         "generate:assets": "pnpm run generate:svg && pnpm run generate:midi && pnpm run assets:placeholders && pnpm run assets:sync",
-        "selfcheck": "tsx src/selfcheck/GameLogicSelfCheck.ts"
+        "selfcheck": "tsx src/selfcheck/GameLogicSelfCheck.ts",
+        "assets:favicon": "tsx .opencode/tools/GenerateFavicon.ts",
+        "verify:visual": "tsx .opencode/tools/VerifyVisual.ts"
     },
     "dependencies": {
         "phaser": "^4.2.1"
@@ -27,6 +29,7 @@
     "devDependencies": {
         "@types/node": "^26.6.5",
         "oxfmt": "^0.72.0",
+        "puppeteer-core": "^25.13.0",
         "tsx": "^4.23.15",
         "typescript": "~5.9.2",
         "vite": "^8.3.4"
