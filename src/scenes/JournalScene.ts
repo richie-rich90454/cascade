@@ -9,11 +9,21 @@ import { UiPalette } from "../ui/UiPalette";
 import { UiPanelFactory } from "../ui/UiPanelFactory";
 
 export class JournalScene extends Phaser.Scene {
+    private getJournalListWidth(): number {
+        return Math.min(520, Math.round(this.scale.width * 0.42));
+    }
+
+    private getReflectionColumnX(): number {
+        return Math.max(480, Math.round(this.scale.width * 0.46));
+    }
+
+    private getReflectionColumnWidth(): number {
+        return Math.max(320, this.scale.width - this.getReflectionColumnX() - 40);
+    }
+
     private static readonly JOURNAL_LIST_X: number = 40;
     private static readonly JOURNAL_LIST_BASE_Y: number = 150;
-    private static readonly JOURNAL_LIST_WIDTH: number = 520;
-    private static readonly REFLECTION_COLUMN_X: number = 600;
-    private static readonly REFLECTION_COLUMN_WIDTH: number = 500;
+
     private static readonly REFLECTION_FIELD_HEIGHT: number = 64;
     private static readonly MAXIMUM_DISPLAYED_ENTRY_COUNT: number = 6;
     private static readonly ENTRY_SPACING_PX: number = 16;
@@ -86,7 +96,7 @@ export class JournalScene extends Phaser.Scene {
                     this,
                     0,
                     0,
-                    JournalScene.JOURNAL_LIST_WIDTH,
+                    this.getJournalListWidth(),
                     "No journal entries yet. Responses you save in scenarios will appear here.",
                 ),
             );
@@ -98,7 +108,7 @@ export class JournalScene extends Phaser.Scene {
                     this,
                     0,
                     -46,
-                    JournalScene.JOURNAL_LIST_WIDTH,
+                    this.getJournalListWidth(),
                     "(showing the 6 most recent entries; export for the full record)",
                 ),
             );
@@ -109,7 +119,7 @@ export class JournalScene extends Phaser.Scene {
                 : journalEntries;
         let cursorY = 0;
         for (const journalEntry of visibleJournalEntries) {
-            const entryComponent = new JournalEntryComponent(this, 0, cursorY, JournalScene.JOURNAL_LIST_WIDTH);
+            const entryComponent = new JournalEntryComponent(this, 0, cursorY, this.getJournalListWidth());
             entryComponent.setJournalEntry(journalEntry);
             listContainer.add(entryComponent);
             cursorY += this.getRenderedEntryHeightPx(entryComponent) + JournalScene.ENTRY_SPACING_PX;
@@ -140,14 +150,14 @@ export class JournalScene extends Phaser.Scene {
     }
 
     private buildReflectionColumn(): void {
-        UiPanelFactory.createSectionHeader(this, JournalScene.REFLECTION_COLUMN_X, 96, "REFLECTION", 20);
+        UiPanelFactory.createSectionHeader(this, this.getReflectionColumnX(), 96, "REFLECTION", 20);
         const currentScenario = GameSession.getInstance().getCurrentScenario();
         if (currentScenario === null) {
             UiPanelFactory.createBodyText(
                 this,
-                JournalScene.REFLECTION_COLUMN_X,
+                this.getReflectionColumnX(),
                 140,
-                JournalScene.REFLECTION_COLUMN_WIDTH,
+                this.getReflectionColumnWidth(),
                 "Start a scenario to write reflections.",
             );
             return;
@@ -156,17 +166,17 @@ export class JournalScene extends Phaser.Scene {
         for (const journalPromptText of currentScenario.getJournalPrompts()) {
             const promptTextObject = UiPanelFactory.createBodyText(
                 this,
-                JournalScene.REFLECTION_COLUMN_X,
+                this.getReflectionColumnX(),
                 cursorY,
-                JournalScene.REFLECTION_COLUMN_WIDTH,
+                this.getReflectionColumnWidth(),
                 journalPromptText,
             );
             cursorY += promptTextObject.height + 8;
             const reflectionField = new StudentTextEntryField(
                 this,
-                JournalScene.REFLECTION_COLUMN_X,
+                this.getReflectionColumnX(),
                 cursorY,
-                JournalScene.REFLECTION_COLUMN_WIDTH,
+                this.getReflectionColumnWidth(),
                 JournalScene.REFLECTION_FIELD_HEIGHT,
             );
             this.reflectionFields.push(reflectionField);
@@ -175,7 +185,7 @@ export class JournalScene extends Phaser.Scene {
         }
         UiPanelFactory.createBrassButton(
             this,
-            JournalScene.REFLECTION_COLUMN_X,
+            this.getReflectionColumnX(),
             cursorY,
             280,
             44,
@@ -187,9 +197,9 @@ export class JournalScene extends Phaser.Scene {
         cursorY += 58;
         this.reflectionFeedbackTextObject = UiPanelFactory.createTypewriterText(
             this,
-            JournalScene.REFLECTION_COLUMN_X,
+            this.getReflectionColumnX(),
             cursorY,
-            JournalScene.REFLECTION_COLUMN_WIDTH,
+            this.getReflectionColumnWidth(),
             "",
         );
     }
@@ -232,7 +242,7 @@ export class JournalScene extends Phaser.Scene {
         const exportButtonY = this.scale.height - 64;
         UiPanelFactory.createBrassButton(
             this,
-            JournalScene.REFLECTION_COLUMN_X,
+            this.getReflectionColumnX(),
             exportButtonY,
             240,
             44,
@@ -243,7 +253,7 @@ export class JournalScene extends Phaser.Scene {
         );
         UiPanelFactory.createBrassButton(
             this,
-            JournalScene.REFLECTION_COLUMN_X + 260,
+            this.getReflectionColumnX() + 260,
             exportButtonY,
             240,
             44,
@@ -254,9 +264,9 @@ export class JournalScene extends Phaser.Scene {
         );
         this.exportFeedbackTextObject = UiPanelFactory.createTypewriterText(
             this,
-            JournalScene.REFLECTION_COLUMN_X,
+            this.getReflectionColumnX(),
             exportButtonY - 30,
-            JournalScene.REFLECTION_COLUMN_WIDTH,
+            this.getReflectionColumnWidth(),
             "",
         );
     }
