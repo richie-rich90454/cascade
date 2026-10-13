@@ -46,7 +46,12 @@ export class SaveData {
         if (this.storage !== null) {
             this.storage.setItem(SaveData.STORAGE_KEY_PREFIX + slotIdentifier, serializedState);
         }
-        return new SaveSlotSummary(slotIdentifier, gameState.getScenarioIdentifier(), gameState.getTurnNumber(), new Date().toISOString());
+        return new SaveSlotSummary(
+            slotIdentifier,
+            gameState.getScenarioIdentifier(),
+            gameState.getTurnNumber(),
+            new Date().toISOString(),
+        );
     }
 
     public load(slotIdentifier: string): SerializedGameStateRecord | null {
