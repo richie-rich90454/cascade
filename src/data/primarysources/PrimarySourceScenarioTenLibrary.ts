@@ -16,7 +16,7 @@ export class PrimarySourceScenarioTenLibrary {
         "The article states the victors' political judgment rather than a historical consensus; it treats the tangled causation of 1914 as a matter of German guilt settled by treaty.",
         "In the context of 1900-1945, which consequence is most directly connected to Article 231 and the settlement it anchored?",
         [
-            "German resentment of the \"war guilt\" clause and reparations fed the instability that helped produce World War II.",
+            'German resentment of the "war guilt" clause and reparations fed the instability that helped produce World War II.',
             "The immediate independence of all European colonies in Africa and Asia.",
             "The creation of the North Atlantic Treaty Organization.",
             "The permanent disarmament of France.",
@@ -86,7 +86,7 @@ export class PrimarySourceScenarioTenLibrary {
         "1945: the Second World War was ending with the atomic bombings and the discovery of the Holocaust's scale.",
         "The peoples and governments of the world, above all the small states that filled the conference.",
         "The charter is a founding document of promise; the Security Council veto let great powers block action, and the principles of human rights coexisted with the emerging Cold War.",
-        "The United Nations Charter's promise to \"save succeeding generations from the scourge of war\" was most immediately compromised by which development?",
+        'The United Nations Charter\'s promise to "save succeeding generations from the scourge of war" was most immediately compromised by which development?',
         [
             "Great-power rivalry after 1945 that made the Security Council veto a barrier to collective action.",
             "The refusal of all European states to join the organization.",
@@ -123,7 +123,7 @@ export class PrimarySourceScenarioTenLibrary {
 
     public static readonly NEHRU_TRYST_WITH_DESTINY = new PrimarySource(
         "nehru_tryst_with_destiny",
-        "\"Tryst with Destiny\" - Address on the Eve of Independence",
+        '"Tryst with Destiny" - Address on the Eve of Independence',
         "Jawaharlal Nehru",
         "August 14, 1947",
         "british_raj",
