@@ -83,7 +83,10 @@ export class AudioManager {
                     continue;
                 }
                 const midiBinaryData = await midiResponse.arrayBuffer();
-                const parsedSequence = this.midiManager.parseMidiArrayBuffer(midiBinaryData, manifestEntry.assetIdentifier);
+                const parsedSequence = this.midiManager.parseMidiArrayBuffer(
+                    midiBinaryData,
+                    manifestEntry.assetIdentifier,
+                );
                 this.parsedSequencesByAssetIdentifier.set(manifestEntry.assetIdentifier, parsedSequence);
                 registeredSequenceCount += 1;
             } catch {
