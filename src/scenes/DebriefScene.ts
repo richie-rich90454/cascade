@@ -1,13 +1,14 @@
 import Phaser from "phaser";
+
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { Rubrics, ShortAnswerRubricItem } from "../data/Rubrics";
-import type { ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
+import type { ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { FontFamilies } from "../managers/FontManager";
-import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 import { StudentTextEntryField } from "../ui/QuickwriteComponent";
 import { UiPalette } from "../ui/UiPalette";
+import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class DebriefScene extends Phaser.Scene {
@@ -54,7 +55,14 @@ export class DebriefScene extends Phaser.Scene {
         });
         gameSession.getAudioManager().playMusicTrack("menu_debrief");
 
-        const debriefPanel = UiPanelFactory.createPanelContainer(this, 30, 80, screenWidth - 60, screenHeight - 180, PanelVariant.LEATHER);
+        const debriefPanel = UiPanelFactory.createPanelContainer(
+            this,
+            30,
+            80,
+            screenWidth - 60,
+            screenHeight - 180,
+            PanelVariant.LEATHER,
+        );
         debriefPanel.add(
             UiPanelFactory.createBodyText(
                 this,
@@ -71,13 +79,30 @@ export class DebriefScene extends Phaser.Scene {
         let layoutOffsetY = 68;
         scenario.getDebriefQuestionPrompts().forEach((debriefPrompt, questionIndex) => {
             const matchingRubricItem = rubricItems.find((rubricItem) => rubricItem.promptText === debriefPrompt);
-            debriefPanel.add(UiPanelFactory.createSectionHeader(this, 20, layoutOffsetY, `QUESTION ${questionIndex + 1}`, 18));
+            debriefPanel.add(
+                UiPanelFactory.createSectionHeader(this, 20, layoutOffsetY, `QUESTION ${questionIndex + 1}`, 18),
+            );
             layoutOffsetY += 28;
             debriefPanel.add(
-                UiPanelFactory.createBodyText(this, 20, layoutOffsetY, screenWidth - 120, debriefPrompt, 16, UiPalette.AGED_PARCHMENT_CSS),
+                UiPanelFactory.createBodyText(
+                    this,
+                    20,
+                    layoutOffsetY,
+                    screenWidth - 120,
+                    debriefPrompt,
+                    16,
+                    UiPalette.AGED_PARCHMENT_CSS,
+                ),
             );
             layoutOffsetY += 62;
-            const responseField = new StudentTextEntryField(this, 20, layoutOffsetY, screenWidth - 130, 84, "Write your response here...");
+            const responseField = new StudentTextEntryField(
+                this,
+                20,
+                layoutOffsetY,
+                screenWidth - 130,
+                84,
+                "Write your response here...",
+            );
             debriefPanel.add(responseField.getFieldContainer());
             this.debriefResponseFields.push(responseField);
             const scoreLabel = this.add.text(20, layoutOffsetY + 92, "", {
@@ -87,16 +112,26 @@ export class DebriefScene extends Phaser.Scene {
             });
             debriefPanel.add(scoreLabel);
             debriefPanel.add(
-                UiPanelFactory.createBrassButton(this, screenWidth - 320, layoutOffsetY + 90, 180, 38, "SAVE RESPONSE", () => {
-                    this.saveDebriefResponse(debriefPrompt, responseField, matchingRubricItem, scoreLabel);
-                }),
+                UiPanelFactory.createBrassButton(
+                    this,
+                    screenWidth - 320,
+                    layoutOffsetY + 90,
+                    180,
+                    38,
+                    "SAVE RESPONSE",
+                    () => {
+                        this.saveDebriefResponse(debriefPrompt, responseField, matchingRubricItem, scoreLabel);
+                    },
+                ),
             );
             layoutOffsetY += 150;
         });
 
         debriefPanel.add(UiPanelFactory.createHorizontalDivider(this, 20, layoutOffsetY, screenWidth - 120));
         layoutOffsetY += 16;
-        debriefPanel.add(UiPanelFactory.createSectionHeader(this, 20, layoutOffsetY, "CONTEXTUALIZATION PARAGRAPH (SKILL 4.B)", 18));
+        debriefPanel.add(
+            UiPanelFactory.createSectionHeader(this, 20, layoutOffsetY, "CONTEXTUALIZATION PARAGRAPH (SKILL 4.B)", 18),
+        );
         layoutOffsetY += 28;
         debriefPanel.add(
             UiPanelFactory.createBodyText(
@@ -126,14 +161,30 @@ export class DebriefScene extends Phaser.Scene {
         });
         debriefPanel.add(contextualizationScoreLabel);
         debriefPanel.add(
-            UiPanelFactory.createBrassButton(this, screenWidth - 380, layoutOffsetY + 102, 240, 38, "SAVE CONTEXTUALIZATION", () => {
-                this.saveContextualizationParagraph(contextualizationScoreLabel);
-            }),
+            UiPanelFactory.createBrassButton(
+                this,
+                screenWidth - 380,
+                layoutOffsetY + 102,
+                240,
+                38,
+                "SAVE CONTEXTUALIZATION",
+                () => {
+                    this.saveContextualizationParagraph(contextualizationScoreLabel);
+                },
+            ),
         );
 
-        UiPanelFactory.createBrassButton(this, screenWidth / 2 - 160, screenHeight - 84, 320, 54, "COMPLETE DEBRIEF", () => {
-            this.completeDebriefAndRecordResult();
-        });
+        UiPanelFactory.createBrassButton(
+            this,
+            screenWidth / 2 - 160,
+            screenHeight - 84,
+            320,
+            54,
+            "COMPLETE DEBRIEF",
+            () => {
+                this.completeDebriefAndRecordResult();
+            },
+        );
     }
 
     private saveDebriefResponse(
@@ -149,15 +200,19 @@ export class DebriefScene extends Phaser.Scene {
             return;
         }
         const gameSession = GameSession.getInstance();
-        gameSession.getAssessmentManager().addJournalEntry(
-            this.scenarioNumber,
-            gameSession.getCurrentTurnNumber(),
-            "debrief",
-            debriefPrompt,
-            responseText,
-        );
+        gameSession
+            .getAssessmentManager()
+            .addJournalEntry(
+                this.scenarioNumber,
+                gameSession.getCurrentTurnNumber(),
+                "debrief",
+                debriefPrompt,
+                responseText,
+            );
         if (matchingRubricItem !== undefined) {
-            const earnedPoints = gameSession.getAssessmentManager().scoreShortAnswerResponse(matchingRubricItem, responseText);
+            const earnedPoints = gameSession
+                .getAssessmentManager()
+                .scoreShortAnswerResponse(matchingRubricItem, responseText);
             scoreLabel.setText(`Saved. Criteria met: ${earnedPoints} of ${matchingRubricItem.maximumPointValue}.`);
         } else {
             scoreLabel.setText("Saved to journal.");
@@ -177,18 +232,22 @@ export class DebriefScene extends Phaser.Scene {
         }
         const gameSession = GameSession.getInstance();
         const achievedScore = gameSession.getAssessmentManager().scoreContextualizationParagraph(responseText);
-        gameSession.getAssessmentManager().addJournalEntry(
-            this.scenarioNumber,
-            gameSession.getCurrentTurnNumber(),
-            "contextualization",
-            "Contextualization paragraph (Skill 4.B)",
-            responseText,
-        );
+        gameSession
+            .getAssessmentManager()
+            .addJournalEntry(
+                this.scenarioNumber,
+                gameSession.getCurrentTurnNumber(),
+                "contextualization",
+                "Contextualization paragraph (Skill 4.B)",
+                responseText,
+            );
         if (achievedScore >= 3) {
             gameSession.getGameState().setScenarioFlag(`contextualization_s${this.scenarioNumber}_scored`);
             scoreLabel.setText(`Saved. Contextualization scored ${achievedScore} of 3. Criterion met.`);
         } else {
-            scoreLabel.setText(`Saved. Contextualization scored ${achievedScore} of 3. Revise for a stronger connection to context.`);
+            scoreLabel.setText(
+                `Saved. Contextualization scored ${achievedScore} of 3. Revise for a stronger connection to context.`,
+            );
         }
         scoreLabel.setColor(achievedScore >= 3 ? UiPalette.HIGHLIGHT_BRASS_CSS : UiPalette.AGED_PARCHMENT_CSS);
     }
@@ -230,16 +289,10 @@ export class DebriefScene extends Phaser.Scene {
         const resultTitle = scenarioEvaluationResult.isVictory
             ? `SCENARIO ${scenarioEvaluationResult.scenarioNumber} COMPLETE - VICTORY`
             : `SCENARIO ${scenarioEvaluationResult.scenarioNumber} INCOMPLETE`;
-        resultPanel.add(
-            UiPanelFactory.createSectionHeader(
-                this,
-                24,
-                20,
-                resultTitle,
-                24,
-            ),
-        );
-        const resultBodyColorCss = scenarioEvaluationResult.isVictory ? UiPalette.NEAR_BLACK_LEATHER_CSS : UiPalette.PARCHMENT_CSS;
+        resultPanel.add(UiPanelFactory.createSectionHeader(this, 24, 20, resultTitle, 24));
+        const resultBodyColorCss = scenarioEvaluationResult.isVictory
+            ? UiPalette.NEAR_BLACK_LEATHER_CSS
+            : UiPalette.PARCHMENT_CSS;
         resultPanel.add(
             UiPanelFactory.createBodyText(
                 this,
@@ -255,7 +308,17 @@ export class DebriefScene extends Phaser.Scene {
         resultPanel.add(UiPanelFactory.createSectionHeader(this, 24, criteriaOffsetY, "MET", 16));
         criteriaOffsetY += 26;
         for (const satisfiedCriterion of scenarioEvaluationResult.satisfiedCriteria) {
-            resultPanel.add(UiPanelFactory.createBodyText(this, 36, criteriaOffsetY, resultPanelWidth - 70, `+ ${satisfiedCriterion}`, 14, resultBodyColorCss));
+            resultPanel.add(
+                UiPanelFactory.createBodyText(
+                    this,
+                    36,
+                    criteriaOffsetY,
+                    resultPanelWidth - 70,
+                    `+ ${satisfiedCriterion}`,
+                    14,
+                    resultBodyColorCss,
+                ),
+            );
             criteriaOffsetY += 24;
         }
         if (scenarioEvaluationResult.unmetCriteria.length > 0) {
@@ -263,7 +326,17 @@ export class DebriefScene extends Phaser.Scene {
             resultPanel.add(UiPanelFactory.createSectionHeader(this, 24, criteriaOffsetY, "NOT YET MET", 16));
             criteriaOffsetY += 26;
             for (const unmetCriterion of scenarioEvaluationResult.unmetCriteria) {
-                resultPanel.add(UiPanelFactory.createBodyText(this, 36, criteriaOffsetY, resultPanelWidth - 70, `- ${unmetCriterion}`, 14, resultBodyColorCss));
+                resultPanel.add(
+                    UiPanelFactory.createBodyText(
+                        this,
+                        36,
+                        criteriaOffsetY,
+                        resultPanelWidth - 70,
+                        `- ${unmetCriterion}`,
+                        14,
+                        resultBodyColorCss,
+                    ),
+                );
                 criteriaOffsetY += 24;
             }
         }
