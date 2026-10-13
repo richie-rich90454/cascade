@@ -66,7 +66,11 @@ export class CombatResolver {
         );
     }
 
-    public resolveSiege(attackingUnit: Unit, defendingGarrisonUnit: Unit, fortificationLevel: number = 1): CombatOutcome {
+    public resolveSiege(
+        attackingUnit: Unit,
+        defendingGarrisonUnit: Unit,
+        fortificationLevel: number = 1,
+    ): CombatOutcome {
         const siegeTerrainDefenseBonus = 1.0 + fortificationLevel * 0.25;
         return this.resolveBattle(attackingUnit, defendingGarrisonUnit, siegeTerrainDefenseBonus);
     }
