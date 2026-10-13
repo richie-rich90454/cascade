@@ -38,7 +38,7 @@ export class RelationshipComponent extends Phaser.GameObjects.Container {
             UiPalette.AGED_PARCHMENT_CSS,
         );
         this.add(instructionTextObject);
-        let cursorY = 48 + instructionTextObject.height + 14;
+        let cursorY = 48 + instructionTextObject.displayHeight + 14;
         for (const promptText of promptTexts) {
             const promptTextObject = this.scene.add.text(16, cursorY, promptText, {
                 fontFamily: FontFamilies.DISPLAY_SERIF,
@@ -48,7 +48,7 @@ export class RelationshipComponent extends Phaser.GameObjects.Container {
                 lineSpacing: 3,
             });
             this.add(promptTextObject);
-            cursorY += promptTextObject.height + 8;
+            cursorY += promptTextObject.displayHeight + 8;
             const responseField = new StudentTextEntryField(this.scene, 16, cursorY, this.panelWidth - 32, 80);
             this.responseFields.push(responseField);
             this.add(responseField.getFieldContainer());
