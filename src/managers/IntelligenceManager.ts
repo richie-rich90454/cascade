@@ -1,6 +1,6 @@
 import { TelegramRequestPayload } from "../core/EventBus";
-import type { PrimarySource } from "../data/PrimarySource";
 import type { GameState } from "../core/GameState";
+import type { PrimarySource } from "../data/PrimarySource";
 
 export class IntelligenceManager {
     private readonly gameState: GameState;
@@ -45,7 +45,10 @@ export class IntelligenceManager {
         return Math.round(nation.getTreasury() / 100) + this.getCorrectlyAnalyzedSourceCount();
     }
 
-    public produceTelegramPayloadForSourceAnalysis(primarySource: PrimarySource, wasAnalysisCorrect: boolean): TelegramRequestPayload {
+    public produceTelegramPayloadForSourceAnalysis(
+        primarySource: PrimarySource,
+        wasAnalysisCorrect: boolean,
+    ): TelegramRequestPayload {
         if (wasAnalysisCorrect) {
             return new TelegramRequestPayload(
                 "Most Secret",
