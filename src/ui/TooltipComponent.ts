@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 
