@@ -1,5 +1,5 @@
-import { GameSystem } from "../../../core/GameSystem";
 import type { GameState } from "../../../core/GameState";
+import { GameSystem } from "../../../core/GameSystem";
 
 export class ImperialDeclineSystem extends GameSystem {
     constructor() {
@@ -7,7 +7,12 @@ export class ImperialDeclineSystem extends GameSystem {
     }
 
     protected override onSimulateTurn(turnNumber: number, gameState: GameState): void {
-        const decliningEmpireIdentifiers = ["ottoman_empire", "russian_empire", "qing_china", "austro_hungarian_empire"];
+        const decliningEmpireIdentifiers = [
+            "ottoman_empire",
+            "russian_empire",
+            "qing_china",
+            "austro_hungarian_empire",
+        ];
         for (const decliningEmpireIdentifier of decliningEmpireIdentifiers) {
             const decliningEmpire = gameState.getNation(decliningEmpireIdentifier);
             if (decliningEmpire === null) {
