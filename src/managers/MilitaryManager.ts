@@ -1,9 +1,9 @@
-import { CombatResolver, CombatOutcome } from "../domain/CombatResolver";
+import type { GameState } from "../core/GameState";
 import { SeedRandom } from "../core/SeedRandom";
+import { CombatResolver, CombatOutcome } from "../domain/CombatResolver";
+import type { Nation } from "../domain/Nation";
 import { Unit } from "../domain/Unit";
 import { UnitCategory } from "../types/UnitCategory";
-import type { GameState } from "../core/GameState";
-import type { Nation } from "../domain/Nation";
 
 export class OrderOfBattleNode {
     public readonly levelName: string;
@@ -41,7 +41,13 @@ export class MilitaryManager {
         unitDisplayName: string,
     ): Unit {
         const unitIdentifier = `unit_${nation.getIdentifier()}_${this.gameState.getAllUnits().length + 1}`;
-        const recruitedUnit = new Unit(unitIdentifier, unitDisplayName, unitCategory, nation.getIdentifier(), stationedProvinceIdentifier);
+        const recruitedUnit = new Unit(
+            unitIdentifier,
+            unitDisplayName,
+            unitCategory,
+            nation.getIdentifier(),
+            stationedProvinceIdentifier,
+        );
         this.gameState.registerUnit(recruitedUnit);
         return recruitedUnit;
     }
@@ -58,8 +64,16 @@ export class MilitaryManager {
         defenderNation: Nation,
     ): CombatOutcome {
         const battleOutcome = this.combatResolver.resolveBattle(attackingUnit, defendingUnit, terrainDefenseBonus);
-        this.recordCasualties(attackerNation.getIdentifier(), attackingUnit.getUnitCategory().getCode(), battleOutcome.attackerStrengthLoss);
-        this.recordCasualties(defenderNation.getIdentifier(), defendingUnit.getUnitCategory().getCode(), battleOutcome.defenderStrengthLoss);
+        this.recordCasualties(
+            attackerNation.getIdentifier(),
+            attackingUnit.getUnitCategory().getCode(),
+            battleOutcome.attackerStrengthLoss,
+        );
+        this.recordCasualties(
+            defenderNation.getIdentifier(),
+            defendingUnit.getUnitCategory().getCode(),
+            battleOutcome.defenderStrengthLoss,
+        );
         attackerNation.addToManpower(-battleOutcome.attackerStrengthLoss * 50);
         defenderNation.addToManpower(-battleOutcome.defenderStrengthLoss * 50);
         return battleOutcome;
@@ -105,7 +119,9 @@ export class MilitaryManager {
         const orderOfBattleNodes: OrderOfBattleNode[] = [];
         for (const [unitCategoryCode, categoryUnits] of nodesByCategory.entries()) {
             const resolvedUnitCategory = UnitCategory.findByUnitCategoryCode(unitCategoryCode);
-            orderOfBattleNodes.push(new OrderOfBattleNode(resolvedUnitCategory?.getDisplayName() ?? unitCategoryCode, categoryUnits));
+            orderOfBattleNodes.push(
+                new OrderOfBattleNode(resolvedUnitCategory?.getDisplayName() ?? unitCategoryCode, categoryUnits),
+            );
         }
         return orderOfBattleNodes;
     }
