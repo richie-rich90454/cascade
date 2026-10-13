@@ -47,7 +47,7 @@ export class TooltipComponent {
         this.titleTextObject.setText(tooltipTitleText);
         this.bodyTextObject.setText(tooltipBodyLines.join("\n"));
         const desiredWidthPx = this.maximumWidthPx;
-        const desiredHeightPx = Math.max(64, 44 + this.bodyTextObject.height + 12);
+        const desiredHeightPx = Math.max(64, 44 + this.bodyTextObject.displayHeight + 12);
         this.panelGraphics.clear();
         this.panelGraphics.fillStyle(UiPalette.PARCHMENT, 0.98);
         this.panelGraphics.fillRect(0, 0, desiredWidthPx, desiredHeightPx);
