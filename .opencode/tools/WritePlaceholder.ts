@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { TierThreeAssetCatalog } from "./lib/TierThreeAssetCatalog";
 
 function runPlaceholderWriting(): number {
@@ -9,7 +10,16 @@ function runPlaceholderWriting(): number {
     mkdirSync(placeholderOutputDirectoryPath, { recursive: true });
 
     const tierThreeDefinitions = TierThreeAssetCatalog.buildCatalog();
-    const placeholderManifestEntries: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }> = [];
+    const placeholderManifestEntries: Array<{
+        assetId: string;
+        category: string;
+        tier: number;
+        source: string;
+        file: string;
+        width: number;
+        height: number;
+        status: string;
+    }> = [];
 
     for (const tierThreeDefinition of tierThreeDefinitions) {
         const placeholderText = [
@@ -23,7 +33,11 @@ function runPlaceholderWriting(): number {
             `Replace this file with the final asset named ${tierThreeDefinition.expectedFileName}.`,
             `A generation prompt for this asset is written to assets/prompts/${tierThreeDefinition.assetId}.txt.`,
         ].join("\n");
-        writeFileSync(join(placeholderOutputDirectoryPath, `${tierThreeDefinition.assetId}.txt`), placeholderText, "utf8");
+        writeFileSync(
+            join(placeholderOutputDirectoryPath, `${tierThreeDefinition.assetId}.txt`),
+            placeholderText,
+            "utf8",
+        );
         placeholderManifestEntries.push({
             assetId: tierThreeDefinition.assetId,
             category: "tier3",
@@ -38,7 +52,16 @@ function runPlaceholderWriting(): number {
 
     const existingManifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
         generatedAtIsoTimestamp: string;
-        assets: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }>;
+        assets: Array<{
+            assetId: string;
+            category: string;
+            tier: number;
+            source: string;
+            file: string;
+            width: number;
+            height: number;
+            status: string;
+        }>;
     };
     const nonTierThreeAssets = existingManifest.assets.filter((manifestEntry) => manifestEntry.tier !== 3);
     existingManifest.assets = [...nonTierThreeAssets, ...placeholderManifestEntries];
@@ -49,4 +72,6 @@ function runPlaceholderWriting(): number {
 }
 
 const writtenPlaceholderCount = runPlaceholderWriting();
-console.log(`WritePlaceholder: wrote ${writtenPlaceholderCount} Tier 2 placeholder files to public/assets/placeholders/.`);
+console.log(
+    `WritePlaceholder: wrote ${writtenPlaceholderCount} Tier 2 placeholder files to public/assets/placeholders/.`,
+);
