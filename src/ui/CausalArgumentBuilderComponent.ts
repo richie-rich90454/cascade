@@ -39,7 +39,7 @@ export class CausalArgumentBuilderComponent extends Phaser.GameObjects.Container
                 lineSpacing: 3,
             });
             this.add(promptTextObject);
-            cursorY += promptTextObject.height + 10;
+            cursorY += promptTextObject.displayHeight + 10;
             cursorY = this.addLabeledField("Thesis", cursorY);
             if (argumentPrompt.evidencePrompts.length > 0) {
                 cursorY = this.addSectionLabel("Evidence", cursorY);
@@ -106,7 +106,7 @@ export class CausalArgumentBuilderComponent extends Phaser.GameObjects.Container
             UiPalette.AGED_PARCHMENT_CSS,
         );
         this.add(supportingPromptTextObject);
-        return cursorY + supportingPromptTextObject.height + 6;
+        return cursorY + supportingPromptTextObject.displayHeight + 6;
     }
 
     private addLabeledField(labelText: string, cursorY: number): number {
