@@ -28,6 +28,7 @@ export class UiScrollHelper {
         const maskShape = scene.make.graphics({});
         maskShape.fillStyle(0xffffff, 1);
         maskShape.fillRect(viewportX, viewportY, viewportWidth, viewportHeight);
+        maskShape.setScrollFactor(0, 0);
         const geometryMask = maskShape.createGeometryMask();
         contentContainer.setMask(geometryMask);
         const registeredScrollRegion = new ScrollRegion(viewportX, viewportY, viewportWidth, viewportHeight);
