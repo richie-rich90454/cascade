@@ -3,7 +3,7 @@ import { PrimarySource } from "../PrimarySource";
 export class PrimarySourceScenarioThreeLibrary {
     public static readonly KITCHENER_RECRUITMENT_POSTER = new PrimarySource(
         "kitchener_recruitment_poster",
-        "\"Your Country Needs You\" Recruitment Poster",
+        '"Your Country Needs You" Recruitment Poster',
         "Parliamentary Recruiting Committee (design by Alfred Leete)",
         "1914",
         "british_empire",
@@ -27,7 +27,7 @@ export class PrimarySourceScenarioThreeLibrary {
 
     public static readonly WOMEN_OF_BRITAIN_SAY_GO_POSTER = new PrimarySource(
         "women_of_britain_say_go_poster",
-        "\"Women of Britain Say GO\" Recruitment Poster",
+        '"Women of Britain Say GO" Recruitment Poster',
         "Parliamentary Recruiting Committee",
         "1915",
         "british_empire",
@@ -38,7 +38,7 @@ export class PrimarySourceScenarioThreeLibrary {
         "By 1915 voluntary enlistment had begun to fall short of the army's needs, months before conscription was introduced in 1916.",
         "British men who had not yet enlisted, addressed through the imagined voice of the women in their families.",
         "The poster manipulates gender roles and family feeling; it says nothing about actual women's wartime labor, dissent, or the costs of the war.",
-        "What does the \"Women of Britain Say GO\" poster most directly reveal about how governments mobilized populations during World War I?",
+        'What does the "Women of Britain Say GO" poster most directly reveal about how governments mobilized populations during World War I?',
         [
             "Governments used emotional and gendered appeals in propaganda to sustain voluntary enlistment.",
             "Women were granted the vote in exchange for their war work before 1915.",
@@ -51,7 +51,7 @@ export class PrimarySourceScenarioThreeLibrary {
 
     public static readonly OWEN_DULCE_ET_DECORUM_EST = new PrimarySource(
         "owen_dulce_et_decorum_est",
-        "\"Dulce et Decorum Est\"",
+        '"Dulce et Decorum Est"',
         "Wilfred Owen, British officer",
         "Written 1917, published 1920",
         "british_empire",
