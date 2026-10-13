@@ -27,8 +27,8 @@ const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: "100%",
-        height: "100%",
+        width: 1280,
+        height: 720,
     },
     render: {
         antialias: true,
@@ -58,12 +58,19 @@ const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
     ],
 };
 
-HighDpiConfigurator.getInstance().installTextResolutionPatch();
+HighDpiConfigurator.getInstance().installHighDpiTextPatch();
 
 export const cascadeGame = new Phaser.Game(cascadeGameConfiguration);
 
-for (const registeredScene of cascadeGame.scene.scenes) {
-    registeredScene.events.on(Phaser.Scenes.Events.CREATE, () => {
-        HighDpiConfigurator.getInstance().registerScene(registeredScene);
-    });
-}
+(window as unknown as Record<string, unknown>).cascadeGame = cascadeGame;
+
+cascadeGame.events.once(Phaser.Core.Events.READY, () => {
+    for (const registeredScene of cascadeGame.scene.scenes) {
+        registeredScene.events.on(Phaser.Scenes.Events.CREATE, () => {
+            HighDpiConfigurator.getInstance().registerScene(registeredScene);
+        });
+        if (registeredScene.sys.isActive()) {
+            HighDpiConfigurator.getInstance().registerScene(registeredScene);
+        }
+    }
+});
