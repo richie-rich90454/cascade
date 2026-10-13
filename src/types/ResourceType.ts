@@ -55,10 +55,34 @@ export class ResourceType {
         "icon_resource_food",
         false,
     );
-    public static readonly FUEL = new ResourceType("fuel", "Fuel", "Refined petroleum driving navies, armies, and air forces.", "icon_resource_fuel", false);
-    public static readonly STEEL = new ResourceType("steel", "Steel", "Alloy output required for ships, guns, and machinery.", "icon_resource_steel", false);
-    public static readonly RUBBER = new ResourceType("rubber", "Rubber", "Strategic material for tires, gaskets, and electrical insulation.", "icon_resource_rubber", false);
-    public static readonly RESEARCH = new ResourceType("research", "Research", "Scientific and engineering effort applied to new technology.", "icon_resource_research", false);
+    public static readonly FUEL = new ResourceType(
+        "fuel",
+        "Fuel",
+        "Refined petroleum driving navies, armies, and air forces.",
+        "icon_resource_fuel",
+        false,
+    );
+    public static readonly STEEL = new ResourceType(
+        "steel",
+        "Steel",
+        "Alloy output required for ships, guns, and machinery.",
+        "icon_resource_steel",
+        false,
+    );
+    public static readonly RUBBER = new ResourceType(
+        "rubber",
+        "Rubber",
+        "Strategic material for tires, gaskets, and electrical insulation.",
+        "icon_resource_rubber",
+        false,
+    );
+    public static readonly RESEARCH = new ResourceType(
+        "research",
+        "Research",
+        "Scientific and engineering effort applied to new technology.",
+        "icon_resource_research",
+        false,
+    );
     public static readonly STABILITY = new ResourceType(
         "stability",
         "Stability",
@@ -66,7 +90,13 @@ export class ResourceType {
         "icon_resource_stability",
         false,
     );
-    public static readonly SUPPLY = new ResourceType("supply", "Supply", "Materiel stockpiles available to forward units.", "icon_resource_supply", false);
+    public static readonly SUPPLY = new ResourceType(
+        "supply",
+        "Supply",
+        "Materiel stockpiles available to forward units.",
+        "icon_resource_supply",
+        false,
+    );
     public static readonly IDEOLOGY = new ResourceType(
         "ideology",
         "Ideology",
