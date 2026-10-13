@@ -176,6 +176,22 @@ export class Nations {
         "#C9A961",
         "The federation of French colonial territories in West Africa.",
     );
+    public static readonly CAMBODIA = new NationDefinition(
+        "cambodia",
+        "Cambodia",
+        "KHM",
+        "#2D5A3A",
+        "#F2E8D5",
+        "The Southeast Asian kingdom shattered by the Khmer Rouge revolution.",
+    );
+    public static readonly RWANDA = new NationDefinition(
+        "rwanda",
+        "Rwanda",
+        "RWA",
+        "#4A5D3A",
+        "#F2E8D5",
+        "The land of a thousand hills, where genocide consumed one hundred days.",
+    );
 
     public static getAllNationDefinitions(): NationDefinition[] {
         return [
@@ -198,6 +214,8 @@ export class Nations {
             Nations.BRAZIL,
             Nations.REPUBLIC_OF_TURKEY,
             Nations.WEST_AFRICAN_COLONIES,
+            Nations.CAMBODIA,
+            Nations.RWANDA,
         ];
     }
 
