@@ -11,7 +11,7 @@ import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
 export class CampaignSelectorScene extends Phaser.Scene {
     private static readonly CARD_WIDTH_PX = 250;
-    private static readonly CARD_HEIGHT_PX = 150;
+    private static readonly CARD_HEIGHT_PX = 168;
     private static readonly CARD_HORIZONTAL_GAP_PX = 24;
     private static readonly CARD_ROW_VERTICAL_GAP_PX = 24;
     private static readonly CONTENT_SIDE_MARGIN_PX = 40;
@@ -110,7 +110,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
         panelContainer.add(titleText);
         const subtitleText = this.add.text(
             CampaignSelectorScene.CARD_INNER_MARGIN_PX,
-            titleText.y + titleText.height + 4,
+            titleText.y + titleText.displayHeight + 4,
             scenario.getScenarioSubtitle(),
             {
                 fontFamily: FontFamilies.BODY_SERIF,
@@ -121,7 +121,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
         );
         panelContainer.add(subtitleText);
         const thematicFocusCode = scenario.getThematicFocus().getCode();
-        const badgeRowY = subtitleText.y + subtitleText.height + 10;
+        const badgeRowY = subtitleText.y + subtitleText.displayHeight + 10;
         const thematicFocusBadge = UiPanelFactory.createBadgeChip(
             this,
             CampaignSelectorScene.CARD_INNER_MARGIN_PX,
