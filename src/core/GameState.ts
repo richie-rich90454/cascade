@@ -121,6 +121,18 @@ export class GameState {
         return updatedQuantity;
     }
 
+    public applyRawResourceQuantity(resourceTypeCode: string, quantity: number): void {
+        this.resourceQuantities.set(resourceTypeCode, quantity);
+    }
+
+    public getRawResourceQuantities(): Record<string, number> {
+        const rawQuantities: Record<string, number> = {};
+        for (const [resourceTypeCode, quantity] of this.resourceQuantities.entries()) {
+            rawQuantities[resourceTypeCode] = quantity;
+        }
+        return rawQuantities;
+    }
+
     public isScenarioFlagSet(flagIdentifier: string): boolean {
         return this.scenarioFlags.has(flagIdentifier);
     }
