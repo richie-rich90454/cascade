@@ -1,6 +1,6 @@
 import { EventBus, GameEventTypes, NewspaperRequestPayload } from "../../../core/EventBus";
-import { GameSystem } from "../../../core/GameSystem";
 import type { GameState } from "../../../core/GameState";
+import { GameSystem } from "../../../core/GameSystem";
 
 export class PoliticalCrisisEvent extends GameSystem {
     private hasFiredEvent: boolean;
