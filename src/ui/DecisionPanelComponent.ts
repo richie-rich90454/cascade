@@ -31,7 +31,7 @@ export class DecisionPanelComponent extends Phaser.GameObjects.Container {
         const contextSection = new ContextSectionComponent(this.scene, 16, 52, this.panelWidth - 32);
         contextSection.setContextText(decision.contextParagraph);
         this.add(contextSection);
-        const skillsTopY = 52 + contextSection.height + 18;
+        const skillsTopY = 52 + contextSection.displayHeight + 18;
         const skillColumnWidth = (this.panelWidth - 40) / 2;
         const skillRowHeight = 104;
         this.addSkillSection("Causation", decision.causationSummary, 16, skillsTopY, skillColumnWidth);
