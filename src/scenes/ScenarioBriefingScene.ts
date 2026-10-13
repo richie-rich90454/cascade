@@ -4,10 +4,13 @@ import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { TeacherSettings } from "../core/TeacherSettings";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
+import { FontFamilies } from "../managers/FontManager";
 import { ResourceType } from "../types/ResourceType";
 import { TitleCardComponent } from "../ui/TitleCardComponent";
+import { FlowCursor } from "../ui/UiFlowLayout";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollHelper } from "../ui/UiScrollHelper";
 
 export class ScenarioSelectionPayload {
     public readonly scenarioNumber: number;
@@ -38,8 +41,8 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         }
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
-
         this.add.rectangle(0, 0, screenWidth, screenHeight, UiPalette.NEAR_BLACK_LEATHER).setOrigin(0, 0);
+        this.add.rectangle(0, 0, screenWidth, 96, UiPalette.DARK_OLIVE).setOrigin(0, 0).setAlpha(0.6);
 
         const titleCardComponent = new TitleCardComponent(this, 0, 0, screenWidth);
         titleCardComponent.presentTitleCard(
@@ -48,51 +51,98 @@ export class ScenarioBriefingScene extends Phaser.Scene {
             scenario.getScenarioSubtitle(),
         );
 
-        UiPanelFactory.createBrassButton(this, 24, 24, 160, 44, "BACK", () => {
+        UiPanelFactory.createBrassButton(this, 24, 24, 150, 44, "BACK", () => {
             this.scene.start(SceneKeys.CAMPAIGN_SELECTOR);
         });
+        this.add
+            .text(196, 46, `${scenario.getScenarioTitle()} - ${scenario.getScenarioSubtitle()}`, {
+                fontFamily: FontFamilies.DISPLAY_SERIF,
+                fontSize: "24px",
+                color: UiPalette.HIGHLIGHT_BRASS_CSS,
+            })
+            .setOrigin(0, 0.5);
 
-        const briefingPanel = UiPanelFactory.createPanelContainer(
-            this,
-            40,
-            110,
-            screenWidth - 80,
-            screenHeight - 240,
-            PanelVariant.LEATHER,
-        );
-        briefingPanel.add(UiPanelFactory.createSectionHeader(this, 24, 16, "BRIEFING"));
-        briefingPanel.add(
-            UiPanelFactory.createBodyText(
+        const panelLeftX = 40;
+        const panelTopY = 96;
+        const panelWidth = screenWidth - 80;
+        const panelHeight = screenHeight - 200;
+        UiPanelFactory.createPanelContainer(this, panelLeftX, panelTopY, panelWidth, panelHeight, PanelVariant.LEATHER);
+
+        const contentContainer = this.add.container(panelLeftX, panelTopY);
+        const contentWrapWidth = panelWidth - 64;
+        const flowCursor = new FlowCursor(32, 24);
+
+        flowCursor.placeText(contentContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "BRIEFING", 24), 12);
+
+        const badgeRowContainer = this.add.container(0, 0);
+        badgeRowContainer.setSize(contentWrapWidth, 28);
+        const badgeEntries: Array<{ labelText: string; backgroundColorHex: number }> = [
+            { labelText: `FOCUS ${scenario.getThematicFocus().getCode()}`, backgroundColorHex: UiPalette.DEEP_BRASS },
+            { labelText: `SKILL ${scenario.getSuggestedSkill().getCode()}`, backgroundColorHex: UiPalette.MID_OLIVE },
+            {
+                labelText: `TOPIC ${scenario.getLearningObjective().getCedTopicCode()}`,
+                backgroundColorHex: UiPalette.MID_OLIVE,
+            },
+            { labelText: `LO ${scenario.getLearningObjective().getCode()}`, backgroundColorHex: UiPalette.BLOOD_RED },
+        ];
+        let badgeOffsetX = 0;
+        for (const badgeEntry of badgeEntries) {
+            const badgeChip = UiPanelFactory.createBadgeChip(
                 this,
-                24,
-                52,
-                screenWidth - 220,
-                scenario.getBriefingParagraphs().join("\n\n"),
-                17,
-                UiPalette.PARCHMENT_CSS,
-            ),
-        );
-        const objectiveHeader = UiPanelFactory.createSectionHeader(this, 24, 320, "OBJECTIVES");
-        briefingPanel.add(objectiveHeader);
-        let objectiveOffsetY = 356;
-        for (const objectiveSummary of scenario.getObjectiveSummaries()) {
-            briefingPanel.add(
+                badgeOffsetX,
+                2,
+                badgeEntry.labelText,
+                badgeEntry.backgroundColorHex,
+            );
+            badgeRowContainer.add(badgeChip);
+            badgeOffsetX += Math.max(56, badgeEntry.labelText.length * 10 + 20) + 8;
+        }
+        flowCursor.placeContainer(contentContainer, badgeRowContainer, 18);
+
+        for (const briefingParagraph of scenario.getBriefingParagraphs()) {
+            flowCursor.placeText(
+                contentContainer,
                 UiPanelFactory.createBodyText(
                     this,
-                    36,
-                    objectiveOffsetY,
-                    screenWidth - 240,
-                    `- ${objectiveSummary}`,
-                    16,
-                    UiPalette.AGED_PARCHMENT_CSS,
+                    0,
+                    0,
+                    contentWrapWidth,
+                    briefingParagraph,
+                    18,
+                    UiPalette.PARCHMENT_CSS,
                 ),
+                16,
             );
-            objectiveOffsetY += 46;
         }
 
-        briefingPanel.add(UiPanelFactory.createHorizontalDivider(this, 24, objectiveOffsetY + 8, screenWidth - 140));
-        const metadataLine = [
-            `Topic ${scenario.getLearningObjective().getCedTopicCode()} | Learning Objective ${scenario.getLearningObjective().getCode()} | Thematic Focus ${scenario.getThematicFocus().getCode()} | Skill ${scenario.getSuggestedSkill().getCode()} | Reasoning Process: ${scenario.getReasoningProcess().getDisplayName()}`,
+        flowCursor.addGap(6);
+        const briefingDivider = UiPanelFactory.createHorizontalDivider(this, 0, 0, contentWrapWidth);
+        flowCursor.placeGraphics(contentContainer, briefingDivider, 22);
+
+        flowCursor.placeText(contentContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "OBJECTIVES", 22), 14);
+        for (const objectiveSummary of scenario.getObjectiveSummaries()) {
+            flowCursor.placeText(
+                contentContainer,
+                UiPanelFactory.createBodyText(
+                    this,
+                    0,
+                    0,
+                    contentWrapWidth - 16,
+                    `- ${objectiveSummary}`,
+                    17,
+                    UiPalette.AGED_PARCHMENT_CSS,
+                ),
+                12,
+            );
+        }
+
+        flowCursor.addGap(6);
+        const objectivesDivider = UiPanelFactory.createHorizontalDivider(this, 0, 0, contentWrapWidth);
+        flowCursor.placeGraphics(contentContainer, objectivesDivider, 22);
+
+        const metadataLineText = [
+            `Topic ${scenario.getLearningObjective().getCedTopicCode()} | Learning Objective ${scenario.getLearningObjective().getCode()} | Thematic Focus ${scenario.getThematicFocus().getCode()} | Skill ${scenario.getSuggestedSkill().getCode()}`,
+            `Reasoning process: ${scenario.getReasoningProcess().getDisplayName()}`,
             `Perspectives: ${scenario.getPerspectiveLabels().join(", ")}`,
             `Duration: about ${scenario.getDurationInMinutes()} minutes across ${scenario.getTurnCount()} turns`,
             `Resources: ${scenario
@@ -103,56 +153,51 @@ export class ScenarioBriefingScene extends Phaser.Scene {
                 )
                 .join(", ")}`,
         ].join("\n");
-        briefingPanel.add(
-            UiPanelFactory.createTypewriterText(this, 24, objectiveOffsetY + 24, screenWidth - 140, metadataLine, 14),
-        );
-
-        const thematicBadge = UiPanelFactory.createBadgeChip(
-            this,
-            24,
-            84,
-            scenario.getThematicFocus().getCode(),
-            UiPalette.DEEP_BRASS,
-        );
-        briefingPanel.add(thematicBadge);
-        briefingPanel.add(
-            UiPanelFactory.createBadgeChip(
-                this,
-                96,
-                84,
-                `Skill ${scenario.getSuggestedSkill().getCode()}`,
-                UiPalette.MID_OLIVE,
-            ),
+        flowCursor.placeText(
+            contentContainer,
+            UiPanelFactory.createTypewriterText(this, 0, 0, contentWrapWidth, metadataLineText, 15),
+            18,
         );
 
         if (TeacherSettings.getInstance().isContentAdvisoryEnabled()) {
-            const advisoryPanel = UiPanelFactory.createPanelContainer(
-                this,
-                screenWidth - 360,
-                84,
-                320,
-                120,
-                PanelVariant.PARCHMENT,
-            );
-            advisoryPanel.add(UiPanelFactory.createSectionHeader(this, 12, 10, "ADVISORY", 15));
-            advisoryPanel.add(
+            const advisoryContainer = this.add.container(0, 0);
+            advisoryContainer.setSize(contentWrapWidth, 96);
+            const advisoryBackground = this.add.graphics();
+            advisoryBackground.fillStyle(UiPalette.NEAR_BLACK_LEATHER, 0.45);
+            advisoryBackground.fillRect(0, 0, contentWrapWidth, 92);
+            advisoryBackground.lineStyle(1, UiPalette.BLOOD_RED, 0.9);
+            advisoryBackground.strokeRect(0.5, 0.5, contentWrapWidth - 1, 91);
+            advisoryContainer.add(advisoryBackground);
+            advisoryContainer.add(UiPanelFactory.createSectionHeader(this, 14, 10, "CONTENT ADVISORY", 15));
+            advisoryContainer.add(
                 UiPanelFactory.createBodyText(
                     this,
-                    12,
-                    38,
-                    292,
+                    14,
+                    36,
+                    contentWrapWidth - 28,
                     scenario.getContentAdvisoryNote(),
-                    13,
-                    UiPalette.NEAR_BLACK_LEATHER_CSS,
+                    14,
+                    UiPalette.AGED_PARCHMENT_CSS,
                 ),
             );
-            briefingPanel.add(advisoryPanel);
+            flowCursor.placeContainer(contentContainer, advisoryContainer, 16);
         }
+
+        const totalContentHeightPx = flowCursor.getCurrentY() + 24;
+        UiScrollHelper.enableWheelScrolling(
+            this,
+            panelLeftX,
+            panelTopY,
+            panelWidth,
+            panelHeight,
+            contentContainer,
+            totalContentHeightPx,
+        );
 
         UiPanelFactory.createBrassButton(
             this,
             screenWidth / 2 - 170,
-            screenHeight - 106,
+            screenHeight - 84,
             340,
             56,
             "BEGIN SCENARIO",
