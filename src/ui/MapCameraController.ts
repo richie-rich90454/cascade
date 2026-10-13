@@ -1,9 +1,12 @@
 import Phaser from "phaser";
 
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
+import { UiPointerRouting } from "./UiPointerRouting";
+
 export class MapCameraController {
-    private static readonly MINIMUM_ZOOM = 0.5;
-    private static readonly MAXIMUM_ZOOM = 2.5;
-    private static readonly ZOOM_STEP = 0.12;
+    private static readonly RELATIVE_MINIMUM_ZOOM = 0.75;
+    private static readonly RELATIVE_MAXIMUM_ZOOM = 2.5;
+    private static readonly RELATIVE_ZOOM_STEP = 0.12;
     private static readonly FOCUS_TWEEN_DURATION_MS = 450;
 
     private readonly scene: Phaser.Scene;
@@ -13,6 +16,16 @@ export class MapCameraController {
     private hasPanningEnabled: boolean;
     private hasZoomEnabled: boolean;
     private focusTween: Phaser.Tweens.Tween | null;
+    private panMoveHandler: ((pointer: Phaser.Input.Pointer) => void) | null;
+    private zoomWheelHandler:
+        | ((
+              pointer: Phaser.Input.Pointer,
+              currentlyOver: Phaser.GameObjects.GameObject[],
+              deltaX: number,
+              deltaY: number,
+              deltaZ: number,
+          ) => void)
+        | null;
 
     constructor(scene: Phaser.Scene, mapPixelWidth: number, mapPixelHeight: number) {
         this.scene = scene;
@@ -21,6 +34,8 @@ export class MapCameraController {
         this.hasPanningEnabled = false;
         this.hasZoomEnabled = false;
         this.focusTween = null;
+        this.panMoveHandler = null;
+        this.zoomWheelHandler = null;
     }
 
     public enablePanning(): void {
@@ -28,14 +43,26 @@ export class MapCameraController {
             return;
         }
         this.hasPanningEnabled = true;
-        this.scene.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+        this.panMoveHandler = (pointer: Phaser.Input.Pointer) => {
             if (!pointer.isDown) {
+                return;
+            }
+            const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
+            const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
+            if (UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)) {
                 return;
             }
             this.cancelFocusTween();
             const camera = this.scene.cameras.main;
             camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom;
             camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom;
+        };
+        this.scene.input.on("pointermove", this.panMoveHandler);
+        this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            if (this.panMoveHandler !== null) {
+                this.scene.input.off("pointermove", this.panMoveHandler);
+                this.panMoveHandler = null;
+            }
         });
     }
 
@@ -44,42 +71,51 @@ export class MapCameraController {
             return;
         }
         this.hasZoomEnabled = true;
-        this.scene.input.on(
-            "wheel",
-            (
-                pointer: Phaser.Input.Pointer,
-                _currentlyOver: Phaser.GameObjects.GameObject[],
-                _deltaX: number,
-                deltaY: number,
-                _deltaZ: number,
-            ) => {
-                this.cancelFocusTween();
-                const camera = this.scene.cameras.main;
-                const zoomDirection = deltaY > 0 ? -1 : 1;
-                const targetZoomValue = Phaser.Math.Clamp(
-                    camera.zoom + zoomDirection * MapCameraController.ZOOM_STEP,
-                    MapCameraController.MINIMUM_ZOOM,
-                    MapCameraController.MAXIMUM_ZOOM,
-                );
-                if (targetZoomValue === camera.zoom) {
-                    return;
-                }
-                const worldPointBeforeZoom = camera.getWorldPoint(pointer.x, pointer.y);
-                camera.setZoom(targetZoomValue);
-                const worldPointAfterZoom = camera.getWorldPoint(pointer.x, pointer.y);
-                camera.scrollX += worldPointBeforeZoom.x - worldPointAfterZoom.x;
-                camera.scrollY += worldPointBeforeZoom.y - worldPointAfterZoom.y;
-            },
-        );
+        this.zoomWheelHandler = (
+            pointer: Phaser.Input.Pointer,
+            _currentlyOver: Phaser.GameObjects.GameObject[],
+            _deltaX: number,
+            deltaY: number,
+            _deltaZ: number,
+        ) => {
+            const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
+            const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
+            if (UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)) {
+                return;
+            }
+            this.cancelFocusTween();
+            const camera = this.scene.cameras.main;
+            const zoomDirection = deltaY > 0 ? -1 : 1;
+            const targetZoomValue = Phaser.Math.Clamp(
+                camera.zoom + zoomDirection * this.getBaseZoomValue() * MapCameraController.RELATIVE_ZOOM_STEP,
+                this.getMinimumZoomValue(),
+                this.getMaximumZoomValue(),
+            );
+            if (targetZoomValue === camera.zoom) {
+                return;
+            }
+            const worldPointBeforeZoom = camera.getWorldPoint(pointer.x, pointer.y);
+            camera.setZoom(targetZoomValue);
+            const worldPointAfterZoom = camera.getWorldPoint(pointer.x, pointer.y);
+            camera.scrollX += worldPointBeforeZoom.x - worldPointAfterZoom.x;
+            camera.scrollY += worldPointBeforeZoom.y - worldPointAfterZoom.y;
+        };
+        this.scene.input.on("wheel", this.zoomWheelHandler);
+        this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            if (this.zoomWheelHandler !== null) {
+                this.scene.input.off("wheel", this.zoomWheelHandler);
+                this.zoomWheelHandler = null;
+            }
+        });
     }
 
-    public focusOnPoint(worldX: number, worldY: number, zoomValue: number): void {
+    public focusOnPoint(worldX: number, worldY: number, relativeZoomValue: number): void {
         this.cancelFocusTween();
         const camera = this.scene.cameras.main;
         const clampedZoomValue = Phaser.Math.Clamp(
-            zoomValue,
-            MapCameraController.MINIMUM_ZOOM,
-            MapCameraController.MAXIMUM_ZOOM,
+            relativeZoomValue * this.getBaseZoomValue(),
+            this.getMinimumZoomValue(),
+            this.getMaximumZoomValue(),
         );
         const tweenState = {
             zoomValue: camera.zoom,
@@ -109,6 +145,18 @@ export class MapCameraController {
         const viewWorldHeight = camera.height / camera.zoom;
         camera.scrollX = Phaser.Math.Clamp(camera.scrollX, 0, Math.max(0, this.mapPixelWidth - viewWorldWidth));
         camera.scrollY = Phaser.Math.Clamp(camera.scrollY, 0, Math.max(0, this.mapPixelHeight - viewWorldHeight));
+    }
+
+    private getBaseZoomValue(): number {
+        return HighDpiConfigurator.getInstance().getDevicePixelRatio();
+    }
+
+    private getMinimumZoomValue(): number {
+        return this.getBaseZoomValue() * MapCameraController.RELATIVE_MINIMUM_ZOOM;
+    }
+
+    private getMaximumZoomValue(): number {
+        return this.getBaseZoomValue() * MapCameraController.RELATIVE_MAXIMUM_ZOOM;
     }
 
     private cancelFocusTween(): void {
