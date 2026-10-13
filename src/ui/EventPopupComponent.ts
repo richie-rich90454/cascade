@@ -79,9 +79,9 @@ export class EventPopupComponent extends Phaser.GameObjects.Container {
         const panelHeightPx =
             EventPopupComponent.PANEL_PADDING_PX +
             (illustrationHeightPx > 0 ? illustrationHeightPx + 14 : 0) +
-            titleTextObject.height +
+            titleTextObject.displayHeight +
             12 +
-            bodyTextObject.height +
+            bodyTextObject.displayHeight +
             20 +
             EventPopupComponent.BUTTON_HEIGHT_PX +
             EventPopupComponent.PANEL_PADDING_PX;
@@ -107,7 +107,7 @@ export class EventPopupComponent extends Phaser.GameObjects.Container {
         }
         titleTextObject.setPosition(0, contentY);
         contentContainer.add(titleTextObject);
-        contentY += titleTextObject.height + 12;
+        contentY += titleTextObject.displayHeight + 12;
         bodyTextObject.setPosition(0, contentY);
         contentContainer.add(bodyTextObject);
 
