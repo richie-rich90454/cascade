@@ -57,6 +57,32 @@ export class BootScene extends Phaser.Scene {
         void this.runBootSequence(loadingStatusText, loadingBarFill);
     }
 
+    private static isRuntimePriorityAsset(assetIdentifier: string): boolean {
+        if (assetIdentifier.startsWith("tile_")) {
+            return false;
+        }
+        if (assetIdentifier.startsWith("counter_")) {
+            return false;
+        }
+        if (/_alt_0\d$/.test(assetIdentifier)) {
+            return false;
+        }
+        if (/^pattern_.*_v0\d$/.test(assetIdentifier)) {
+            return false;
+        }
+        if (
+            assetIdentifier.endsWith("_wide") ||
+            assetIdentifier.endsWith("_tall") ||
+            assetIdentifier.endsWith("_small")
+        ) {
+            return false;
+        }
+        if (/^scenario_\d+_icon_banner$/.test(assetIdentifier)) {
+            return false;
+        }
+        return true;
+    }
+
     private async runBootSequence(
         loadingStatusText: Phaser.GameObjects.Text,
         loadingBarFill: Phaser.GameObjects.Graphics,
@@ -66,7 +92,9 @@ export class BootScene extends Phaser.Scene {
             await FontManager.getInstance().loadAllFonts();
             loadingStatusText.setText("Loading asset manifest...");
             await AssetManager.getInstance().loadManifest();
-            const svgEntries = AssetManager.getInstance().getSvgEntries();
+            const svgEntries = AssetManager.getInstance()
+                .getSvgEntries()
+                .filter((svgEntry) => BootScene.isRuntimePriorityAsset(svgEntry.assetIdentifier));
             const devicePixelRatioForTextureLoading = HighDpiConfigurator.getInstance().getDevicePixelRatio();
             loadingStatusText.setText("Queueing artwork... 0 of " + svgEntries.length);
             let queuedEntryCount = 0;
