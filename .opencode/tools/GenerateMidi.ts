@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { SeedRandom } from "../../src/core/SeedRandom";
 
 class MidiCatalogEntry {
@@ -37,7 +38,13 @@ class MidiNoteEvent {
     public readonly velocity: number;
     public readonly channelIndex: number;
 
-    constructor(startTick: number, durationTicks: number, midiNoteNumber: number, velocity: number, channelIndex: number) {
+    constructor(
+        startTick: number,
+        durationTicks: number,
+        midiNoteNumber: number,
+        velocity: number,
+        channelIndex: number,
+    ) {
         this.startTick = startTick;
         this.durationTicks = durationTicks;
         this.midiNoteNumber = midiNoteNumber;
@@ -75,7 +82,15 @@ class MidiCatalogBuilder {
             new MidiCatalogEntry("jingle_unlock", "jingle", 108, 50, 2, "rising", "jingle_unlock"),
             new MidiCatalogEntry("jingle_source_analyzed", "jingle", 128, 52, 1, "bright", "jingle_source"),
             new MidiCatalogEntry("jingle_causal_chain_correct", "jingle", 116, 48, 2, "satisfying", "jingle_chain_ok"),
-            new MidiCatalogEntry("jingle_causal_chain_incorrect", "jingle", 76, 43, 2, "descending", "jingle_chain_bad"),
+            new MidiCatalogEntry(
+                "jingle_causal_chain_incorrect",
+                "jingle",
+                76,
+                43,
+                2,
+                "descending",
+                "jingle_chain_bad",
+            ),
             new MidiCatalogEntry("jingle_newspaper", "jingle", 100, 45, 1, "bright", "jingle_newspaper"),
             new MidiCatalogEntry("jingle_telegram", "jingle", 140, 50, 1, "bright", "jingle_telegram"),
             new MidiCatalogEntry("sfx_click", "sfx", 120, 60, 1, "bright", "sfx_click"),
@@ -127,8 +142,12 @@ class MidiSequenceComposer {
     public static composeSequenceForCatalogEntry(catalogEntry: MidiCatalogEntry): MidiNoteEvent[] {
         const seedRandom = new SeedRandom(catalogEntry.seedKey);
         const isMinorMood = MidiSequenceComposer.isMinorMood(catalogEntry.moodCode);
-        const scaleIntervals = isMinorMood ? MidiSequenceComposer.MINOR_SCALE_INTERVALS : MidiSequenceComposer.MAJOR_SCALE_INTERVALS;
-        const progression = MidiSequenceComposer.CHORD_DEGREE_PROGRESSIONS[catalogEntry.moodCode] ?? MidiSequenceComposer.CHORD_DEGREE_PROGRESSIONS.neutral;
+        const scaleIntervals = isMinorMood
+            ? MidiSequenceComposer.MINOR_SCALE_INTERVALS
+            : MidiSequenceComposer.MAJOR_SCALE_INTERVALS;
+        const progression =
+            MidiSequenceComposer.CHORD_DEGREE_PROGRESSIONS[catalogEntry.moodCode] ??
+            MidiSequenceComposer.CHORD_DEGREE_PROGRESSIONS.neutral;
         const ticksPerBar = 480 * 4;
         const noteEvents: MidiNoteEvent[] = [];
         const totalBars = catalogEntry.durationBars;
@@ -149,13 +168,34 @@ class MidiSequenceComposer {
             }
 
             const sustainedVelocity = catalogEntry.category === "ambient" ? 44 : 62;
-            noteEvents.push(new MidiNoteEvent(barStartTick, ticksPerBar - 20, catalogEntry.keyRootMidiNote + chordRootOffset - 12, sustainedVelocity, 0));
-            noteEvents.push(new MidiNoteEvent(barStartTick, ticksPerBar - 20, catalogEntry.keyRootMidiNote + chordFifthOffset - 12, sustainedVelocity, 1));
+            noteEvents.push(
+                new MidiNoteEvent(
+                    barStartTick,
+                    ticksPerBar - 20,
+                    catalogEntry.keyRootMidiNote + chordRootOffset - 12,
+                    sustainedVelocity,
+                    0,
+                ),
+            );
+            noteEvents.push(
+                new MidiNoteEvent(
+                    barStartTick,
+                    ticksPerBar - 20,
+                    catalogEntry.keyRootMidiNote + chordFifthOffset - 12,
+                    sustainedVelocity,
+                    1,
+                ),
+            );
 
             const arpeggioNoteCount = catalogEntry.category === "combat" ? 8 : 4;
             const arpeggioStepTicks = Math.floor(ticksPerBar / arpeggioNoteCount);
             for (let arpeggioIndex = 0; arpeggioIndex < arpeggioNoteCount; arpeggioIndex++) {
-                const arpeggioDegreeOffsets = [chordRootOffset, chordThirdOffset, chordFifthOffset, chordRootOffset + 12];
+                const arpeggioDegreeOffsets = [
+                    chordRootOffset,
+                    chordThirdOffset,
+                    chordFifthOffset,
+                    chordRootOffset + 12,
+                ];
                 const arpeggioOffset = arpeggioDegreeOffsets[arpeggioIndex % arpeggioDegreeOffsets.length];
                 const jitter = seedRandom.nextBoolean(0.25) ? 1 : 0;
                 noteEvents.push(
@@ -174,13 +214,24 @@ class MidiSequenceComposer {
                 for (let percussionIndex = 0; percussionIndex < 8; percussionIndex++) {
                     const isAccentBeat = percussionIndex % 4 === 0;
                     noteEvents.push(
-                        new MidiNoteEvent(barStartTick + percussionIndex * percussionStepTicks, 30, isAccentBeat ? 49 : 42, isAccentBeat ? 110 : 70, 9),
+                        new MidiNoteEvent(
+                            barStartTick + percussionIndex * percussionStepTicks,
+                            30,
+                            isAccentBeat ? 49 : 42,
+                            isAccentBeat ? 110 : 70,
+                            9,
+                        ),
                     );
                 }
             }
 
             if (catalogEntry.category === "jingle" || catalogEntry.category === "menu") {
-                const melodyDegreeSequence = [chordRootOffset, chordThirdOffset, chordFifthOffset, chordRootOffset + 12];
+                const melodyDegreeSequence = [
+                    chordRootOffset,
+                    chordThirdOffset,
+                    chordFifthOffset,
+                    chordRootOffset + 12,
+                ];
                 const melodyStepTicks = Math.floor(ticksPerBar / melodyDegreeSequence.length);
                 for (let melodyIndex = 0; melodyIndex < melodyDegreeSequence.length; melodyIndex++) {
                     noteEvents.push(
@@ -218,7 +269,11 @@ class StandardMidiFileWriter {
         StandardMidiFileWriter.appendVariableLengthQuantity(trackEventBytes, 0);
         trackEventBytes.push(0xff, 0x51, 0x03);
         const microsecondsPerQuarter = Math.floor(60000000 / catalogEntry.tempoBpm);
-        trackEventBytes.push((microsecondsPerQuarter >> 16) & 0xff, (microsecondsPerQuarter >> 8) & 0xff, microsecondsPerQuarter & 0xff);
+        trackEventBytes.push(
+            (microsecondsPerQuarter >> 16) & 0xff,
+            (microsecondsPerQuarter >> 8) & 0xff,
+            microsecondsPerQuarter & 0xff,
+        );
 
         for (const usedChannelIndex of [0, 1, 2, 3, 9]) {
             StandardMidiFileWriter.appendVariableLengthQuantity(trackEventBytes, 0);
@@ -269,7 +324,8 @@ class StandardMidiFileWriter {
     public static verifyMidiFileBytes(midiFileBytes: Buffer): boolean {
         const headerIdentifier = midiFileBytes.toString("ascii", 0, 4);
         const trackIdentifier = midiFileBytes.toString("ascii", 14, 18);
-        const hasEndOfTrack = midiFileBytes[midiFileBytes.length - 3] === 0xff && midiFileBytes[midiFileBytes.length - 2] === 0x2f;
+        const hasEndOfTrack =
+            midiFileBytes[midiFileBytes.length - 3] === 0xff && midiFileBytes[midiFileBytes.length - 2] === 0x2f;
         return headerIdentifier === "MThd" && trackIdentifier === "MTrk" && hasEndOfTrack;
     }
 
@@ -280,7 +336,12 @@ class StandardMidiFileWriter {
     }
 
     private static appendBigEndianUint32(byteAccumulator: number[], unsignedValue: number): void {
-        byteAccumulator.push((unsignedValue >>> 24) & 0xff, (unsignedValue >>> 16) & 0xff, (unsignedValue >>> 8) & 0xff, unsignedValue & 0xff);
+        byteAccumulator.push(
+            (unsignedValue >>> 24) & 0xff,
+            (unsignedValue >>> 16) & 0xff,
+            (unsignedValue >>> 8) & 0xff,
+            unsignedValue & 0xff,
+        );
     }
 
     private static appendBigEndianUint16(byteAccumulator: number[], unsignedValue: number): void {
@@ -305,7 +366,16 @@ function runMidiGeneration(): number {
     mkdirSync(midiOutputDirectoryPath, { recursive: true });
 
     const catalogEntries = MidiCatalogBuilder.buildCatalog();
-    const midiManifestEntries: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }> = [];
+    const midiManifestEntries: Array<{
+        assetId: string;
+        category: string;
+        tier: number;
+        source: string;
+        file: string;
+        width: number;
+        height: number;
+        status: string;
+    }> = [];
 
     for (const catalogEntry of catalogEntries) {
         const noteEvents = MidiSequenceComposer.composeSequenceForCatalogEntry(catalogEntry);
@@ -328,7 +398,16 @@ function runMidiGeneration(): number {
 
     const existingManifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
         generatedAtIsoTimestamp: string;
-        assets: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }>;
+        assets: Array<{
+            assetId: string;
+            category: string;
+            tier: number;
+            source: string;
+            file: string;
+            width: number;
+            height: number;
+            status: string;
+        }>;
     };
     const nonMidiAssets = existingManifest.assets.filter((manifestEntry) => !manifestEntry.file.endsWith(".mid"));
     existingManifest.assets = [...nonMidiAssets, ...midiManifestEntries];
