@@ -1,5 +1,5 @@
-import { GameSystem } from "../../../core/GameSystem";
 import type { GameState } from "../../../core/GameState";
+import { GameSystem } from "../../../core/GameSystem";
 
 export class MexicanRevolutionPath extends GameSystem {
     constructor() {
