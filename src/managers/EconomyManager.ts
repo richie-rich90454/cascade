@@ -1,6 +1,6 @@
 import type { GameState } from "../core/GameState";
-import type { Nation } from "../domain/Nation";
 import { Units } from "../data/Units";
+import type { Nation } from "../domain/Nation";
 
 export class ProductionQueueItem {
     public readonly queueItemIdentifier: string;
@@ -55,7 +55,11 @@ export class EconomyManager {
         return this.productionQueuesByNationIdentifier.get(nationIdentifier) ?? [];
     }
 
-    public enqueueProductionItem(nationIdentifier: string, unitTemplateIdentifier: string, assignedFactoryCount: number): ProductionQueueItem {
+    public enqueueProductionItem(
+        nationIdentifier: string,
+        unitTemplateIdentifier: string,
+        assignedFactoryCount: number,
+    ): ProductionQueueItem {
         const productionQueueItem = new ProductionQueueItem(
             `queue_${nationIdentifier}_${this.getProductionQueueForNation(nationIdentifier).length + 1}`,
             unitTemplateIdentifier,
