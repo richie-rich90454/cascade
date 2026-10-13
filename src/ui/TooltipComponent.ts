@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 
@@ -35,7 +36,14 @@ export class TooltipComponent {
         this.tooltipContainer.setVisible(false);
     }
 
-    public showAt(screenX: number, screenY: number, tooltipTitleText: string, tooltipBodyLines: string[]): void {
+    public showAt(
+        deviceScreenX: number,
+        deviceScreenY: number,
+        tooltipTitleText: string,
+        tooltipBodyLines: string[],
+    ): void {
+        const screenX = HighDpiConfigurator.getInstance().toCssPixels(deviceScreenX);
+        const screenY = HighDpiConfigurator.getInstance().toCssPixels(deviceScreenY);
         this.titleTextObject.setText(tooltipTitleText);
         this.bodyTextObject.setText(tooltipBodyLines.join("\n"));
         const desiredWidthPx = this.maximumWidthPx;
