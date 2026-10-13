@@ -50,6 +50,9 @@ export class PrimarySourceScenarioOneLibrary {
     );
 
     public static getSources(): PrimarySource[] {
-        return [PrimarySourceScenarioOneLibrary.MADERO_PLAN_OF_SAN_LUIS_POTOSI, PrimarySourceScenarioOneLibrary.OCTOBER_MANIFESTO];
+        return [
+            PrimarySourceScenarioOneLibrary.MADERO_PLAN_OF_SAN_LUIS_POTOSI,
+            PrimarySourceScenarioOneLibrary.OCTOBER_MANIFESTO,
+        ];
     }
 }
