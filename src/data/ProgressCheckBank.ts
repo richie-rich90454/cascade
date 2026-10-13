@@ -55,7 +55,12 @@ export class DocumentBasedQuestion {
     public readonly documentSourceIdentifiers: string[];
     public readonly scoringNotes: string;
 
-    constructor(questionIdentifier: string, promptText: string, documentSourceIdentifiers: string[], scoringNotes: string) {
+    constructor(
+        questionIdentifier: string,
+        promptText: string,
+        documentSourceIdentifiers: string[],
+        scoringNotes: string,
+    ) {
         this.questionIdentifier = questionIdentifier;
         this.promptText = promptText;
         this.documentSourceIdentifiers = documentSourceIdentifiers;
@@ -82,7 +87,12 @@ export class ProgressCheckBank {
             "pc_mc_02",
             "7.1",
             "The Mexican Revolution most directly arose from",
-            ["the political crisis created by the fraudulent election of 1910 and the long dictatorship of Porfirio Díaz.", "a foreign invasion of Mexico by Spain.", "the collapse of the Ottoman Empire.", "the end of the First World War."],
+            [
+                "the political crisis created by the fraudulent election of 1910 and the long dictatorship of Porfirio Díaz.",
+                "a foreign invasion of Mexico by Spain.",
+                "the collapse of the Ottoman Empire.",
+                "the end of the First World War.",
+            ],
             0,
             "The revolution began with contested politics around the 1910 election and broad resentment of the Díaz regime.",
         ),
@@ -116,7 +126,12 @@ export class ProgressCheckBank {
             "pc_mc_05",
             "7.2",
             "The Bosnian crisis and the Balkan Wars of 1912-1913 illustrate which cause of the First World War?",
-            ["Territorial and regional conflict in a contested imperial borderland.", "The rise of the United States as a world power.", "The decline of nationalism in Europe.", "The success of collective security."],
+            [
+                "Territorial and regional conflict in a contested imperial borderland.",
+                "The rise of the United States as a world power.",
+                "The decline of nationalism in Europe.",
+                "The success of collective security.",
+            ],
             0,
             "The Balkan contests over territory and influence fed great-power tensions before 1914.",
         ),
@@ -124,14 +139,19 @@ export class ProgressCheckBank {
             "pc_mc_06",
             "7.2",
             "Which consequence of the First World War most directly reshaped the map of Europe?",
-            ["The dissolution of the Austro-Hungarian and Ottoman empires into successor states and mandates.", "The expansion of the German Empire westward.", "The unification of Italy.", "The annexation of Britain by France."],
+            [
+                "The dissolution of the Austro-Hungarian and Ottoman empires into successor states and mandates.",
+                "The expansion of the German Empire westward.",
+                "The unification of Italy.",
+                "The annexation of Britain by France.",
+            ],
             0,
             "Postwar settlements dissolved old empires and created new states and mandates across Europe and the Middle East.",
         ),
         new MultipleChoiceQuestion(
             "pc_mc_07",
             "7.3",
-            "The label \"total war\" best applies to the First World War because",
+            'The label "total war" best applies to the First World War because',
             [
                 "governments mobilized entire populations and economies, and civilians became targets and producers for the war effort.",
                 "every country in the world participated in the fighting.",
@@ -158,7 +178,12 @@ export class ProgressCheckBank {
             "pc_mc_09",
             "7.3",
             "The use of poison gas, tanks, and aircraft in the First World War most directly supports which claim?",
-            ["New military technology contributed to increased wartime casualties.", "Technology made wars shorter and less deadly.", "Industrial nations avoided producing new weapons.", "Trench warfare ended immediately in 1915."],
+            [
+                "New military technology contributed to increased wartime casualties.",
+                "Technology made wars shorter and less deadly.",
+                "Industrial nations avoided producing new weapons.",
+                "Trench warfare ended immediately in 1915.",
+            ],
             0,
             "New industrial technologies added to the destructiveness of the war without quickly breaking the stalemate.",
         ),
@@ -179,7 +204,12 @@ export class ProgressCheckBank {
             "pc_mc_11",
             "7.4",
             "The New Deal is best described as",
-            ["an expansion of government intervention in the American economy in response to the Great Depression.", "a Soviet program of collectivization.", "a fascist corporatist system.", "a return to unrestricted laissez-faire."],
+            [
+                "an expansion of government intervention in the American economy in response to the Great Depression.",
+                "a Soviet program of collectivization.",
+                "a fascist corporatist system.",
+                "a return to unrestricted laissez-faire.",
+            ],
             0,
             "The New Deal expanded federal regulation, relief, and public works in response to the Depression.",
         ),
@@ -226,7 +256,12 @@ export class ProgressCheckBank {
             "pc_mc_15",
             "7.5",
             "The Indian National Congress and West African congresses and strikes are evidence of",
-            ["growing organized anti-imperial resistance in the interwar period.", "the end of British imperial rule before 1939.", "the spread of Russian communism to Europe only.", "support for continued colonial rule among colonial elites."],
+            [
+                "growing organized anti-imperial resistance in the interwar period.",
+                "the end of British imperial rule before 1939.",
+                "the spread of Russian communism to Europe only.",
+                "support for continued colonial rule among colonial elites.",
+            ],
             0,
             "Organized nationalism and labor resistance grew across imperial territories between the wars.",
         ),
@@ -234,7 +269,12 @@ export class ProgressCheckBank {
             "pc_mc_16",
             "7.6",
             "The peace settlement after the First World War contributed to the Second World War most directly by",
-            ["leaving grievances and an unstable balance of power that revisionist states exploited.", "creating a world government that eliminated conflict.", "abolishing all national armies in Europe.", "satisfying all German demands."],
+            [
+                "leaving grievances and an unstable balance of power that revisionist states exploited.",
+                "creating a world government that eliminated conflict.",
+                "abolishing all national armies in Europe.",
+                "satisfying all German demands.",
+            ],
             0,
             "Versailles grievances, reparations, and instability fed later revisionism.",
         ),
@@ -255,7 +295,12 @@ export class ProgressCheckBank {
             "pc_mc_18",
             "7.6",
             "The aggressive militarism of Nazi Germany under Hitler most directly reflected which cause of the Second World War?",
-            ["The rise to power of fascist and totalitarian regimes pursuing expansionist aims.", "The spread of collective security agreements.", "The decline of nationalism worldwide.", "The strengthening of the League of Nations' enforcement powers."],
+            [
+                "The rise to power of fascist and totalitarian regimes pursuing expansionist aims.",
+                "The spread of collective security agreements.",
+                "The decline of nationalism worldwide.",
+                "The strengthening of the League of Nations' enforcement powers.",
+            ],
             0,
             "Nazi ideology and rearmament are central to explanations of the war's onset.",
         ),
@@ -275,15 +320,20 @@ export class ProgressCheckBank {
         new MultipleChoiceQuestion(
             "pc_mc_20",
             "7.7",
-            "The atomic bomb, firebombing, and waging of \"total war\" in the Second World War most directly resulted in",
-            ["unprecedented casualties among civilians as well as soldiers.", "a rapid decline in military technology spending.", "the elimination of propaganda from warfare.", "the end of conscription in all countries."],
+            'The atomic bomb, firebombing, and waging of "total war" in the Second World War most directly resulted in',
+            [
+                "unprecedented casualties among civilians as well as soldiers.",
+                "a rapid decline in military technology spending.",
+                "the elimination of propaganda from warfare.",
+                "the end of conscription in all countries.",
+            ],
             0,
             "New technologies and strategies produced mass civilian casualties.",
         ),
         new MultipleChoiceQuestion(
             "pc_mc_21",
             "7.7",
-            "Which of the following best explains why the Second World War was a \"total war\" in a different manner from the First World War?",
+            'Which of the following best explains why the Second World War was a "total war" in a different manner from the First World War?',
             [
                 "Totalitarian ideologies directed entire societies and the state repressed basic liberties while fighting.",
                 "Only democracies fought the second war.",
@@ -390,7 +440,9 @@ export class ProgressCheckBank {
     public static scoreMultipleChoiceAnswers(selectedAnswerIndexesByQuestionIdentifier: Map<string, number>): number {
         let correctAnswerCount = 0;
         for (const multipleChoiceQuestion of ProgressCheckBank.MC_QUESTIONS) {
-            const selectedAnswerIndex = selectedAnswerIndexesByQuestionIdentifier.get(multipleChoiceQuestion.questionIdentifier);
+            const selectedAnswerIndex = selectedAnswerIndexesByQuestionIdentifier.get(
+                multipleChoiceQuestion.questionIdentifier,
+            );
             if (selectedAnswerIndex !== undefined && multipleChoiceQuestion.isAnswerCorrect(selectedAnswerIndex)) {
                 correctAnswerCount += 1;
             }
