@@ -38,7 +38,7 @@ export class ContextSectionComponent extends Phaser.GameObjects.Container {
     }
 
     private redrawBackground(): void {
-        const computedHeightPx = 32 + this.contextTextObject.height + 12;
+        const computedHeightPx = 32 + this.contextTextObject.displayHeight + 12;
         this.backgroundGraphics.clear();
         this.backgroundGraphics.fillStyle(UiPalette.PARCHMENT, 1);
         this.backgroundGraphics.fillRect(0, 0, this.sectionWidth, computedHeightPx);
