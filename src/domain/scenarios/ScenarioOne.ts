@@ -1,3 +1,18 @@
+import type { GameState } from "../../core/GameState";
+import { GameSystem } from "../../core/GameSystem";
+import { Rubrics } from "../../data/Rubrics";
+import { LearningObjective } from "../../types/LearningObjective";
+import { ReasoningProcess } from "../../types/ReasoningProcess";
+import { ResourceType } from "../../types/ResourceType";
+import { SuggestedSkill } from "../../types/SuggestedSkill";
+import { ThematicFocus } from "../../types/ThematicFocus";
+import { WorldState1900 } from "../WorldState1900";
+import { CommunistRevolutionEvent } from "./events/CommunistRevolutionEvent";
+import { PoliticalCrisisEvent } from "./events/PoliticalCrisisEvent";
+import { MexicanRevolutionPath } from "./paths/MexicanRevolutionPath";
+import { OttomanCollapsePath } from "./paths/OttomanCollapsePath";
+import { QingCollapsePath } from "./paths/QingCollapsePath";
+import { RussianCollapsePath } from "./paths/RussianCollapsePath";
 import {
     ArgumentDefinition,
     CausalChainCause,
@@ -13,24 +28,9 @@ import {
     ScenarioEventRecord,
     TestimonyRecord,
 } from "./Scenario";
-import { CommunistRevolutionEvent } from "./events/CommunistRevolutionEvent";
-import { PoliticalCrisisEvent } from "./events/PoliticalCrisisEvent";
 import { ImperialDeclineSystem } from "./systems/ImperialDeclineSystem";
 import { NationalismSystem } from "./systems/NationalismSystem";
 import { RevolutionaryPressureSystem } from "./systems/RevolutionaryPressureSystem";
-import { MexicanRevolutionPath } from "./paths/MexicanRevolutionPath";
-import { OttomanCollapsePath } from "./paths/OttomanCollapsePath";
-import { QingCollapsePath } from "./paths/QingCollapsePath";
-import { RussianCollapsePath } from "./paths/RussianCollapsePath";
-import { GameSystem } from "../../core/GameSystem";
-import type { GameState } from "../../core/GameState";
-import { Rubrics } from "../../data/Rubrics";
-import { WorldState1900 } from "../WorldState1900";
-import { LearningObjective } from "../../types/LearningObjective";
-import { ReasoningProcess } from "../../types/ReasoningProcess";
-import { ResourceType } from "../../types/ResourceType";
-import { SuggestedSkill } from "../../types/SuggestedSkill";
-import { ThematicFocus } from "../../types/ThematicFocus";
 
 export class ScenarioOne extends Scenario {
     private readonly playableSystems: GameSystem[];
@@ -338,12 +338,42 @@ export class ScenarioOne extends Scenario {
                 "The Collapse of the Ottoman Order",
                 "Order the causes from the longest-term, deepest strains of the nineteenth century to the immediate events of 1908.",
                 [
-                    new CausalChainCause("ottoman_cause_fiscal", "The empire's fiscal bankruptcy and the external control of its revenues through the Public Debt Administration after 1881.", "long_term", true),
-                    new CausalChainCause("ottoman_cause_nationalities", "The rise of national feeling among the Balkan and Arab subject peoples.", "intermediate", true),
-                    new CausalChainCause("ottoman_cause_reform_movement", "The agitation of the Committee of Union and Progress for a constitution and a parliament.", "intermediate", true),
-                    new CausalChainCause("ottoman_cause_imperial_pressure", "Great-power economic penetration through the capitulations and railway concessions.", "long_term", false),
-                    new CausalChainCause("ottoman_cause_press", "European and Ottoman newspapers inflaming opinion over Macedonia and Crete.", "short_term", false),
-                    new CausalChainCause("ottoman_cause_german_mission", "The German military mission and the empire's drifting into the rival European camps.", "short_term", false),
+                    new CausalChainCause(
+                        "ottoman_cause_fiscal",
+                        "The empire's fiscal bankruptcy and the external control of its revenues through the Public Debt Administration after 1881.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "ottoman_cause_nationalities",
+                        "The rise of national feeling among the Balkan and Arab subject peoples.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "ottoman_cause_reform_movement",
+                        "The agitation of the Committee of Union and Progress for a constitution and a parliament.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "ottoman_cause_imperial_pressure",
+                        "Great-power economic penetration through the capitulations and railway concessions.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "ottoman_cause_press",
+                        "European and Ottoman newspapers inflaming opinion over Macedonia and Crete.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "ottoman_cause_german_mission",
+                        "The German military mission and the empire's drifting into the rival European camps.",
+                        "short_term",
+                        false,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -351,12 +381,42 @@ export class ScenarioOne extends Scenario {
                 "The Strain on the Autocracy",
                 "Order the causes of the Russian crisis from the deepest autocratic rigidity to the events of 1905.",
                 [
-                    new CausalChainCause("russian_cause_autocracy", "Three centuries of autocratic rule that admitted no legal political life.", "long_term", true),
-                    new CausalChainCause("russian_cause_land_question", "The land hunger of the peasantry and the poverty of the newly industrialized cities.", "intermediate", true),
-                    new CausalChainCause("russian_cause_bloody_sunday", "The massacre of peaceful petitioners on Bloody Sunday in January 1905.", "short_term", true),
-                    new CausalChainCause("russian_cause_foreign_defeat", "Defeat by Japan in the war of 1904-1905 and the loss of the fleet.", "short_term", false),
-                    new CausalChainCause("russian_cause_great_power_competition", "Competition with Austria-Hungary over the Balkans and with Britain over Central Asia.", "long_term", false),
-                    new CausalChainCause("russian_cause_foreign_capital", "Dependence on French loans that tied the empire's policy to Paris.", "intermediate", false),
+                    new CausalChainCause(
+                        "russian_cause_autocracy",
+                        "Three centuries of autocratic rule that admitted no legal political life.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "russian_cause_land_question",
+                        "The land hunger of the peasantry and the poverty of the newly industrialized cities.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "russian_cause_bloody_sunday",
+                        "The massacre of peaceful petitioners on Bloody Sunday in January 1905.",
+                        "short_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "russian_cause_foreign_defeat",
+                        "Defeat by Japan in the war of 1904-1905 and the loss of the fleet.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "russian_cause_great_power_competition",
+                        "Competition with Austria-Hungary over the Balkans and with Britain over Central Asia.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "russian_cause_foreign_capital",
+                        "Dependence on French loans that tied the empire's policy to Paris.",
+                        "intermediate",
+                        false,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -364,12 +424,42 @@ export class ScenarioOne extends Scenario {
                 "The End of the Celestial Empire",
                 "Order the causes of the Qing collapse from the humiliations of the nineteenth century to the last months of 1911.",
                 [
-                    new CausalChainCause("qing_cause_opium_legacy", "The legacy of the Opium Wars and the unequal treaty system that eroded Chinese sovereignty.", "long_term", false),
-                    new CausalChainCause("qing_cause_dynastic_decline", "Dynastic decline and the court's resistance to far-reaching reform.", "long_term", true),
-                    new CausalChainCause("qing_cause_secret_societies", "The growth of anti-Qing secret societies and revolutionary leagues schooled abroad.", "intermediate", true),
-                    new CausalChainCause("qing_cause_boxer_indemnity", "The Boxer Protocol of 1901 and its crushing indemnities and foreign garrisons.", "intermediate", false),
-                    new CausalChainCause("qing_cause_railway_protest", "The railway nationalization crisis that turned Sichuan's gentry into rebels.", "short_term", true),
-                    new CausalChainCause("qing_cause_wuchang", "The Wuchang Uprising of October 1911 that spread to province after province.", "short_term", false),
+                    new CausalChainCause(
+                        "qing_cause_opium_legacy",
+                        "The legacy of the Opium Wars and the unequal treaty system that eroded Chinese sovereignty.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "qing_cause_dynastic_decline",
+                        "Dynastic decline and the court's resistance to far-reaching reform.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "qing_cause_secret_societies",
+                        "The growth of anti-Qing secret societies and revolutionary leagues schooled abroad.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "qing_cause_boxer_indemnity",
+                        "The Boxer Protocol of 1901 and its crushing indemnities and foreign garrisons.",
+                        "intermediate",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "qing_cause_railway_protest",
+                        "The railway nationalization crisis that turned Sichuan's gentry into rebels.",
+                        "short_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "qing_cause_wuchang",
+                        "The Wuchang Uprising of October 1911 that spread to province after province.",
+                        "short_term",
+                        false,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -377,12 +467,42 @@ export class ScenarioOne extends Scenario {
                 "The Fall of Don Porfirio",
                 "Order the causes of the Mexican Revolution from the Porfiriato's deepest structures to the call to arms of 1910.",
                 [
-                    new CausalChainCause("mexican_cause_porfiriato", "Thirty-four years of personal rule by Porfirio Diaz and the exclusion of rivals from political life.", "long_term", true),
-                    new CausalChainCause("mexican_cause_haciendas", "The concentration of land in great estates and the fall of rural wages.", "long_term", true),
-                    new CausalChainCause("mexican_cause_foreign_capital", "Foreign ownership of railways, mines, and oil that made the economy an appendage of great-power markets.", "long_term", false),
-                    new CausalChainCause("mexican_cause_labor_strikes", "The strike wave of the years before 1910, from Cananea to Rio Blanco.", "intermediate", true),
-                    new CausalChainCause("mexican_cause_election_1908", "The Creelman interview and the political opening that raised expectations in 1908.", "intermediate", false),
-                    new CausalChainCause("mexican_cause_fraud_1910", "The fraudulent election of 1910 and Madero's appeal from exile.", "short_term", false),
+                    new CausalChainCause(
+                        "mexican_cause_porfiriato",
+                        "Thirty-four years of personal rule by Porfirio Diaz and the exclusion of rivals from political life.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "mexican_cause_haciendas",
+                        "The concentration of land in great estates and the fall of rural wages.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "mexican_cause_foreign_capital",
+                        "Foreign ownership of railways, mines, and oil that made the economy an appendage of great-power markets.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "mexican_cause_labor_strikes",
+                        "The strike wave of the years before 1910, from Cananea to Rio Blanco.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "mexican_cause_election_1908",
+                        "The Creelman interview and the political opening that raised expectations in 1908.",
+                        "intermediate",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "mexican_cause_fraud_1910",
+                        "The fraudulent election of 1910 and Madero's appeal from exile.",
+                        "short_term",
+                        false,
+                    ),
                 ],
             ),
         ];
@@ -523,12 +643,30 @@ export class ScenarioOne extends Scenario {
 
     public override evaluateVictory(gameState: GameState): ScenarioEvaluationResult {
         const flagStatus = this.collectFlagStatus(gameState, [
-            { flagIdentifier: "causal_chain_s1_ottoman_complete", flagDescription: "Ottoman causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s1_russian_complete", flagDescription: "Russian causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s1_qing_complete", flagDescription: "Qing causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s1_mexican_complete", flagDescription: "Mexican causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "continuity_chart_s1_complete", flagDescription: "Continuity and Change chart completed" },
-            { flagIdentifier: "contextualization_s1_scored", flagDescription: "Contextualization paragraph awarded three points or higher" },
+            {
+                flagIdentifier: "causal_chain_s1_ottoman_complete",
+                flagDescription: "Ottoman causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s1_russian_complete",
+                flagDescription: "Russian causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s1_qing_complete",
+                flagDescription: "Qing causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s1_mexican_complete",
+                flagDescription: "Mexican causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "continuity_chart_s1_complete",
+                flagDescription: "Continuity and Change chart completed",
+            },
+            {
+                flagIdentifier: "contextualization_s1_scored",
+                flagDescription: "Contextualization paragraph awarded three points or higher",
+            },
         ]);
         return this.buildEvaluationResult(1, flagStatus.satisfiedCriteria, flagStatus.unmetCriteria, 6, 0);
     }
