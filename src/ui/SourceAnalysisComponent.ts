@@ -67,12 +67,17 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         });
         const excerptFrameGraphics = this.scene.add.graphics();
         excerptFrameGraphics.fillStyle(UiPalette.PARCHMENT, 1);
-        excerptFrameGraphics.fillRect(16, excerptTopY, this.panelWidth - 32, excerptTextObject.height + 24);
+        excerptFrameGraphics.fillRect(16, excerptTopY, this.panelWidth - 32, excerptTextObject.displayHeight + 24);
         excerptFrameGraphics.lineStyle(2, UiPalette.DEEP_BRASS, 0.9);
-        excerptFrameGraphics.strokeRect(17, excerptTopY + 1, this.panelWidth - 34, excerptTextObject.height + 22);
+        excerptFrameGraphics.strokeRect(
+            17,
+            excerptTopY + 1,
+            this.panelWidth - 34,
+            excerptTextObject.displayHeight + 22,
+        );
         this.add(excerptFrameGraphics);
         this.add(excerptTextObject);
-        let cursorY = excerptTopY + excerptTextObject.height + 40;
+        let cursorY = excerptTopY + excerptTextObject.displayHeight + 40;
         const promptLabels = ["Point of view", "Purpose", "Historical situation", "Audience", "Limitations"];
         const modelAnswers = [
             primarySource.pointOfViewAnswer,
@@ -105,7 +110,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
             15,
         );
         this.add(analysisQuestionTextObject);
-        let optionY = cursorY + 22 + analysisQuestionTextObject.height + 10;
+        let optionY = cursorY + 22 + analysisQuestionTextObject.displayHeight + 10;
         for (let optionIndex = 0; optionIndex < primarySource.analysisOptions.length; optionIndex++) {
             const optionButton = UiPanelFactory.createBrassButton(
                 this.scene,
@@ -175,7 +180,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
             },
         );
         this.add(revealButton);
-        return promptTopY + 22 + Math.max(24, modelAnswerTextObject.height) + 24;
+        return promptTopY + 22 + Math.max(24, modelAnswerTextObject.displayHeight) + 24;
     }
 
     private handleRevealClicked(promptIndex: number): void {
