@@ -157,7 +157,7 @@ export class Nation extends GameEntity {
         return Array.from(this.nationsAtWarWithIdentifiers);
     }
 
-    public describe(): string {
+    public override describe(): string {
         return `${this.entityDisplayName} (${this.nationCode})`;
     }
 
