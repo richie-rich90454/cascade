@@ -87,7 +87,7 @@ export class TestimonyPanelComponent extends Phaser.GameObjects.Container {
             wordWrap: { width: this.panelWidth - 32, useAdvancedWrap: true },
         });
         this.add(recordTitleTextObject);
-        const frameTopY = recordTitleTextObject.y + recordTitleTextObject.height + 10;
+        const frameTopY = recordTitleTextObject.y + recordTitleTextObject.displayHeight + 10;
         const testimonyTextObject = this.scene.add.text(26, frameTopY + 12, currentRecord.testimonySourceText, {
             fontFamily: FontFamilies.BODY_SERIF,
             fontStyle: "italic",
@@ -98,12 +98,12 @@ export class TestimonyPanelComponent extends Phaser.GameObjects.Container {
         });
         const frameGraphics = this.scene.add.graphics();
         frameGraphics.fillStyle(UiPalette.PARCHMENT, 1);
-        frameGraphics.fillRect(16, frameTopY, this.panelWidth - 32, testimonyTextObject.height + 24);
+        frameGraphics.fillRect(16, frameTopY, this.panelWidth - 32, testimonyTextObject.displayHeight + 24);
         frameGraphics.lineStyle(2, UiPalette.DEEP_BRASS, 0.9);
-        frameGraphics.strokeRect(17, frameTopY + 1, this.panelWidth - 34, testimonyTextObject.height + 22);
+        frameGraphics.strokeRect(17, frameTopY + 1, this.panelWidth - 34, testimonyTextObject.displayHeight + 22);
         this.add(frameGraphics);
         this.add(testimonyTextObject);
-        const promptTopY = frameTopY + testimonyTextObject.height + 34;
+        const promptTopY = frameTopY + testimonyTextObject.displayHeight + 34;
         const reflectionPromptTextObject = UiPanelFactory.createBodyText(
             this.scene,
             16,
@@ -114,7 +114,7 @@ export class TestimonyPanelComponent extends Phaser.GameObjects.Container {
             UiPalette.HIGHLIGHT_BRASS_CSS,
         );
         this.add(reflectionPromptTextObject);
-        const fieldTopY = promptTopY + reflectionPromptTextObject.height + 10;
+        const fieldTopY = promptTopY + reflectionPromptTextObject.displayHeight + 10;
         const fieldHeight = Math.max(80, this.panelHeight - fieldTopY - 110);
         this.responseField = new StudentTextEntryField(this.scene, 16, fieldTopY, this.panelWidth - 32, fieldHeight);
         this.responseField.setEnteredText(this.responseTextsByRecordIndex[this.currentPageIndex]);
