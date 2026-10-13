@@ -8,6 +8,8 @@ dist/
 # Procedurally generated Tier 1 assets (regenerate with: npm run generate:assets)
 public/assets/svg/
 public/assets/midi/
+public/assets/placeholders/
+public/assets/prompts/
 
 # Editor and OS files
 .vscode/
