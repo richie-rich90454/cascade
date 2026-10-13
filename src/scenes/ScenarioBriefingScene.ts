@@ -7,10 +7,9 @@ import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { FontFamilies } from "../managers/FontManager";
 import { ResourceType } from "../types/ResourceType";
 import { TitleCardComponent } from "../ui/TitleCardComponent";
-import { FlowCursor } from "../ui/UiFlowLayout";
+import { FlowCursor, FlowLayout } from "../ui/UiFlowLayout";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
-import { UiScrollHelper } from "../ui/UiScrollHelper";
 
 export class ScenarioSelectionPayload {
     public readonly scenarioNumber: number;
@@ -69,6 +68,7 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         UiPanelFactory.createPanelContainer(this, panelLeftX, panelTopY, panelWidth, panelHeight, PanelVariant.LEATHER);
 
         const contentContainer = this.add.container(panelLeftX, panelTopY);
+        contentContainer.setDepth(UiPalette.UI_DEPTH_PANEL + 1);
         const contentWrapWidth = panelWidth - 64;
         const flowCursor = new FlowCursor(32, 24);
 
@@ -184,15 +184,7 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         }
 
         const totalContentHeightPx = flowCursor.getCurrentY() + 24;
-        UiScrollHelper.enableWheelScrolling(
-            this,
-            panelLeftX,
-            panelTopY,
-            panelWidth,
-            panelHeight,
-            contentContainer,
-            totalContentHeightPx,
-        );
+        FlowLayout.fitContentIntoViewport(contentContainer, totalContentHeightPx, panelHeight - 24);
 
         UiPanelFactory.createBrassButton(
             this,
