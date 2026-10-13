@@ -7,22 +7,22 @@ import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import type { ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { FontFamilies } from "../managers/FontManager";
 import { StudentTextEntryField } from "../ui/QuickwriteComponent";
+import { FlowCursor } from "../ui/UiFlowLayout";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollHelper } from "../ui/UiScrollHelper";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class DebriefScene extends Phaser.Scene {
     private scenarioNumber: number;
-    private debriefResponseFields: StudentTextEntryField[];
     private contextualizationField: StudentTextEntryField | null;
-    private resultPanelContainer: Phaser.GameObjects.Container | null;
+    private resultOverlayContainer: Phaser.GameObjects.Container | null;
 
     constructor() {
         super({ key: SceneKeys.DEBRIEF });
         this.scenarioNumber = 1;
-        this.debriefResponseFields = [];
         this.contextualizationField = null;
-        this.resultPanelContainer = null;
+        this.resultOverlayContainer = null;
     }
 
     public init(data: unknown): void {
@@ -34,9 +34,8 @@ export class DebriefScene extends Phaser.Scene {
                 : sessionScenario === null
                   ? 1
                   : sessionScenario.getScenarioNumber();
-        this.debriefResponseFields = [];
         this.contextualizationField = null;
-        this.resultPanelContainer = null;
+        this.resultOverlayContainer = null;
     }
 
     public create(): void {
@@ -49,129 +48,164 @@ export class DebriefScene extends Phaser.Scene {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
         this.add.rectangle(0, 0, screenWidth, screenHeight, UiPalette.NEAR_BLACK_LEATHER).setOrigin(0, 0);
-        UiPanelFactory.createSectionHeader(this, screenWidth / 2 - 90, 20, "DEBRIEF", 28);
-        UiPanelFactory.createBrassButton(this, 24, 18, 170, 44, "BACK TO MAP", () => {
+        this.add.rectangle(0, 0, screenWidth, 96, UiPalette.DARK_OLIVE).setOrigin(0, 0).setAlpha(0.6);
+        UiPanelFactory.createBrassButton(this, 24, 24, 170, 44, "BACK TO MAP", () => {
             this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(this.scenarioNumber));
         });
+        this.add
+            .text(214, 46, `DEBRIEF - ${scenario.getScenarioTitle()}`, {
+                fontFamily: FontFamilies.DISPLAY_SERIF,
+                fontSize: "24px",
+                color: UiPalette.HIGHLIGHT_BRASS_CSS,
+            })
+            .setOrigin(0, 0.5);
         gameSession.getAudioManager().playMusicTrack("menu_debrief");
 
-        const debriefPanel = UiPanelFactory.createPanelContainer(
-            this,
-            30,
-            80,
-            screenWidth - 60,
-            screenHeight - 180,
-            PanelVariant.LEATHER,
-        );
-        debriefPanel.add(
+        const panelLeftX = 40;
+        const panelTopY = 96;
+        const panelWidth = screenWidth - 80;
+        const panelHeight = screenHeight - 200;
+        UiPanelFactory.createPanelContainer(this, panelLeftX, panelTopY, panelWidth, panelHeight, PanelVariant.LEATHER);
+        const contentContainer = this.add.container(panelLeftX, panelTopY);
+        const contentWrapWidth = panelWidth - 72;
+        const flowCursor = new FlowCursor(36, 22);
+
+        flowCursor.placeText(
+            contentContainer,
             UiPanelFactory.createBodyText(
                 this,
-                20,
-                14,
-                screenWidth - 120,
-                "Answer each question below in full sentences. Your responses are saved to the journal and scored against the AP-style criteria. When you finish, press Complete Debrief to record your scenario result.",
+                0,
+                0,
+                contentWrapWidth,
+                "Answer each question in complete sentences. Your responses are saved to the journal and checked against the AP-style criteria. When you are done, press COMPLETE DEBRIEF to record your scenario result.",
                 16,
                 UiPalette.PARCHMENT_CSS,
             ),
+            20,
         );
 
         const rubricItems = Rubrics.getRubricItemsForScenario(this.scenarioNumber);
-        let layoutOffsetY = 68;
-        scenario.getDebriefQuestionPrompts().forEach((debriefPrompt, questionIndex) => {
+        const debriefQuestionPrompts = scenario.getDebriefQuestionPrompts();
+        debriefQuestionPrompts.forEach((debriefPrompt, questionIndex) => {
             const matchingRubricItem = rubricItems.find((rubricItem) => rubricItem.promptText === debriefPrompt);
-            debriefPanel.add(
-                UiPanelFactory.createSectionHeader(this, 20, layoutOffsetY, `QUESTION ${questionIndex + 1}`, 18),
+            flowCursor.placeText(
+                contentContainer,
+                UiPanelFactory.createSectionHeader(
+                    this,
+                    0,
+                    0,
+                    `QUESTION ${questionIndex + 1} OF ${debriefQuestionPrompts.length}`,
+                    18,
+                ),
+                8,
             );
-            layoutOffsetY += 28;
-            debriefPanel.add(
+            flowCursor.placeText(
+                contentContainer,
                 UiPanelFactory.createBodyText(
                     this,
-                    20,
-                    layoutOffsetY,
-                    screenWidth - 120,
+                    0,
+                    0,
+                    contentWrapWidth,
                     debriefPrompt,
-                    16,
+                    17,
                     UiPalette.AGED_PARCHMENT_CSS,
                 ),
+                10,
             );
-            layoutOffsetY += 62;
             const responseField = new StudentTextEntryField(
                 this,
-                20,
-                layoutOffsetY,
-                screenWidth - 130,
-                84,
+                0,
+                0,
+                contentWrapWidth,
+                92,
                 "Write your response here...",
             );
-            debriefPanel.add(responseField.getFieldContainer());
-            this.debriefResponseFields.push(responseField);
-            const scoreLabel = this.add.text(20, layoutOffsetY + 92, "", {
-                fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: "13px",
-                color: UiPalette.HIGHLIGHT_BRASS_CSS,
-            });
-            debriefPanel.add(scoreLabel);
-            debriefPanel.add(
-                UiPanelFactory.createBrassButton(
-                    this,
-                    screenWidth - 320,
-                    layoutOffsetY + 90,
-                    180,
-                    38,
-                    "SAVE RESPONSE",
-                    () => {
-                        this.saveDebriefResponse(debriefPrompt, responseField, matchingRubricItem, scoreLabel);
-                    },
-                ),
+            const responseFieldContainer = responseField.getFieldContainer();
+            responseFieldContainer.setSize(contentWrapWidth, 92);
+            flowCursor.placeContainer(contentContainer, responseFieldContainer, 6);
+            const scoreLabel = UiPanelFactory.createTypewriterText(
+                this,
+                0,
+                0,
+                contentWrapWidth - 220,
+                "",
+                13,
+                UiPalette.HIGHLIGHT_BRASS_CSS,
             );
-            layoutOffsetY += 150;
+            const saveButton = UiPanelFactory.createBrassButton(this, 0, 0, 200, 40, "SAVE RESPONSE", () => {
+                this.saveDebriefResponse(debriefPrompt, responseField, matchingRubricItem, scoreLabel);
+            });
+            saveButton.setSize(200, 40);
+            flowCursor.placeContainer(contentContainer, saveButton, 4);
+            flowCursor.placeText(contentContainer, scoreLabel, 18);
+            flowCursor.placeGraphics(
+                contentContainer,
+                UiPanelFactory.createHorizontalDivider(this, 0, 0, contentWrapWidth),
+                18,
+            );
         });
 
-        debriefPanel.add(UiPanelFactory.createHorizontalDivider(this, 20, layoutOffsetY, screenWidth - 120));
-        layoutOffsetY += 16;
-        debriefPanel.add(
-            UiPanelFactory.createSectionHeader(this, 20, layoutOffsetY, "CONTEXTUALIZATION PARAGRAPH (SKILL 4.B)", 18),
+        flowCursor.placeText(
+            contentContainer,
+            UiPanelFactory.createSectionHeader(this, 0, 0, "CONTEXTUALIZATION PARAGRAPH (SKILL 4.B)", 18),
+            8,
         );
-        layoutOffsetY += 28;
-        debriefPanel.add(
+        flowCursor.placeText(
+            contentContainer,
             UiPanelFactory.createBodyText(
                 this,
-                20,
-                layoutOffsetY,
-                screenWidth - 120,
+                0,
+                0,
+                contentWrapWidth,
                 "Write three to five sentences explaining how a specific development from this scenario is situated within the broader historical context.",
-                15,
+                16,
                 UiPalette.AGED_PARCHMENT_CSS,
             ),
+            10,
         );
-        layoutOffsetY += 50;
         this.contextualizationField = new StudentTextEntryField(
             this,
-            20,
-            layoutOffsetY,
-            screenWidth - 130,
-            96,
+            0,
+            0,
+            contentWrapWidth,
+            104,
             "Write your contextualization paragraph here...",
         );
-        debriefPanel.add(this.contextualizationField.getFieldContainer());
-        const contextualizationScoreLabel = this.add.text(20, layoutOffsetY + 104, "", {
-            fontFamily: FontFamilies.TYPEWRITER_BODY,
-            fontSize: "13px",
-            color: UiPalette.HIGHLIGHT_BRASS_CSS,
-        });
-        debriefPanel.add(contextualizationScoreLabel);
-        debriefPanel.add(
-            UiPanelFactory.createBrassButton(
-                this,
-                screenWidth - 380,
-                layoutOffsetY + 102,
-                240,
-                38,
-                "SAVE CONTEXTUALIZATION",
-                () => {
-                    this.saveContextualizationParagraph(contextualizationScoreLabel);
-                },
-            ),
+        const contextualizationFieldContainer = this.contextualizationField.getFieldContainer();
+        contextualizationFieldContainer.setSize(contentWrapWidth, 104);
+        flowCursor.placeContainer(contentContainer, contextualizationFieldContainer, 6);
+        const contextualizationScoreLabel = UiPanelFactory.createTypewriterText(
+            this,
+            0,
+            0,
+            contentWrapWidth - 260,
+            "",
+            13,
+            UiPalette.HIGHLIGHT_BRASS_CSS,
+        );
+        const contextualizationSaveButton = UiPanelFactory.createBrassButton(
+            this,
+            0,
+            0,
+            240,
+            40,
+            "SAVE CONTEXTUALIZATION",
+            () => {
+                this.saveContextualizationParagraph(contextualizationScoreLabel);
+            },
+        );
+        contextualizationSaveButton.setSize(240, 40);
+        flowCursor.placeContainer(contentContainer, contextualizationSaveButton, 4);
+        flowCursor.placeText(contentContainer, contextualizationScoreLabel, 24);
+
+        UiScrollHelper.enableWheelScrolling(
+            this,
+            panelLeftX,
+            panelTopY,
+            panelWidth,
+            panelHeight,
+            contentContainer,
+            flowCursor.getCurrentY() + 24,
         );
 
         UiPanelFactory.createBrassButton(
@@ -244,12 +278,13 @@ export class DebriefScene extends Phaser.Scene {
         if (achievedScore >= 3) {
             gameSession.getGameState().setScenarioFlag(`contextualization_s${this.scenarioNumber}_scored`);
             scoreLabel.setText(`Saved. Contextualization scored ${achievedScore} of 3. Criterion met.`);
-        } else {
-            scoreLabel.setText(
-                `Saved. Contextualization scored ${achievedScore} of 3. Revise for a stronger connection to context.`,
-            );
+            scoreLabel.setColor(UiPalette.HIGHLIGHT_BRASS_CSS);
+            return;
         }
-        scoreLabel.setColor(achievedScore >= 3 ? UiPalette.HIGHLIGHT_BRASS_CSS : UiPalette.AGED_PARCHMENT_CSS);
+        scoreLabel.setText(
+            `Saved. Contextualization scored ${achievedScore} of 3. Add context and explanation for a stronger score.`,
+        );
+        scoreLabel.setColor(UiPalette.AGED_PARCHMENT_CSS);
     }
 
     private completeDebriefAndRecordResult(): void {
@@ -259,102 +294,154 @@ export class DebriefScene extends Phaser.Scene {
             return;
         }
         gameSession.recordScenarioCompletion(scenarioEvaluationResult);
-        this.renderResultPanel(scenarioEvaluationResult);
+        this.renderResultOverlay(scenarioEvaluationResult);
         gameSession
             .getAudioManager()
             .playMusicTrack(scenarioEvaluationResult.isVictory ? "jingle_victory" : "jingle_defeat", false);
+        if (scenarioEvaluationResult.isVictory) {
+            this.spawnVictoryCelebrationParticles();
+        }
     }
 
-    private renderResultPanel(scenarioEvaluationResult: ScenarioEvaluationResult): void {
+    private renderResultOverlay(scenarioEvaluationResult: ScenarioEvaluationResult): void {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
-        if (this.resultPanelContainer !== null) {
-            this.resultPanelContainer.destroy(true);
+        if (this.resultOverlayContainer !== null) {
+            this.resultOverlayContainer.destroy(true);
         }
-        this.resultPanelContainer = this.add.container(0, 0);
-        this.resultPanelContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
+        this.resultOverlayContainer = this.add.container(0, 0);
+        this.resultOverlayContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
         const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.72).setOrigin(0, 0);
         overlayRectangle.setInteractive();
-        this.resultPanelContainer.add(overlayRectangle);
-        const resultPanelWidth = Math.min(760, screenWidth - 80);
-        const resultPanelHeight = Math.min(560, screenHeight - 120);
+        this.resultOverlayContainer.add(overlayRectangle);
+
+        const resultPanelWidth = Math.min(780, screenWidth - 80);
+        const resultPanelHeight = Math.min(600, screenHeight - 100);
+        const resultPanelLeftX = (screenWidth - resultPanelWidth) / 2;
+        const resultPanelTopY = (screenHeight - resultPanelHeight) / 2;
         const resultPanel = UiPanelFactory.createPanelContainer(
             this,
-            (screenWidth - resultPanelWidth) / 2,
-            (screenHeight - resultPanelHeight) / 2,
+            resultPanelLeftX,
+            resultPanelTopY,
             resultPanelWidth,
             resultPanelHeight,
             scenarioEvaluationResult.isVictory ? PanelVariant.PARCHMENT : PanelVariant.LEATHER,
         );
-        const resultTitle = scenarioEvaluationResult.isVictory
-            ? `SCENARIO ${scenarioEvaluationResult.scenarioNumber} COMPLETE - VICTORY`
-            : `SCENARIO ${scenarioEvaluationResult.scenarioNumber} INCOMPLETE`;
-        resultPanel.add(UiPanelFactory.createSectionHeader(this, 24, 20, resultTitle, 24));
         const resultBodyColorCss = scenarioEvaluationResult.isVictory
             ? UiPalette.NEAR_BLACK_LEATHER_CSS
             : UiPalette.PARCHMENT_CSS;
         resultPanel.add(
+            UiPanelFactory.createSectionHeader(
+                this,
+                28,
+                22,
+                scenarioEvaluationResult.isVictory
+                    ? `SCENARIO ${scenarioEvaluationResult.scenarioNumber} COMPLETE - VICTORY`
+                    : `SCENARIO ${scenarioEvaluationResult.scenarioNumber} INCOMPLETE`,
+                24,
+            ),
+        );
+        resultPanel.add(
             UiPanelFactory.createBodyText(
                 this,
-                24,
-                64,
-                resultPanelWidth - 48,
-                `Score: ${scenarioEvaluationResult.earnedScore} of ${scenarioEvaluationResult.maximumScore} criteria.`,
+                28,
+                62,
+                resultPanelWidth - 56,
+                `Score: ${scenarioEvaluationResult.earnedScore} of ${scenarioEvaluationResult.maximumScore} criteria met.`,
                 18,
                 resultBodyColorCss,
             ),
         );
-        let criteriaOffsetY = 104;
-        resultPanel.add(UiPanelFactory.createSectionHeader(this, 24, criteriaOffsetY, "MET", 16));
-        criteriaOffsetY += 26;
+
+        const criteriaContainer = this.add.container(resultPanelLeftX, resultPanelTopY);
+        const criteriaCursor = new FlowCursor(32, 104);
+        criteriaCursor.placeText(criteriaContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "MET", 16), 8);
         for (const satisfiedCriterion of scenarioEvaluationResult.satisfiedCriteria) {
-            resultPanel.add(
+            criteriaCursor.placeText(
+                criteriaContainer,
                 UiPanelFactory.createBodyText(
                     this,
-                    36,
-                    criteriaOffsetY,
-                    resultPanelWidth - 70,
+                    0,
+                    0,
+                    resultPanelWidth - 80,
                     `+ ${satisfiedCriterion}`,
-                    14,
+                    15,
                     resultBodyColorCss,
                 ),
+                6,
             );
-            criteriaOffsetY += 24;
         }
         if (scenarioEvaluationResult.unmetCriteria.length > 0) {
-            criteriaOffsetY += 10;
-            resultPanel.add(UiPanelFactory.createSectionHeader(this, 24, criteriaOffsetY, "NOT YET MET", 16));
-            criteriaOffsetY += 26;
+            criteriaCursor.addGap(10);
+            criteriaCursor.placeText(
+                criteriaContainer,
+                UiPanelFactory.createSectionHeader(this, 0, 0, "NOT YET MET", 16),
+                8,
+            );
             for (const unmetCriterion of scenarioEvaluationResult.unmetCriteria) {
-                resultPanel.add(
+                criteriaCursor.placeText(
+                    criteriaContainer,
                     UiPanelFactory.createBodyText(
                         this,
-                        36,
-                        criteriaOffsetY,
-                        resultPanelWidth - 70,
+                        0,
+                        0,
+                        resultPanelWidth - 80,
                         `- ${unmetCriterion}`,
-                        14,
+                        15,
                         resultBodyColorCss,
                     ),
+                    6,
                 );
-                criteriaOffsetY += 24;
             }
         }
+        UiScrollHelper.enableWheelScrolling(
+            this,
+            resultPanelLeftX,
+            resultPanelTopY + 90,
+            resultPanelWidth,
+            resultPanelHeight - 170,
+            criteriaContainer,
+            criteriaCursor.getCurrentY() + 24,
+        );
+
+        const buttonRowLeftX = 28;
+        const buttonRowTopY = resultPanelHeight - 70;
         resultPanel.add(
-            UiPanelFactory.createBrassButton(this, 24, resultPanelHeight - 66, 220, 46, "RETURN TO MAP", () => {
+            UiPanelFactory.createBrassButton(this, buttonRowLeftX, buttonRowTopY, 220, 48, "RETURN TO MAP", () => {
                 this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(this.scenarioNumber));
             }),
         );
         resultPanel.add(
-            UiPanelFactory.createBrassButton(this, 260, resultPanelHeight - 66, 220, 46, "CAMPAIGNS", () => {
+            UiPanelFactory.createBrassButton(this, buttonRowLeftX + 240, buttonRowTopY, 220, 48, "CAMPAIGNS", () => {
                 this.scene.start(SceneKeys.CAMPAIGN_SELECTOR);
             }),
         );
         resultPanel.add(
-            UiPanelFactory.createBrassButton(this, 496, resultPanelHeight - 66, 220, 46, "JOURNAL", () => {
+            UiPanelFactory.createBrassButton(this, buttonRowLeftX + 480, buttonRowTopY, 220, 48, "JOURNAL", () => {
                 this.scene.start(SceneKeys.JOURNAL);
             }),
         );
-        this.resultPanelContainer.add(resultPanel);
+        this.resultOverlayContainer.add(resultPanel);
+    }
+
+    private spawnVictoryCelebrationParticles(): void {
+        const particleTextureKey = "asset-status_star_full";
+        if (!this.textures.exists(particleTextureKey)) {
+            return;
+        }
+        const screenWidth = this.scale.width;
+        const screenHeight = this.scale.height;
+        const celebrationEmitter = this.add.particles(screenWidth / 2, screenHeight / 2, particleTextureKey, {
+            speed: { min: 180, max: 420 },
+            angle: { min: 0, max: 360 },
+            gravityY: 320,
+            lifespan: 1600,
+            quantity: 48,
+            scale: { start: 1.4, end: 0.2 },
+            tint: [UiPalette.HIGHLIGHT_BRASS, UiPalette.BRIGHT_BRASS, UiPalette.PARCHMENT, UiPalette.BRIGHT_BLOOD],
+            emitting: false,
+        });
+        celebrationEmitter.setDepth(UiPalette.UI_DEPTH_TOOLTIP);
+        celebrationEmitter.explode(48);
     }
 }
