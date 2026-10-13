@@ -11,6 +11,9 @@ public/assets/midi/
 public/assets/placeholders/
 public/assets/prompts/
 
+# Visual verification artifacts
+.opencode/visual-checks/
+
 # Editor and OS files
 .vscode/
 .idea/
