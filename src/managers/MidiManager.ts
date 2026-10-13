@@ -116,7 +116,10 @@ export class MidiManager {
         const parsedNotes: ParsedMidiNote[] = [];
         let maximumEndTimeSeconds = 0;
 
-        while (byteOffset < headerEndOffset + this.computeRemainingFileLength(headerEndOffset, dataView) && byteOffset + 8 <= dataView.byteLength) {
+        while (
+            byteOffset < headerEndOffset + this.computeRemainingFileLength(headerEndOffset, dataView) &&
+            byteOffset + 8 <= dataView.byteLength
+        ) {
             const trackChunkIdentifier = this.readAsciiText(dataView, byteOffset, 4);
             byteOffset += 4;
             const trackLength = dataView.getUint32(byteOffset);
@@ -140,7 +143,8 @@ export class MidiManager {
                 const deltaTimeResult = this.readVariableLengthQuantity(dataView, byteOffset);
                 byteOffset = deltaTimeResult.nextOffset;
                 absoluteTickPosition += deltaTimeResult.value;
-                currentTimeSeconds = (absoluteTickPosition / ticksPerQuarterNote) * (runningTempoMicrosecondsPerQuarter / 1000000);
+                currentTimeSeconds =
+                    (absoluteTickPosition / ticksPerQuarterNote) * (runningTempoMicrosecondsPerQuarter / 1000000);
 
                 let statusByte = dataView.getUint8(byteOffset);
                 if (statusByte >= 0x80) {
@@ -157,7 +161,9 @@ export class MidiManager {
                     byteOffset = metaLengthResult.nextOffset;
                     if (metaType === 0x51 && metaLengthResult.value === 3) {
                         runningTempoMicrosecondsPerQuarter =
-                            (dataView.getUint8(byteOffset) << 16) | (dataView.getUint8(byteOffset + 1) << 8) | dataView.getUint8(byteOffset + 2);
+                            (dataView.getUint8(byteOffset) << 16) |
+                            (dataView.getUint8(byteOffset + 1) << 8) |
+                            dataView.getUint8(byteOffset + 2);
                     }
                     byteOffset += metaLengthResult.value;
                     continue;
@@ -185,7 +191,10 @@ export class MidiManager {
                     } else {
                         const pendingNote = pendingNotesByChannelAndNote.get(pendingNoteKey);
                         if (pendingNote !== undefined) {
-                            const noteDurationSeconds = Math.max(0.05, currentTimeSeconds - pendingNote.startTimeSeconds);
+                            const noteDurationSeconds = Math.max(
+                                0.05,
+                                currentTimeSeconds - pendingNote.startTimeSeconds,
+                            );
                             parsedNotes.push(
                                 new ParsedMidiNote(
                                     pendingNote.startTimeSeconds,
@@ -220,7 +229,12 @@ export class MidiManager {
         }
 
         parsedNotes.sort((firstNote, secondNote) => firstNote.startTimeSeconds - secondNote.startTimeSeconds);
-        return new ParsedMidiSequence(sequenceIdentifier, parsedNotes, Math.max(1, maximumEndTimeSeconds), runningTempoMicrosecondsPerQuarter);
+        return new ParsedMidiSequence(
+            sequenceIdentifier,
+            parsedNotes,
+            Math.max(1, maximumEndTimeSeconds),
+            runningTempoMicrosecondsPerQuarter,
+        );
     }
 
     public playSequence(parsedSequence: ParsedMidiSequence, shouldLoop: boolean, volumeLevel: number): void {
@@ -282,7 +296,10 @@ export class MidiManager {
 
         for (const parsedNote of this.currentSequence.notes) {
             const absoluteStartSeconds = this.currentSequenceStartTime + parsedNote.startTimeSeconds;
-            if (absoluteStartSeconds < this.currentSequenceScheduledUntil || absoluteStartSeconds > scheduleUntilSeconds) {
+            if (
+                absoluteStartSeconds < this.currentSequenceScheduledUntil ||
+                absoluteStartSeconds > scheduleUntilSeconds
+            ) {
                 continue;
             }
             this.scheduleSingleNote(parsedNote, absoluteStartSeconds);
