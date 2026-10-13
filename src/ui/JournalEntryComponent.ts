@@ -46,12 +46,12 @@ export class JournalEntryComponent extends Phaser.GameObjects.Container {
         });
         const panelHeightPx =
             JournalEntryComponent.PANEL_PADDING_PX +
-            headerTextObject.height +
+            headerTextObject.displayHeight +
             10 +
-            promptTextObject.height +
+            promptTextObject.displayHeight +
             14 +
             10 +
-            responseTextObject.height +
+            responseTextObject.displayHeight +
             JournalEntryComponent.PANEL_PADDING_PX;
 
         const contentContainer = scene.add.container(0, 0);
@@ -62,10 +62,10 @@ export class JournalEntryComponent extends Phaser.GameObjects.Container {
         let contentY = JournalEntryComponent.PANEL_PADDING_PX;
         headerTextObject.setPosition(JournalEntryComponent.PANEL_PADDING_PX, contentY);
         contentContainer.add(headerTextObject);
-        contentY += headerTextObject.height + 10;
+        contentY += headerTextObject.displayHeight + 10;
         promptTextObject.setPosition(JournalEntryComponent.PANEL_PADDING_PX, contentY);
         contentContainer.add(promptTextObject);
-        contentY += promptTextObject.height + 14;
+        contentY += promptTextObject.displayHeight + 14;
 
         const dividerGraphics = scene.add.graphics();
         dividerGraphics.lineStyle(1, UiPalette.DEEP_BRASS, 0.8);
