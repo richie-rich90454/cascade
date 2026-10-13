@@ -48,7 +48,7 @@ export class SocraticSeminarComponent extends Phaser.GameObjects.Container {
             14,
         );
         this.add(descriptionTextObject);
-        let cursorY = 48 + descriptionTextObject.height + 14;
+        let cursorY = 48 + descriptionTextObject.displayHeight + 14;
         for (let questionIndex = 0; questionIndex < rubric.guidingQuestions.length; questionIndex++) {
             const questionTextObject = this.scene.add.text(
                 16,
@@ -63,7 +63,7 @@ export class SocraticSeminarComponent extends Phaser.GameObjects.Container {
                 },
             );
             this.add(questionTextObject);
-            const fieldTopY = cursorY + questionTextObject.height + 6;
+            const fieldTopY = cursorY + questionTextObject.displayHeight + 6;
             const responseField = new StudentTextEntryField(this.scene, 16, fieldTopY, this.panelWidth - 32, 96);
             this.responseFields.push(responseField);
             this.add(responseField.getFieldContainer());
