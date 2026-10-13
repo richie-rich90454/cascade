@@ -337,6 +337,8 @@ export abstract class Scenario extends GameSystem {
 
     public abstract getArgumentDefinition(): ArgumentDefinition | null;
 
+    public abstract getRelationshipPromptTexts(): string[];
+
     public abstract getTestimonyRecords(): TestimonyRecord[];
 
     public abstract getDebriefQuestionPrompts(): string[];
