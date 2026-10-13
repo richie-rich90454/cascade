@@ -188,7 +188,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const contentLeftX = 140;
         const contentRightX = screenWidth - 344;
         const contentWidth = Math.max(360, contentRightX - contentLeftX);
-        const phaseCardHeight = this.phaseIndex === 2 ? 380 : 216;
+        const phaseCardHeight = 216;
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
         const rightColumnHeight = rightColumnBottomY - rightColumnTopY;
@@ -295,17 +295,24 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.applyMapMode(this.activeMapModeCode);
     }
 
+    private pinUiObjectToCamera(uiObject: Phaser.GameObjects.Container | Phaser.GameObjects.Zone): void {
+        uiObject.setScrollFactor(0, 0, true);
+    }
+
     private renderPersistentChrome(): void {
         const gameSession = GameSession.getInstance();
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
         const layoutRects = this.getLayoutRects();
         this.topBarComponent = new TopBarComponent(this, 0, 0, screenWidth, gameSession.getGameState());
+        this.pinUiObjectToCamera(this.topBarComponent);
         const scenarioHeaderComponent = new ScenarioHeaderComponent(this, 8, 52, 560);
+        this.pinUiObjectToCamera(scenarioHeaderComponent);
         if (this.scenario !== null) {
             scenarioHeaderComponent.setScenario(this.scenario);
         }
-        new LeftSidebarComponent(this, 0, 96, screenHeight - 160, this.activeMapModeCode);
+        const leftSidebarComponent = new LeftSidebarComponent(this, 0, 140, screenHeight - 204, this.activeMapModeCode);
+        this.pinUiObjectToCamera(leftSidebarComponent);
         this.questTrackerComponent = new QuestTrackerComponent(
             this,
             layoutRects.questTracker.leftX,
@@ -316,6 +323,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 this.openMechanicByKey(mechanicKey);
             },
         );
+        this.pinUiObjectToCamera(this.questTrackerComponent);
         this.rightSidebarComponent = new RightSidebarComponent(
             this,
             layoutRects.contextPanel.leftX,
@@ -323,8 +331,20 @@ export class ScenarioPlayScene extends Phaser.Scene {
             layoutRects.contextPanel.width,
             layoutRects.contextPanel.height,
         );
+        this.pinUiObjectToCamera(this.rightSidebarComponent);
         this.rightSidebarComponent.setContentToEmptyPrompt();
+        const contextPanelBlockingZone = this.add.zone(
+            layoutRects.contextPanel.leftX,
+            layoutRects.contextPanel.topY,
+            layoutRects.contextPanel.width,
+            layoutRects.contextPanel.height,
+        );
+        contextPanelBlockingZone.setOrigin(0, 0);
+        contextPanelBlockingZone.setInteractive();
+        contextPanelBlockingZone.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
+        this.pinUiObjectToCamera(contextPanelBlockingZone);
         this.bottomBarComponent = new BottomBarComponent(this, 0, screenHeight - 56, screenWidth, 56);
+        this.pinUiObjectToCamera(this.bottomBarComponent);
         this.bottomBarComponent.setTurnDisplay(gameSession.getCurrentTurnNumber(), gameSession.getTotalTurnCount());
         this.bottomBarComponent.setPhaseDisplay(TurnPhaseLabel.PHASE_LABELS[this.phaseIndex]);
         this.refreshQuestTracker();
@@ -349,6 +369,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
         this.phaseCardContainer = this.add.container(layoutRects.phaseCard.leftX, layoutRects.phaseCard.topY);
         this.phaseCardContainer.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
+        this.pinUiObjectToCamera(this.phaseCardContainer);
         const phasePanel = UiPanelFactory.createPanelContainer(
             this,
             0,
@@ -461,9 +482,17 @@ export class ScenarioPlayScene extends Phaser.Scene {
             ),
         );
         phasePanel.add(
-            UiPanelFactory.createBrassButton(this, 20, 116, 260, 44, "OPEN SOURCE ANALYSIS", () => {
-                this.scene.start(SceneKeys.SOURCE_ANALYSIS, new ScenarioSelectionPayload(this.scenarioNumber));
-            }),
+            UiPanelFactory.createBrassButton(
+                this,
+                20,
+                phaseCardRect.height - 58,
+                260,
+                44,
+                "OPEN SOURCE ANALYSIS",
+                () => {
+                    this.scene.start(SceneKeys.SOURCE_ANALYSIS, new ScenarioSelectionPayload(this.scenarioNumber));
+                },
+            ),
         );
     }
 
@@ -479,23 +508,48 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     this,
                     20,
                     82,
-                    phaseCardRect.width - 40,
+                    phaseCardRect.width - 220,
                     "Every decision for this scenario has been made. Use the progress checklist to finish the remaining objectives.",
-                    16,
+                    15,
                     UiPalette.PARCHMENT_CSS,
                 ),
             );
             return;
         }
-        const decisionPanelComponent = new DecisionPanelComponent(
-            this,
-            12,
-            78,
-            phaseCardRect.width - 24,
-            phaseCardRect.height - 150,
+        phasePanel.add(
+            UiPanelFactory.createBodyText(
+                this,
+                20,
+                82,
+                phaseCardRect.width - 220,
+                pendingDecision.decisionTitle,
+                17,
+                UiPalette.PARCHMENT_CSS,
+            ),
         );
-        decisionPanelComponent.setDecision(pendingDecision, gameState);
-        phasePanel.add(decisionPanelComponent);
+        phasePanel.add(
+            UiPanelFactory.createBrassButton(this, 20, phaseCardRect.height - 58, 260, 44, "OPEN DECISION", () => {
+                this.openDecisionOverlay(pendingDecision);
+            }),
+        );
+    }
+
+    private openDecisionOverlay(decisionRecord: DecisionRecord): void {
+        const gameState = GameSession.getInstance().getGameState();
+        this.openMechanicOverlay(
+            `DECISION: ${decisionRecord.decisionTitle.toUpperCase()}`,
+            (overlayPanel, panelWidth, panelHeight) => {
+                const decisionPanelComponent = new DecisionPanelComponent(
+                    this,
+                    12,
+                    50,
+                    panelWidth - 24,
+                    panelHeight - 80,
+                );
+                decisionPanelComponent.setDecision(decisionRecord, gameState);
+                overlayPanel.add(decisionPanelComponent);
+            },
+        );
     }
 
     private findNextPendingDecision(gameState: ReturnType<GameSession["getGameState"]>): DecisionRecord | null {
@@ -566,7 +620,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
         phasePanel.add(UiPanelFactory.createSectionHeader(this, 20, 78, matchingEventRecord.headline, 17));
         phasePanel.add(
-            UiPanelFactory.createBrassButton(this, 20, 116, 260, 44, "READ THE DISPATCH", () => {
+            UiPanelFactory.createBrassButton(this, 20, phaseCardRect.height - 58, 260, 44, "READ THE DISPATCH", () => {
                 this.showNewspaperForEventRecord(
                     matchingEventRecord.headline,
                     matchingEventRecord.nationCode,
@@ -589,7 +643,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             ),
         );
         phasePanel.add(
-            UiPanelFactory.createBrassButton(this, 20, 132, 260, 44, "OPEN DEBRIEF", () => {
+            UiPanelFactory.createBrassButton(this, 20, phaseCardRect.height - 58, 260, 44, "OPEN DEBRIEF", () => {
                 this.scene.start(SceneKeys.DEBRIEF, new ScenarioSelectionPayload(this.scenarioNumber));
             }),
         );
@@ -614,7 +668,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             ),
         );
         phasePanel.add(
-            UiPanelFactory.createBrassButton(this, 20, 136, 260, 44, "WRITE IN JOURNAL", () => {
+            UiPanelFactory.createBrassButton(this, 20, phaseCardRect.height - 58, 260, 44, "WRITE IN JOURNAL", () => {
                 this.scene.start(SceneKeys.JOURNAL);
             }),
         );
@@ -956,6 +1010,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenHeight = this.scale.height;
         this.mechanicOverlayContainer = this.add.container(0, 0);
         this.mechanicOverlayContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
+        this.pinUiObjectToCamera(this.mechanicOverlayContainer);
         const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.72).setOrigin(0, 0);
         overlayRectangle.setInteractive();
         this.mechanicOverlayContainer.add(overlayRectangle);
@@ -1326,6 +1381,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const toastWidthPx = Math.min(screenWidth - 80, 560);
         this.toastContainer = this.add.container(screenWidth / 2 - toastWidthPx / 2, 64);
         this.toastContainer.setDepth(UiPalette.UI_DEPTH_TOOLTIP);
+        this.pinUiObjectToCamera(this.toastContainer);
         const toastBackground = this.add.graphics();
         toastBackground.fillStyle(UiPalette.PARCHMENT, 0.97);
         toastBackground.fillRect(0, 0, toastWidthPx, 46);
@@ -1383,6 +1439,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenHeight = this.scale.height;
         const overlayContainer = this.add.container(0, 0);
         overlayContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
+        this.pinUiObjectToCamera(overlayContainer);
         const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.78).setOrigin(0, 0);
         overlayRectangle.setInteractive();
         overlayContainer.add(overlayRectangle);
@@ -1514,6 +1571,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
             const decisionMadePayload = payload as DecisionMadePayload;
             this.lastConsequenceText = `Decision recorded: ${decisionMadePayload.chosenOptionIdentifier}. The consequence is shown in the resolution phase.`;
             GameSession.getInstance().getAudioManager().playSoundEffect("sfx_diplomacy");
+            this.closeMechanicOverlay();
+            this.renderPhaseCard();
             this.showToast("Decision recorded. Progress updated.");
             this.refreshQuestTracker();
         };
