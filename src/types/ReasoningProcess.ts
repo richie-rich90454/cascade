@@ -17,6 +17,12 @@ export class ReasoningProcess {
         "Identify patterns of continuity and change over time, and explain the significance of those patterns.",
         "ui_badge_continuity",
     );
+    public static readonly CONTEXTUALIZATION = new ReasoningProcess(
+        "contextualization",
+        "Contextualization",
+        "Explain how a specific historical development or process is situated within a broader historical context.",
+        "ui_badge_context",
+    );
 
     private readonly reasoningProcessCode: string;
     private readonly reasoningProcessDisplayName: string;
@@ -52,7 +58,12 @@ export class ReasoningProcess {
     }
 
     public static getAllReasoningProcesses(): ReasoningProcess[] {
-        return [ReasoningProcess.CAUSATION, ReasoningProcess.COMPARISON, ReasoningProcess.CONTINUITY_AND_CHANGE];
+        return [
+            ReasoningProcess.CAUSATION,
+            ReasoningProcess.COMPARISON,
+            ReasoningProcess.CONTINUITY_AND_CHANGE,
+            ReasoningProcess.CONTEXTUALIZATION,
+        ];
     }
 
     public static findByReasoningProcessCode(reasoningProcessCode: string): ReasoningProcess | null {
