@@ -18,7 +18,8 @@
         "assets:prompts": "tsx .opencode/tools/WriteAssetPrompt.ts",
         "assets:verify": "tsx .opencode/tools/VerifyAssets.ts",
         "assets:sync": "tsx .opencode/tools/SyncManifest.ts",
-        "generate:assets": "npm run generate:svg && npm run generate:midi && npm run assets:placeholders && npm run assets:sync"
+        "generate:assets": "pnpm run generate:svg && pnpm run generate:midi && pnpm run assets:placeholders && pnpm run assets:sync",
+    "selfcheck": "tsx src/selfcheck/GameLogicSelfCheck.ts"
     },
     "dependencies": {
         "phaser": "^4.2.1"
