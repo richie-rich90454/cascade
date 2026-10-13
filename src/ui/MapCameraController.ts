@@ -4,15 +4,17 @@ import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { UiPointerRouting } from "./UiPointerRouting";
 
 export class MapCameraController {
-    private static readonly RELATIVE_MINIMUM_ZOOM = 0.75;
-    private static readonly RELATIVE_MAXIMUM_ZOOM = 2.5;
-    private static readonly RELATIVE_ZOOM_STEP = 0.12;
+    private static readonly RELATIVE_MINIMUM_SCALE = 0.75;
+    private static readonly RELATIVE_MAXIMUM_SCALE = 2.5;
+    private static readonly SCALE_STEP_FACTOR = 1.1;
     private static readonly FOCUS_TWEEN_DURATION_MS = 450;
 
     private readonly scene: Phaser.Scene;
     private readonly mapPixelWidth: number;
     private readonly mapPixelHeight: number;
 
+    private targetContainer: Phaser.GameObjects.Container | null;
+    private mapScaleValue: number;
     private hasPanningEnabled: boolean;
     private hasZoomEnabled: boolean;
     private focusTween: Phaser.Tweens.Tween | null;
@@ -31,11 +33,17 @@ export class MapCameraController {
         this.scene = scene;
         this.mapPixelWidth = mapPixelWidth;
         this.mapPixelHeight = mapPixelHeight;
+        this.targetContainer = null;
+        this.mapScaleValue = 1;
         this.hasPanningEnabled = false;
         this.hasZoomEnabled = false;
         this.focusTween = null;
         this.panMoveHandler = null;
         this.zoomWheelHandler = null;
+    }
+
+    public setTargetContainer(targetContainer: Phaser.GameObjects.Container): void {
+        this.targetContainer = targetContainer;
     }
 
     public enablePanning(): void {
@@ -44,7 +52,7 @@ export class MapCameraController {
         }
         this.hasPanningEnabled = true;
         this.panMoveHandler = (pointer: Phaser.Input.Pointer) => {
-            if (!pointer.isDown) {
+            if (!pointer.isDown || this.targetContainer === null) {
                 return;
             }
             const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
@@ -53,9 +61,9 @@ export class MapCameraController {
                 return;
             }
             this.cancelFocusTween();
-            const camera = this.scene.cameras.main;
-            camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom;
-            camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom;
+            const devicePixelRatioValue = HighDpiConfigurator.getInstance().getDevicePixelRatio();
+            this.targetContainer.x += (pointer.x - pointer.prevPosition.x) / devicePixelRatioValue;
+            this.targetContainer.y += (pointer.y - pointer.prevPosition.y) / devicePixelRatioValue;
         };
         this.scene.input.on("pointermove", this.panMoveHandler);
         this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -78,27 +86,31 @@ export class MapCameraController {
             deltaY: number,
             _deltaZ: number,
         ) => {
+            if (this.targetContainer === null) {
+                return;
+            }
             const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
             const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
             if (UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)) {
                 return;
             }
             this.cancelFocusTween();
-            const camera = this.scene.cameras.main;
-            const zoomDirection = deltaY > 0 ? -1 : 1;
-            const targetZoomValue = Phaser.Math.Clamp(
-                camera.zoom + zoomDirection * this.getBaseZoomValue() * MapCameraController.RELATIVE_ZOOM_STEP,
-                this.getMinimumZoomValue(),
-                this.getMaximumZoomValue(),
+            const scaleFactor =
+                deltaY > 0 ? 1 / MapCameraController.SCALE_STEP_FACTOR : MapCameraController.SCALE_STEP_FACTOR;
+            const targetScaleValue = Phaser.Math.Clamp(
+                this.mapScaleValue * scaleFactor,
+                MapCameraController.RELATIVE_MINIMUM_SCALE,
+                MapCameraController.RELATIVE_MAXIMUM_SCALE,
             );
-            if (targetZoomValue === camera.zoom) {
+            if (targetScaleValue === this.mapScaleValue) {
                 return;
             }
-            const worldPointBeforeZoom = camera.getWorldPoint(pointer.x, pointer.y);
-            camera.setZoom(targetZoomValue);
-            const worldPointAfterZoom = camera.getWorldPoint(pointer.x, pointer.y);
-            camera.scrollX += worldPointBeforeZoom.x - worldPointAfterZoom.x;
-            camera.scrollY += worldPointBeforeZoom.y - worldPointAfterZoom.y;
+            const worldPointBeforeScale = this.convertViewPointToMapPoint(pointerCssX, pointerCssY);
+            this.mapScaleValue = targetScaleValue;
+            this.targetContainer.setScale(this.mapScaleValue);
+            const worldPointAfterScale = this.convertViewPointToMapPoint(pointerCssX, pointerCssY);
+            this.targetContainer.x += (worldPointAfterScale.x - worldPointBeforeScale.x) * this.mapScaleValue;
+            this.targetContainer.y += (worldPointAfterScale.y - worldPointBeforeScale.y) * this.mapScaleValue;
         };
         this.scene.input.on("wheel", this.zoomWheelHandler);
         this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -109,29 +121,37 @@ export class MapCameraController {
         });
     }
 
-    public focusOnPoint(worldX: number, worldY: number, relativeZoomValue: number): void {
+    public focusOnPoint(mapPointX: number, mapPointY: number, relativeScaleValue: number): void {
+        if (this.targetContainer === null) {
+            return;
+        }
         this.cancelFocusTween();
-        const camera = this.scene.cameras.main;
-        const clampedZoomValue = Phaser.Math.Clamp(
-            relativeZoomValue * this.getBaseZoomValue(),
-            this.getMinimumZoomValue(),
-            this.getMaximumZoomValue(),
+        const targetScaleValue = Phaser.Math.Clamp(
+            relativeScaleValue,
+            MapCameraController.RELATIVE_MINIMUM_SCALE,
+            MapCameraController.RELATIVE_MAXIMUM_SCALE,
         );
+        const viewportCenterX = this.scene.scale.width / 2;
+        const viewportCenterY = this.scene.scale.height / 2;
         const tweenState = {
-            zoomValue: camera.zoom,
-            centerX: camera.scrollX + camera.width / 2,
-            centerY: camera.scrollY + camera.height / 2,
+            scaleValue: this.mapScaleValue,
+            containerX: this.targetContainer.x,
+            containerY: this.targetContainer.y,
         };
         this.focusTween = this.scene.tweens.add({
             targets: tweenState,
-            zoomValue: clampedZoomValue,
-            centerX: worldX,
-            centerY: worldY,
+            scaleValue: targetScaleValue,
+            containerX: viewportCenterX - mapPointX * targetScaleValue,
+            containerY: viewportCenterY - mapPointY * targetScaleValue,
             duration: MapCameraController.FOCUS_TWEEN_DURATION_MS,
             ease: "Sine.easeInOut",
             onUpdate: () => {
-                camera.setZoom(tweenState.zoomValue);
-                camera.centerOn(tweenState.centerX, tweenState.centerY);
+                if (this.targetContainer === null) {
+                    return;
+                }
+                this.mapScaleValue = tweenState.scaleValue;
+                this.targetContainer.setScale(tweenState.scaleValue);
+                this.targetContainer.setPosition(tweenState.containerX, tweenState.containerY);
             },
             onComplete: () => {
                 this.focusTween = null;
@@ -140,23 +160,33 @@ export class MapCameraController {
     }
 
     public update(): void {
-        const camera = this.scene.cameras.main;
-        const viewWorldWidth = camera.width / camera.zoom;
-        const viewWorldHeight = camera.height / camera.zoom;
-        camera.scrollX = Phaser.Math.Clamp(camera.scrollX, 0, Math.max(0, this.mapPixelWidth - viewWorldWidth));
-        camera.scrollY = Phaser.Math.Clamp(camera.scrollY, 0, Math.max(0, this.mapPixelHeight - viewWorldHeight));
+        if (this.targetContainer === null) {
+            return;
+        }
+        const viewportWidth = this.scene.scale.width;
+        const viewportHeight = this.scene.scale.height;
+        const scaledMapWidth = this.mapPixelWidth * this.mapScaleValue;
+        const scaledMapHeight = this.mapPixelHeight * this.mapScaleValue;
+        if (scaledMapWidth <= viewportWidth) {
+            this.targetContainer.x = (viewportWidth - scaledMapWidth) / 2;
+        } else {
+            this.targetContainer.x = Phaser.Math.Clamp(this.targetContainer.x, viewportWidth - scaledMapWidth, 0);
+        }
+        if (scaledMapHeight <= viewportHeight) {
+            this.targetContainer.y = Math.max(64, (viewportHeight - scaledMapHeight) / 2);
+        } else {
+            this.targetContainer.y = Phaser.Math.Clamp(this.targetContainer.y, viewportHeight - scaledMapHeight, 64);
+        }
     }
 
-    private getBaseZoomValue(): number {
-        return HighDpiConfigurator.getInstance().getDevicePixelRatio();
-    }
-
-    private getMinimumZoomValue(): number {
-        return this.getBaseZoomValue() * MapCameraController.RELATIVE_MINIMUM_ZOOM;
-    }
-
-    private getMaximumZoomValue(): number {
-        return this.getBaseZoomValue() * MapCameraController.RELATIVE_MAXIMUM_ZOOM;
+    private convertViewPointToMapPoint(viewPointX: number, viewPointY: number): { x: number; y: number } {
+        if (this.targetContainer === null) {
+            return { x: 0, y: 0 };
+        }
+        return {
+            x: (viewPointX - this.targetContainer.x) / this.mapScaleValue,
+            y: (viewPointY - this.targetContainer.y) / this.mapScaleValue,
+        };
     }
 
     private cancelFocusTween(): void {
