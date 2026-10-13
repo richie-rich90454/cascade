@@ -3,7 +3,7 @@ import { PrimarySource } from "../PrimarySource";
 export class PrimarySourceScenarioSevenLibrary {
     public static readonly CHURCHILL_BLOOD_TOIL_TEARS_AND_SWEAT = new PrimarySource(
         "churchill_blood_toil_tears_and_sweat",
-        "\"Blood, Toil, Tears and Sweat\" - First Speech as Prime Minister",
+        '"Blood, Toil, Tears and Sweat" - First Speech as Prime Minister',
         "Winston Churchill",
         "May 13, 1940",
         "british_empire",
@@ -27,7 +27,7 @@ export class PrimarySourceScenarioSevenLibrary {
 
     public static readonly ROOSEVELT_ARSENAL_OF_DEMOCRACY = new PrimarySource(
         "roosevelt_arsenal_of_democracy_1940",
-        "\"Arsenal of Democracy\" Fireside Chat",
+        '"Arsenal of Democracy" Fireside Chat',
         "President Franklin D. Roosevelt",
         "December 29, 1940",
         "united_states",
@@ -40,7 +40,7 @@ export class PrimarySourceScenarioSevenLibrary {
         "Roosevelt frames aid as a means of staying out of the war; the speech is persuasion, not a promise, and understates the drift toward actual American belligerency.",
         "Roosevelt's fireside chat most directly reflects which aspect of how the United States conducted the early war?",
         [
-            "American industrial mobilization as the \"arsenal of democracy\" supplying the Allies before formal entry.",
+            'American industrial mobilization as the "arsenal of democracy" supplying the Allies before formal entry.',
             "The immediate dispatch of American ground divisions to France.",
             "The abandonment of free trade in favor of autarky.",
             "The refusal of all aid to Britain under neutrality law.",
@@ -51,7 +51,7 @@ export class PrimarySourceScenarioSevenLibrary {
 
     public static readonly GOEBBELS_TOTAL_WAR_SPORTPALAST = new PrimarySource(
         "goebbels_total_war_sportpalast_1943",
-        "\"Total War\" Sportpalast Speech",
+        '"Total War" Sportpalast Speech',
         "Joseph Goebbels, Reich Minister of Propaganda",
         "February 18, 1943",
         "german_empire",
