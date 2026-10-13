@@ -46,6 +46,7 @@ import { TestimonyPanelComponent } from "../ui/TestimonyPanelComponent";
 import { TopBarComponent } from "../ui/TopBarComponent";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { ScrollRegion, UiPointerRouting } from "../ui/UiPointerRouting";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 class TurnPhaseLabel {
@@ -100,6 +101,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private topBarComponent: TopBarComponent | null;
     private mapCameraController: MapCameraController | null;
     private activeMapModeCode: string;
+    private registeredPointerRegions: ScrollRegion[];
+    private phaseCardPointerRegion: ScrollRegion | null;
     private boundNewspaperHandler: (payload: unknown) => void;
     private boundTelegramHandler: (payload: unknown) => void;
     private boundNavigationHandler: (payload: unknown) => void;
@@ -124,6 +127,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.topBarComponent = null;
         this.mapCameraController = null;
         this.activeMapModeCode = MapModeOption.POLITICAL.getMapModeCode();
+        this.registeredPointerRegions = [];
+        this.phaseCardPointerRegion = null;
         this.boundNewspaperHandler = () => undefined;
         this.boundTelegramHandler = () => undefined;
         this.boundNavigationHandler = () => undefined;
@@ -147,6 +152,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Rectangle>();
         this.mechanicOverlayContainer = null;
         this.phaseCardContainer = null;
+        this.phaseCardPointerRegion = null;
     }
 
     public create(): void {
@@ -289,14 +295,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const mapPixelWidth = 24 * tilePixelSize;
         const mapPixelHeight = 15 * tilePixelSize;
         this.mapCameraController = new MapCameraController(this, mapPixelWidth, mapPixelHeight);
+        this.mapCameraController.setTargetContainer(mapContainer);
         this.mapCameraController.enablePanning();
         this.mapCameraController.enableZoom();
-        this.cameras.main.setBounds(0, 0, mapPixelWidth, Math.max(mapPixelHeight, this.scale.height));
+        this.mapCameraController.update();
         this.applyMapMode(this.activeMapModeCode);
-    }
-
-    private pinUiObjectToCamera(uiObject: Phaser.GameObjects.Container | Phaser.GameObjects.Zone): void {
-        uiObject.setScrollFactor(0, 0, true);
     }
 
     private renderPersistentChrome(): void {
@@ -305,14 +308,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenHeight = this.scale.height;
         const layoutRects = this.getLayoutRects();
         this.topBarComponent = new TopBarComponent(this, 0, 0, screenWidth, gameSession.getGameState());
-        this.pinUiObjectToCamera(this.topBarComponent);
         const scenarioHeaderComponent = new ScenarioHeaderComponent(this, 8, 52, 560);
-        this.pinUiObjectToCamera(scenarioHeaderComponent);
         if (this.scenario !== null) {
             scenarioHeaderComponent.setScenario(this.scenario);
         }
-        const leftSidebarComponent = new LeftSidebarComponent(this, 0, 140, screenHeight - 204, this.activeMapModeCode);
-        this.pinUiObjectToCamera(leftSidebarComponent);
+        new LeftSidebarComponent(this, 0, 196, screenHeight - 260, this.activeMapModeCode);
         this.questTrackerComponent = new QuestTrackerComponent(
             this,
             layoutRects.questTracker.leftX,
@@ -323,7 +323,6 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 this.openMechanicByKey(mechanicKey);
             },
         );
-        this.pinUiObjectToCamera(this.questTrackerComponent);
         this.rightSidebarComponent = new RightSidebarComponent(
             this,
             layoutRects.contextPanel.leftX,
@@ -331,8 +330,15 @@ export class ScenarioPlayScene extends Phaser.Scene {
             layoutRects.contextPanel.width,
             layoutRects.contextPanel.height,
         );
-        this.pinUiObjectToCamera(this.rightSidebarComponent);
         this.rightSidebarComponent.setContentToEmptyPrompt();
+        this.registerPointerRegion(
+            new ScrollRegion(
+                layoutRects.contextPanel.leftX,
+                layoutRects.contextPanel.topY,
+                layoutRects.contextPanel.width,
+                layoutRects.contextPanel.height,
+            ),
+        );
         const contextPanelBlockingZone = this.add.zone(
             layoutRects.contextPanel.leftX,
             layoutRects.contextPanel.topY,
@@ -342,12 +348,15 @@ export class ScenarioPlayScene extends Phaser.Scene {
         contextPanelBlockingZone.setOrigin(0, 0);
         contextPanelBlockingZone.setInteractive();
         contextPanelBlockingZone.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
-        this.pinUiObjectToCamera(contextPanelBlockingZone);
         this.bottomBarComponent = new BottomBarComponent(this, 0, screenHeight - 56, screenWidth, 56);
-        this.pinUiObjectToCamera(this.bottomBarComponent);
         this.bottomBarComponent.setTurnDisplay(gameSession.getCurrentTurnNumber(), gameSession.getTotalTurnCount());
         this.bottomBarComponent.setPhaseDisplay(TurnPhaseLabel.PHASE_LABELS[this.phaseIndex]);
         this.refreshQuestTracker();
+    }
+
+    private registerPointerRegion(scrollRegion: ScrollRegion): void {
+        UiPointerRouting.registerScrollRegion(scrollRegion);
+        this.registeredPointerRegions.push(scrollRegion);
     }
 
     private refreshQuestTracker(): void {
@@ -367,9 +376,19 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (this.phaseCardContainer !== null) {
             this.phaseCardContainer.destroy(true);
         }
+        if (this.phaseCardPointerRegion !== null) {
+            UiPointerRouting.unregisterScrollRegion(this.phaseCardPointerRegion);
+            this.phaseCardPointerRegion = null;
+        }
+        this.phaseCardPointerRegion = new ScrollRegion(
+            layoutRects.phaseCard.leftX,
+            layoutRects.phaseCard.topY,
+            layoutRects.phaseCard.width,
+            layoutRects.phaseCard.height,
+        );
+        UiPointerRouting.registerScrollRegion(this.phaseCardPointerRegion);
         this.phaseCardContainer = this.add.container(layoutRects.phaseCard.leftX, layoutRects.phaseCard.topY);
         this.phaseCardContainer.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
-        this.pinUiObjectToCamera(this.phaseCardContainer);
         const phasePanel = UiPanelFactory.createPanelContainer(
             this,
             0,
@@ -1010,7 +1029,6 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenHeight = this.scale.height;
         this.mechanicOverlayContainer = this.add.container(0, 0);
         this.mechanicOverlayContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
-        this.pinUiObjectToCamera(this.mechanicOverlayContainer);
         const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.72).setOrigin(0, 0);
         overlayRectangle.setInteractive();
         this.mechanicOverlayContainer.add(overlayRectangle);
@@ -1381,7 +1399,6 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const toastWidthPx = Math.min(screenWidth - 80, 560);
         this.toastContainer = this.add.container(screenWidth / 2 - toastWidthPx / 2, 64);
         this.toastContainer.setDepth(UiPalette.UI_DEPTH_TOOLTIP);
-        this.pinUiObjectToCamera(this.toastContainer);
         const toastBackground = this.add.graphics();
         toastBackground.fillStyle(UiPalette.PARCHMENT, 0.97);
         toastBackground.fillRect(0, 0, toastWidthPx, 46);
@@ -1439,7 +1456,6 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenHeight = this.scale.height;
         const overlayContainer = this.add.container(0, 0);
         overlayContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
-        this.pinUiObjectToCamera(overlayContainer);
         const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.78).setOrigin(0, 0);
         overlayRectangle.setInteractive();
         overlayContainer.add(overlayRectangle);
@@ -1615,6 +1631,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
     }
 
     private unsubscribeFromGameEvents(): void {
+        for (const registeredPointerRegion of this.registeredPointerRegions) {
+            UiPointerRouting.unregisterScrollRegion(registeredPointerRegion);
+        }
+        this.registeredPointerRegions = [];
+        if (this.phaseCardPointerRegion !== null) {
+            UiPointerRouting.unregisterScrollRegion(this.phaseCardPointerRegion);
+            this.phaseCardPointerRegion = null;
+        }
         const eventBus = EventBus.getInstance();
         eventBus.unsubscribe(GameEventTypes.NEWSPAPER_REQUESTED, this.boundNewspaperHandler);
         eventBus.unsubscribe(GameEventTypes.TELEGRAM_REQUESTED, this.boundTelegramHandler);
