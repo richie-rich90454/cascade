@@ -1,10 +1,10 @@
 export class FontFamilies {
-    public static readonly GOTHIC: string = "\"UnifrakturMaguntia\", serif";
-    public static readonly DISPLAY_SERIF: string = "\"Cinzel\", serif";
-    public static readonly BODY_SERIF: string = "\"EB Garamond\", serif";
-    public static readonly TYPEWRITER_HEADER: string = "\"Special Elite\", monospace";
-    public static readonly TYPEWRITER_BODY: string = "\"Courier Prime\", monospace";
-    public static readonly SMALL_CAPS: string = "\"Spectral SC\", serif";
+    public static readonly GOTHIC: string = '"UnifrakturMaguntia", serif';
+    public static readonly DISPLAY_SERIF: string = '"Cinzel", serif';
+    public static readonly BODY_SERIF: string = '"EB Garamond", serif';
+    public static readonly TYPEWRITER_HEADER: string = '"Special Elite", monospace';
+    public static readonly TYPEWRITER_BODY: string = '"Courier Prime", monospace';
+    public static readonly SMALL_CAPS: string = '"Spectral SC", serif';
 
     public static readonly ALL_FAMILY_NAMES: string[] = [
         "UnifrakturMaguntia",
@@ -65,7 +65,9 @@ export class FontManager {
             this.hasCompletedFontLoading = true;
             return this.hasCompletedFontLoading;
         }
-        this.hasCompletedFontLoading = FontFamilies.ALL_FAMILY_NAMES.every((fontFamilyName) => document.fonts.check(`16px "${fontFamilyName}"`));
+        this.hasCompletedFontLoading = FontFamilies.ALL_FAMILY_NAMES.every((fontFamilyName) =>
+            document.fonts.check(`16px "${fontFamilyName}"`),
+        );
         return this.hasCompletedFontLoading;
     }
 
