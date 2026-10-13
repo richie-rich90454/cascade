@@ -1,6 +1,4 @@
-import { EventBus, GameEventTypes, ScenarioCompletionPayload } from "./EventBus";
-import { GameState } from "./GameState";
-import { TurnManager } from "./TurnManager";
+import type { Scenario, ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { AssessmentManager } from "../managers/AssessmentManager";
 import { AudioManager } from "../managers/AudioManager";
 import { DiplomacyManager } from "../managers/DiplomacyManager";
@@ -8,8 +6,10 @@ import { DomesticManager } from "../managers/DomesticManager";
 import { EconomyManager } from "../managers/EconomyManager";
 import { IntelligenceManager } from "../managers/IntelligenceManager";
 import { MilitaryManager } from "../managers/MilitaryManager";
-import type { Scenario, ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { ResourceType } from "../types/ResourceType";
+import { EventBus, GameEventTypes, ScenarioCompletionPayload } from "./EventBus";
+import { GameState } from "./GameState";
+import { TurnManager } from "./TurnManager";
 
 export class GameSession {
     private static readonly SINGLETON_INSTANCE = new GameSession();
