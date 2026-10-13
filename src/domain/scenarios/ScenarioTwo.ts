@@ -1,3 +1,12 @@
+import type { GameState } from "../../core/GameState";
+import { GameSystem } from "../../core/GameSystem";
+import { Rubrics } from "../../data/Rubrics";
+import { LearningObjective } from "../../types/LearningObjective";
+import { ReasoningProcess } from "../../types/ReasoningProcess";
+import { ResourceType } from "../../types/ResourceType";
+import { SuggestedSkill } from "../../types/SuggestedSkill";
+import { ThematicFocus } from "../../types/ThematicFocus";
+import { WorldState1900 } from "../WorldState1900";
 import {
     ArgumentDefinition,
     CausalChainCause,
@@ -18,15 +27,6 @@ import { ImperialistExpansionSystem } from "./systems/ImperialistExpansionSystem
 import { NationalismSystem } from "./systems/NationalismSystem";
 import { ResourceCompetitionSystem } from "./systems/ResourceCompetitionSystem";
 import { TerritorialConflictSystem } from "./systems/TerritorialConflictSystem";
-import { GameSystem } from "../../core/GameSystem";
-import type { GameState } from "../../core/GameState";
-import { Rubrics } from "../../data/Rubrics";
-import { WorldState1900 } from "../WorldState1900";
-import { LearningObjective } from "../../types/LearningObjective";
-import { ReasoningProcess } from "../../types/ReasoningProcess";
-import { ResourceType } from "../../types/ResourceType";
-import { SuggestedSkill } from "../../types/SuggestedSkill";
-import { ThematicFocus } from "../../types/ThematicFocus";
 
 export class ScenarioTwo extends Scenario {
     private readonly playableSystems: GameSystem[];
@@ -472,12 +472,42 @@ export class ScenarioTwo extends Scenario {
                 "Imperialist Expansion and Rivalry",
                 "Order the causes from decades of colonial and market rivalry to the pressure groups of the final crisis.",
                 [
-                    new CausalChainCause("s2_imperialism_cause_markets", "European industry's search for overseas markets and raw materials drove the scramble for colonies among the great powers.", "long_term", true),
-                    new CausalChainCause("s2_imperialism_cause_naval_race", "The Anglo-German naval race and the dreadnought building programs set the two greatest industrial powers against each other.", "long_term", false),
-                    new CausalChainCause("s2_imperialism_cause_morocco", "The Moroccan crises of 1905 and 1911 repeatedly brought the great powers to the brink over colonial claims.", "intermediate", false),
-                    new CausalChainCause("s2_imperialism_cause_elite_politics", "Ruling elites used imperial expansion and military budgets to shore up domestic support at home.", "intermediate", true),
-                    new CausalChainCause("s2_imperialism_cause_balkan_vacuum", "The Balkan Wars of 1912 and 1913 opened a contested space that imperial rivals rushed to control.", "short_term", false),
-                    new CausalChainCause("s2_imperialism_cause_pressure_groups", "Naval and colonial pressure groups in Berlin and London pressed their governments into hardening positions during the July Crisis.", "short_term", true),
+                    new CausalChainCause(
+                        "s2_imperialism_cause_markets",
+                        "European industry's search for overseas markets and raw materials drove the scramble for colonies among the great powers.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_imperialism_cause_naval_race",
+                        "The Anglo-German naval race and the dreadnought building programs set the two greatest industrial powers against each other.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_imperialism_cause_morocco",
+                        "The Moroccan crises of 1905 and 1911 repeatedly brought the great powers to the brink over colonial claims.",
+                        "intermediate",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_imperialism_cause_elite_politics",
+                        "Ruling elites used imperial expansion and military budgets to shore up domestic support at home.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_imperialism_cause_balkan_vacuum",
+                        "The Balkan Wars of 1912 and 1913 opened a contested space that imperial rivals rushed to control.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_imperialism_cause_pressure_groups",
+                        "Naval and colonial pressure groups in Berlin and London pressed their governments into hardening positions during the July Crisis.",
+                        "short_term",
+                        true,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -485,12 +515,42 @@ export class ScenarioTwo extends Scenario {
                 "Competition for Resources",
                 "Order the causes from the industrial demand for materials to the war economies of 1914.",
                 [
-                    new CausalChainCause("s2_resources_cause_industrialization", "Industrialization made coal, iron, and oil the sinews of great-power strength and set states searching for secure supplies.", "long_term", true),
-                    new CausalChainCause("s2_resources_cause_markets", "Access to colonial raw materials and protected markets was treated as a test of national survival.", "long_term", false),
-                    new CausalChainCause("s2_resources_cause_armament_budgets", "Armament budgets grew every year as steel, shipyards, and guns consumed the output of the new industries.", "intermediate", true),
-                    new CausalChainCause("s2_resources_cause_oil_and_railways", "Rival concessions for oil and railways in the Ottoman lands turned economic projects into strategic claims.", "intermediate", false),
-                    new CausalChainCause("s2_resources_cause_blockade_planning", "British plans to blockade Germany and German plans to seize French and Russian resources made trade itself a weapon in 1914.", "short_term", false),
-                    new CausalChainCause("s2_resources_cause_war_industry", "War industry began converting factories to munitions before the first shots were fired.", "short_term", true),
+                    new CausalChainCause(
+                        "s2_resources_cause_industrialization",
+                        "Industrialization made coal, iron, and oil the sinews of great-power strength and set states searching for secure supplies.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_resources_cause_markets",
+                        "Access to colonial raw materials and protected markets was treated as a test of national survival.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_resources_cause_armament_budgets",
+                        "Armament budgets grew every year as steel, shipyards, and guns consumed the output of the new industries.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_resources_cause_oil_and_railways",
+                        "Rival concessions for oil and railways in the Ottoman lands turned economic projects into strategic claims.",
+                        "intermediate",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_resources_cause_blockade_planning",
+                        "British plans to blockade Germany and German plans to seize French and Russian resources made trade itself a weapon in 1914.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_resources_cause_war_industry",
+                        "War industry began converting factories to munitions before the first shots were fired.",
+                        "short_term",
+                        true,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -498,12 +558,42 @@ export class ScenarioTwo extends Scenario {
                 "Territorial and Regional Conflict",
                 "Order the causes from the Ottoman retreat in the Balkans to the assassination at Sarajevo.",
                 [
-                    new CausalChainCause("s2_territory_cause_ottoman_retreat", "The long retreat of Ottoman power from the Balkans left a contested region where Austria-Hungary and Russia competed for influence.", "long_term", false),
-                    new CausalChainCause("s2_territory_cause_alsace_lorraine", "France never accepted the loss of Alsace-Lorraine after 1871, and revanche remained at the center of its politics.", "long_term", true),
-                    new CausalChainCause("s2_territory_cause_morocco_crises", "The Moroccan crises humiliated Germany and hardened its leaders against the Entente.", "intermediate", false),
-                    new CausalChainCause("s2_territory_cause_bosnia_annexation", "Austria-Hungary's annexation of Bosnia in 1908 inflamed Serbian nationalism and left a grievance Vienna feared would grow.", "intermediate", true),
-                    new CausalChainCause("s2_territory_cause_balkan_wars", "The Balkan Wars left Serbia doubled in size and Vienna determined to cut its rival down before it grew stronger.", "short_term", false),
-                    new CausalChainCause("s2_territory_cause_sarajevo", "The assassination at Sarajevo turned the Habsburg leadership's territorial fears into a decision for war.", "short_term", true),
+                    new CausalChainCause(
+                        "s2_territory_cause_ottoman_retreat",
+                        "The long retreat of Ottoman power from the Balkans left a contested region where Austria-Hungary and Russia competed for influence.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_territory_cause_alsace_lorraine",
+                        "France never accepted the loss of Alsace-Lorraine after 1871, and revanche remained at the center of its politics.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_territory_cause_morocco_crises",
+                        "The Moroccan crises humiliated Germany and hardened its leaders against the Entente.",
+                        "intermediate",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_territory_cause_bosnia_annexation",
+                        "Austria-Hungary's annexation of Bosnia in 1908 inflamed Serbian nationalism and left a grievance Vienna feared would grow.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_territory_cause_balkan_wars",
+                        "The Balkan Wars left Serbia doubled in size and Vienna determined to cut its rival down before it grew stronger.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_territory_cause_sarajevo",
+                        "The assassination at Sarajevo turned the Habsburg leadership's territorial fears into a decision for war.",
+                        "short_term",
+                        true,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -511,12 +601,42 @@ export class ScenarioTwo extends Scenario {
                 "The Flawed Alliance System",
                 "Order the causes from the treaty web of the 1870s to the blank cheque and the timetables of 1914.",
                 [
-                    new CausalChainCause("s2_alliances_cause_schlieffen", "Germany's war plan committed the empire to attack France through Belgium the moment Russia mobilized.", "intermediate", true),
-                    new CausalChainCause("s2_alliances_cause_bismarck_system", "Bismarck's alliances after 1871 kept France isolated but also tied Germany to Austria-Hungary's quarrels in the Balkans.", "long_term", false),
-                    new CausalChainCause("s2_alliances_cause_franco_russian", "The Franco-Russian Alliance of 1894 promised Russia support against Austria-Hungary and encouraged Belgrade to defy Vienna.", "long_term", false),
-                    new CausalChainCause("s2_alliances_cause_mobilization_timetables", "Rigid mobilization timetables drawn up by the general staffs left civilian leaders only days in which to choose between war and surrender.", "intermediate", true),
-                    new CausalChainCause("s2_alliances_cause_blank_cheque", "The blank cheque of July 5 and 6 emboldened Vienna to write an ultimatum it expected Serbia to reject.", "short_term", false),
-                    new CausalChainCause("s2_alliances_cause_court_politics", "Court and military elites in Vienna and Berlin, insulated from elected assemblies, made the final decisions for war.", "short_term", true),
+                    new CausalChainCause(
+                        "s2_alliances_cause_schlieffen",
+                        "Germany's war plan committed the empire to attack France through Belgium the moment Russia mobilized.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_alliances_cause_bismarck_system",
+                        "Bismarck's alliances after 1871 kept France isolated but also tied Germany to Austria-Hungary's quarrels in the Balkans.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_alliances_cause_franco_russian",
+                        "The Franco-Russian Alliance of 1894 promised Russia support against Austria-Hungary and encouraged Belgrade to defy Vienna.",
+                        "long_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_alliances_cause_mobilization_timetables",
+                        "Rigid mobilization timetables drawn up by the general staffs left civilian leaders only days in which to choose between war and surrender.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_alliances_cause_blank_cheque",
+                        "The blank cheque of July 5 and 6 emboldened Vienna to write an ultimatum it expected Serbia to reject.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_alliances_cause_court_politics",
+                        "Court and military elites in Vienna and Berlin, insulated from elected assemblies, made the final decisions for war.",
+                        "short_term",
+                        true,
+                    ),
                 ],
             ),
             new CausalChainDefinition(
@@ -524,12 +644,42 @@ export class ScenarioTwo extends Scenario {
                 "Intense Nationalism",
                 "Order the causes from nineteenth-century national projects to the crowds and press of July 1914.",
                 [
-                    new CausalChainCause("s2_nationalism_cause_greater_serbia", "Serbian nationalism, nourished by the memory of Kosovo and the dream of a Greater Serbia, fixed on Habsburg Bosnia.", "long_term", true),
-                    new CausalChainCause("s2_nationalism_cause_revanchism", "France's revanche over Alsace-Lorraine kept a generation's grievance against Germany alive.", "long_term", true),
-                    new CausalChainCause("s2_nationalism_cause_pan_movements", "Pan-German and Pan-Slav societies pressed for expansion and for leadership of their peoples.", "intermediate", true),
-                    new CausalChainCause("s2_nationalism_cause_bosnia_grievance", "Austria-Hungary's annexation of Bosnia in 1908 turned nationalist ambition into a standing grievance between Vienna and Belgrade.", "intermediate", false),
-                    new CausalChainCause("s2_nationalism_cause_balkan_wars", "The Balkan Wars were fought by nationalist states with the blessing and rivalry of the great powers.", "short_term", false),
-                    new CausalChainCause("s2_nationalism_cause_great_power_sponsorship", "Each great power sponsored its favorite among the Balkan states, turning nationalist rivalry into a contest between Vienna and St. Petersburg.", "short_term", false),
+                    new CausalChainCause(
+                        "s2_nationalism_cause_greater_serbia",
+                        "Serbian nationalism, nourished by the memory of Kosovo and the dream of a Greater Serbia, fixed on Habsburg Bosnia.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_nationalism_cause_revanchism",
+                        "France's revanche over Alsace-Lorraine kept a generation's grievance against Germany alive.",
+                        "long_term",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_nationalism_cause_pan_movements",
+                        "Pan-German and Pan-Slav societies pressed for expansion and for leadership of their peoples.",
+                        "intermediate",
+                        true,
+                    ),
+                    new CausalChainCause(
+                        "s2_nationalism_cause_bosnia_grievance",
+                        "Austria-Hungary's annexation of Bosnia in 1908 turned nationalist ambition into a standing grievance between Vienna and Belgrade.",
+                        "intermediate",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_nationalism_cause_balkan_wars",
+                        "The Balkan Wars were fought by nationalist states with the blessing and rivalry of the great powers.",
+                        "short_term",
+                        false,
+                    ),
+                    new CausalChainCause(
+                        "s2_nationalism_cause_great_power_sponsorship",
+                        "Each great power sponsored its favorite among the Balkan states, turning nationalist rivalry into a contest between Vienna and St. Petersburg.",
+                        "short_term",
+                        false,
+                    ),
                 ],
             ),
         ];
@@ -606,15 +756,44 @@ export class ScenarioTwo extends Scenario {
 
     public override evaluateVictory(gameState: GameState): ScenarioEvaluationResult {
         const flagStatus = this.collectFlagStatus(gameState, [
-            { flagIdentifier: "causal_chain_s2_imperialism_complete", flagDescription: "Imperialism causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s2_resources_complete", flagDescription: "Resources causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s2_territory_complete", flagDescription: "Territory causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s2_alliances_complete", flagDescription: "Alliances causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "causal_chain_s2_nationalism_complete", flagDescription: "Nationalism causal chain correctly ordered (three internal and three external factors)" },
-            { flagIdentifier: "consequence_s2_total_war", flagDescription: "Consequence recorded: the Great War became a total war" },
-            { flagIdentifier: "consequence_s2_empires_collapsed", flagDescription: "Consequence recorded: the old empires collapsed" },
-            { flagIdentifier: "consequence_s2_united_states_ascendant", flagDescription: "Consequence recorded: the United States emerged as the ascendant power" },
-            { flagIdentifier: "focus_node_s2_july_crisis_complete", flagDescription: "July Crisis focus node completed" },
+            {
+                flagIdentifier: "causal_chain_s2_imperialism_complete",
+                flagDescription:
+                    "Imperialism causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s2_resources_complete",
+                flagDescription: "Resources causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s2_territory_complete",
+                flagDescription: "Territory causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s2_alliances_complete",
+                flagDescription: "Alliances causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "causal_chain_s2_nationalism_complete",
+                flagDescription:
+                    "Nationalism causal chain correctly ordered (three internal and three external factors)",
+            },
+            {
+                flagIdentifier: "consequence_s2_total_war",
+                flagDescription: "Consequence recorded: the Great War became a total war",
+            },
+            {
+                flagIdentifier: "consequence_s2_empires_collapsed",
+                flagDescription: "Consequence recorded: the old empires collapsed",
+            },
+            {
+                flagIdentifier: "consequence_s2_united_states_ascendant",
+                flagDescription: "Consequence recorded: the United States emerged as the ascendant power",
+            },
+            {
+                flagIdentifier: "focus_node_s2_july_crisis_complete",
+                flagDescription: "July Crisis focus node completed",
+            },
         ]);
         return this.buildEvaluationResult(2, flagStatus.satisfiedCriteria, flagStatus.unmetCriteria, 9, 0);
     }
