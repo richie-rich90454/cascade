@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import "./style.css";
+import { HighDpiConfigurator } from "./core/HighDpiConfigurator";
 import { BootScene } from "./scenes/BootScene";
 import { CampaignSelectorScene } from "./scenes/CampaignSelectorScene";
 import { DebriefScene } from "./scenes/DebriefScene";
@@ -57,4 +58,12 @@ const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
     ],
 };
 
+HighDpiConfigurator.getInstance().installTextResolutionPatch();
+
 export const cascadeGame = new Phaser.Game(cascadeGameConfiguration);
+
+for (const registeredScene of cascadeGame.scene.scenes) {
+    registeredScene.events.on(Phaser.Scenes.Events.CREATE, () => {
+        HighDpiConfigurator.getInstance().registerScene(registeredScene);
+    });
+}
