@@ -54,7 +54,7 @@ export class ComplexArgumentBuilderComponent extends Phaser.GameObjects.Containe
             UiPalette.AGED_PARCHMENT_CSS,
         );
         this.add(rubricDescriptionTextObject);
-        let cursorY = 46 + rubricDescriptionTextObject.height + 12;
+        let cursorY = 46 + rubricDescriptionTextObject.displayHeight + 12;
         const promptTextObject = this.scene.add.text(16, cursorY, promptText, {
             fontFamily: FontFamilies.DISPLAY_SERIF,
             fontSize: "15px",
@@ -63,7 +63,7 @@ export class ComplexArgumentBuilderComponent extends Phaser.GameObjects.Containe
             lineSpacing: 3,
         });
         this.add(promptTextObject);
-        cursorY += promptTextObject.height + 12;
+        cursorY += promptTextObject.displayHeight + 12;
         for (let criterionIndex = 0; criterionIndex < rubric.criteria.length; criterionIndex++) {
             const criterionTextObject = this.scene.add.text(
                 16,
@@ -78,7 +78,7 @@ export class ComplexArgumentBuilderComponent extends Phaser.GameObjects.Containe
                 },
             );
             this.add(criterionTextObject);
-            cursorY += criterionTextObject.height + 6;
+            cursorY += criterionTextObject.displayHeight + 6;
             const responseField = new StudentTextEntryField(this.scene, 16, cursorY, this.panelWidth - 32, 70);
             this.responseFields.push(responseField);
             this.add(responseField.getFieldContainer());
