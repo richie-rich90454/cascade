@@ -28,7 +28,14 @@ export class MainMenuScene extends Phaser.Scene {
             })
             .setOrigin(0.5, 0.5);
         this.add
-            .text(screenCenterX, 156, "A Century of Global Conflict, 1900-1945", {
+            .text(screenCenterX, 148, "GLOBAL CONFLICT", {
+                fontFamily: FontFamilies.GOTHIC,
+                fontSize: "72px",
+                color: UiPalette.BRASS_TAN_CSS,
+            })
+            .setOrigin(0.5, 0.5);
+        this.add
+            .text(screenCenterX, 212, "A Century of Global Conflict, 1900-1945", {
                 fontFamily: FontFamilies.BODY_SERIF,
                 fontSize: "26px",
                 fontStyle: "italic",
@@ -36,7 +43,7 @@ export class MainMenuScene extends Phaser.Scene {
             })
             .setOrigin(0.5, 0.5);
         this.add
-            .text(screenCenterX, 190, "An AP World History: Modern Unit 7 Review Game", {
+            .text(screenCenterX, 246, "An AP World History: Modern Unit 7 Review Game", {
                 fontFamily: FontFamilies.BODY_SERIF,
                 fontSize: "18px",
                 color: UiPalette.AGED_PARCHMENT_CSS,
