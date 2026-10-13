@@ -50,6 +50,9 @@ export class PrimarySourceScenarioFourLibrary {
     );
 
     public static getSources(): PrimarySource[] {
-        return [PrimarySourceScenarioFourLibrary.CARDENAS_SPEECH_TO_THE_NATION, PrimarySourceScenarioFourLibrary.STALIN_INDUSTRIALIZATION_1928];
+        return [
+            PrimarySourceScenarioFourLibrary.CARDENAS_SPEECH_TO_THE_NATION,
+            PrimarySourceScenarioFourLibrary.STALIN_INDUSTRIALIZATION_1928,
+        ];
     }
 }
