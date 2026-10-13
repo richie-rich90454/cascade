@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { CatalogAssetEntry } from "./lib/CatalogAssetEntry";
 import { SvgCatalogBuilder } from "./lib/SvgCatalogBuilder";
 import { SvgMarkupFactoryCore } from "./lib/SvgMarkupFactoryCore";
@@ -18,7 +19,16 @@ class SvgGenerationResult {
 class ManifestWriter {
     public static writeSvgManifestEntries(
         outputManifestPath: string,
-        svgManifestEntries: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }>,
+        svgManifestEntries: Array<{
+            assetId: string;
+            category: string;
+            tier: number;
+            source: string;
+            file: string;
+            width: number;
+            height: number;
+            status: string;
+        }>,
     ): void {
         const manifestRecord = {
             generatedAtIsoTimestamp: new Date().toISOString(),
@@ -78,7 +88,16 @@ function runSvgGeneration(): SvgGenerationResult {
     mkdirSync(svgOutputDirectoryPath, { recursive: true });
 
     const catalogEntries = SvgCatalogBuilder.buildCatalog();
-    const svgManifestEntries: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }> = [];
+    const svgManifestEntries: Array<{
+        assetId: string;
+        category: string;
+        tier: number;
+        source: string;
+        file: string;
+        width: number;
+        height: number;
+        status: string;
+    }> = [];
     const generatedAssetIds: string[] = [];
 
     for (const catalogEntry of catalogEntries) {
@@ -103,5 +122,9 @@ function runSvgGeneration(): SvgGenerationResult {
 }
 
 const svgGenerationResult = runSvgGeneration();
-console.log(`GenerateSvg: wrote ${svgGenerationResult.generatedFileCount} procedural SVG assets to public/assets/svg/.`);
-console.log(`GenerateSvg: manifest written to public/assets/manifest.json with ${svgGenerationResult.generatedFileCount} entries.`);
+console.log(
+    `GenerateSvg: wrote ${svgGenerationResult.generatedFileCount} procedural SVG assets to public/assets/svg/.`,
+);
+console.log(
+    `GenerateSvg: manifest written to public/assets/manifest.json with ${svgGenerationResult.generatedFileCount} entries.`,
+);
