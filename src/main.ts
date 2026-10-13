@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+
 import "./style.css";
 import { BootScene } from "./scenes/BootScene";
 import { CampaignSelectorScene } from "./scenes/CampaignSelectorScene";
