@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { SceneKeys } from "../core/SceneKeys";
 import { AssetManager } from "../managers/AssetManager";
 import { FontFamilies, FontManager } from "../managers/FontManager";
@@ -66,13 +67,17 @@ export class BootScene extends Phaser.Scene {
             loadingStatusText.setText("Loading asset manifest...");
             await AssetManager.getInstance().loadManifest();
             const svgEntries = AssetManager.getInstance().getSvgEntries();
+            const devicePixelRatioForTextureLoading = HighDpiConfigurator.getInstance().getDevicePixelRatio();
             loadingStatusText.setText("Queueing artwork... 0 of " + svgEntries.length);
             let queuedEntryCount = 0;
             for (const svgEntry of svgEntries) {
                 this.load.svg(
                     AssetManager.getInstance().getTextureKey(svgEntry.assetIdentifier),
                     svgEntry.relativeFilePath,
-                    { width: svgEntry.pixelWidth, height: svgEntry.pixelHeight },
+                    {
+                        width: Math.ceil(svgEntry.pixelWidth * devicePixelRatioForTextureLoading),
+                        height: Math.ceil(svgEntry.pixelHeight * devicePixelRatioForTextureLoading),
+                    },
                 );
                 queuedEntryCount += 1;
                 loadingStatusText.setText("Queueing artwork... " + queuedEntryCount + " of " + svgEntries.length);
