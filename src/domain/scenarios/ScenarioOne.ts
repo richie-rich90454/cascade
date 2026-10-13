@@ -464,6 +464,10 @@ export class ScenarioOne extends Scenario {
         return null;
     }
 
+    public override getRelationshipPromptTexts(): string[] {
+        return [];
+    }
+
     public override getTestimonyRecords(): TestimonyRecord[] {
         return [];
     }
