@@ -308,7 +308,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
                 "in Period 6 (resources on the decline of empires in the twentieth century).",
         );
         contentContainer.add(resourceTextObject);
-        cursorY += resourceTextObject.height + 12;
+        cursorY += resourceTextObject.displayHeight + 12;
         const weightingTextObject = UiPanelFactory.createBodyText(
             this,
             40,
@@ -317,7 +317,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
             "This unit represents 8-10% of your AP Exam score.",
         );
         contentContainer.add(weightingTextObject);
-        return cursorY + weightingTextObject.height + 24;
+        return cursorY + weightingTextObject.displayHeight + 24;
     }
 
     private handleWheelScroll(deltaY: number): void {
