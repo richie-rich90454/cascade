@@ -28,12 +28,17 @@ export class DiplomacyManager {
     }
 
     public getRelationScore(firstNation: Nation, secondNation: Nation): number {
-        return this.relationScoresByNationPair.get(DiplomacyManager.buildNationPairKey(firstNation, secondNation)) ?? 25;
+        return (
+            this.relationScoresByNationPair.get(DiplomacyManager.buildNationPairKey(firstNation, secondNation)) ?? 25
+        );
     }
 
     public setRelationScore(firstNation: Nation, secondNation: Nation, relationScore: number): void {
         const clampedRelationScore = Math.max(-100, Math.min(100, relationScore));
-        this.relationScoresByNationPair.set(DiplomacyManager.buildNationPairKey(firstNation, secondNation), clampedRelationScore);
+        this.relationScoresByNationPair.set(
+            DiplomacyManager.buildNationPairKey(firstNation, secondNation),
+            clampedRelationScore,
+        );
     }
 
     public adjustRelationScore(firstNation: Nation, secondNation: Nation, deltaScore: number): number {
@@ -44,7 +49,11 @@ export class DiplomacyManager {
 
     public formAllianceBetween(firstNation: Nation, secondNation: Nation): void {
         firstNation.formAllianceWith(secondNation);
-        this.setRelationScore(firstNation, secondNation, Math.max(60, this.getRelationScore(firstNation, secondNation)));
+        this.setRelationScore(
+            firstNation,
+            secondNation,
+            Math.max(60, this.getRelationScore(firstNation, secondNation)),
+        );
         EventBus.getInstance().publish(GameEventTypes.TREATY_SIGNED, {
             firstNationIdentifier: firstNation.getIdentifier(),
             secondNationIdentifier: secondNation.getIdentifier(),
@@ -76,7 +85,9 @@ export class DiplomacyManager {
         if (nation === null) {
             return new WarScoreBreakdown(0, 0, 0, 0);
         }
-        const nationUnits = this.gameState.getAllUnits().filter((unit) => unit.getOwningNationIdentifier() === nationIdentifier);
+        const nationUnits = this.gameState
+            .getAllUnits()
+            .filter((unit) => unit.getOwningNationIdentifier() === nationIdentifier);
         let militaryScore = 0;
         for (const unit of nationUnits) {
             militaryScore += unit.getStrength() / 10;
@@ -116,7 +127,11 @@ export class DiplomacyManager {
         return likelyMoves;
     }
 
-    public getDiplomaticRelationsMatrix(): Array<{ firstNationName: string; secondNationName: string; relationScore: number }> {
+    public getDiplomaticRelationsMatrix(): Array<{
+        firstNationName: string;
+        secondNationName: string;
+        relationScore: number;
+    }> {
         const relationsMatrix: Array<{ firstNationName: string; secondNationName: string; relationScore: number }> = [];
         const allNations = this.gameState.getAllNations();
         for (let firstIndex = 0; firstIndex < allNations.length; firstIndex++) {
