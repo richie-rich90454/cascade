@@ -1,6 +1,6 @@
 import type { GameState } from "../core/GameState";
-import { Nation } from "../domain/Nation";
 import { Nations } from "../data/Nations";
+import { Nation } from "../domain/Nation";
 
 export class TerritorialHoldingsRow {
     public readonly holdingIdentifier: string;
@@ -46,7 +46,11 @@ export class WorldStatePresent {
         return ["ottoman_empire", "russian_empire", "qing_china", "austro_hungarian_empire"];
     }
 
-    public static getCollapsedEmpireLabels(): Array<{ identifier: string; displayName: string; collapsedByYear: number }> {
+    public static getCollapsedEmpireLabels(): Array<{
+        identifier: string;
+        displayName: string;
+        collapsedByYear: number;
+    }> {
         return [
             { identifier: "ottoman_empire", displayName: "Ottoman Empire", collapsedByYear: 1922 },
             { identifier: "russian_empire", displayName: "Russian Empire", collapsedByYear: 1917 },
