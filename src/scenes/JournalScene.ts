@@ -171,7 +171,7 @@ export class JournalScene extends Phaser.Scene {
                 this.getReflectionColumnWidth(),
                 journalPromptText,
             );
-            cursorY += promptTextObject.height + 8;
+            cursorY += promptTextObject.displayHeight + 8;
             const reflectionField = new StudentTextEntryField(
                 this,
                 this.getReflectionColumnX(),
