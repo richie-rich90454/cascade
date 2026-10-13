@@ -1,33 +1,33 @@
 {
-  "name": "cascade",
-  "version": "4.0.0",
-  "private": true,
-  "description": "Cascade: A Century of Global Conflict, 1900-1945. An AP World History: Modern Unit 7 review game in the grand strategy tradition.",
-  "type": "module",
-  "license": "UNLICENSED",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
-    "generate:svg": "tsx .opencode/tools/GenerateSvg.ts",
-    "generate:midi": "tsx .opencode/tools/GenerateMidi.ts",
-    "assets:placeholders": "tsx .opencode/tools/WritePlaceholder.ts",
-    "assets:prompts": "tsx .opencode/tools/WriteAssetPrompt.ts",
-    "assets:verify": "tsx .opencode/tools/VerifyAssets.ts",
-    "assets:sync": "tsx .opencode/tools/SyncManifest.ts",
-    "generate:assets": "npm run generate:svg && npm run generate:midi && npm run assets:placeholders && npm run assets:sync"
-  },
-  "dependencies": {
-    "phaser": "^4.2.1"
-  },
-  "devDependencies": {
-    "@types/node": "^26.6.5",
-    "oxfmt": "^0.72.0",
-    "tsx": "^4.23.15",
-    "typescript": "~5.9.2",
-    "vite": "^8.3.4"
-  }
+    "name": "cascade",
+    "version": "4.0.0",
+    "private": true,
+    "description": "Cascade: A Century of Global Conflict, 1900-1945. An AP World History: Modern Unit 7 review game in the grand strategy tradition.",
+    "license": "UNLICENSED",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc --noEmit && vite build",
+        "preview": "vite preview",
+        "typecheck": "tsc --noEmit",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "generate:svg": "tsx .opencode/tools/GenerateSvg.ts",
+        "generate:midi": "tsx .opencode/tools/GenerateMidi.ts",
+        "assets:placeholders": "tsx .opencode/tools/WritePlaceholder.ts",
+        "assets:prompts": "tsx .opencode/tools/WriteAssetPrompt.ts",
+        "assets:verify": "tsx .opencode/tools/VerifyAssets.ts",
+        "assets:sync": "tsx .opencode/tools/SyncManifest.ts",
+        "generate:assets": "npm run generate:svg && npm run generate:midi && npm run assets:placeholders && npm run assets:sync"
+    },
+    "dependencies": {
+        "phaser": "^4.2.1"
+    },
+    "devDependencies": {
+        "@types/node": "^26.6.5",
+        "oxfmt": "^0.72.0",
+        "tsx": "^4.23.15",
+        "typescript": "~5.9.2",
+        "vite": "^8.3.4"
+    }
 }
