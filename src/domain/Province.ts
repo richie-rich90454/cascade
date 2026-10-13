@@ -70,7 +70,7 @@ export class Province extends GameEntity {
         this.supplyValue = Math.max(0, supplyValue);
     }
 
-    public describe(): string {
+    public override describe(): string {
         return `${this.entityDisplayName} (${this.terrainTypeCode})`;
     }
 }
