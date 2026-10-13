@@ -3,7 +3,7 @@ import { PrimarySource } from "../PrimarySource";
 export class PrimarySourceScenarioSixLibrary {
     public static readonly HITLER_LEBENSRAUM_MEIN_KAMPF = new PrimarySource(
         "hitler_lebensraum_mein_kampf",
-        "Mein Kampf, Chapter on \"Eastern Orientation\"",
+        'Mein Kampf, Chapter on "Eastern Orientation"',
         "Adolf Hitler",
         "1925-1926",
         "german_empire",
