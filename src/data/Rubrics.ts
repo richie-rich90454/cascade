@@ -75,7 +75,12 @@ export class DiscussionRubric {
     public readonly guidingQuestions: string[];
     public readonly scoringCriteria: string[];
 
-    constructor(rubricIdentifier: string, descriptionText: string, guidingQuestions: string[], scoringCriteria: string[]) {
+    constructor(
+        rubricIdentifier: string,
+        descriptionText: string,
+        guidingQuestions: string[],
+        scoringCriteria: string[],
+    ) {
         this.rubricIdentifier = rubricIdentifier;
         this.descriptionText = descriptionText;
         this.guidingQuestions = guidingQuestions;
@@ -217,7 +222,7 @@ export class Rubrics {
     public static readonly SAQ_SCENARIO_THREE_A = new ShortAnswerRubricItem(
         "saq_s3_a",
         3,
-        "Using the Kitchener and \"Women of Britain Say GO\" posters, explain ONE way governments mobilized populations for total war.",
+        'Using the Kitchener and "Women of Britain Say GO" posters, explain ONE way governments mobilized populations for total war.',
         3,
         [
             "One point for identifying the method (for example, official propaganda appealing to duty, shame, and family honor).",
@@ -509,7 +514,7 @@ export class Rubrics {
     public static readonly SAQ_SCENARIO_SEVEN_C = new ShortAnswerRubricItem(
         "saq_s7_c",
         7,
-        "Explain how claims that the Second World War was conducted differently by each major power support, modify, or refute the argument that it was a single \"total war.\"",
+        'Explain how claims that the Second World War was conducted differently by each major power support, modify, or refute the argument that it was a single "total war."',
         3,
         [
             "One point for claims supporting the total-war thesis (for example, economic direction and mass conscription everywhere).",
@@ -546,7 +551,7 @@ export class Rubrics {
         3,
         [
             "One point for describing the context of Pearl Harbor and the declaration of war.",
-            "One point for identifying the rhetorical framing (for example, \"infamy\" and unprovoked attack).",
+            'One point for identifying the rhetorical framing (for example, "infamy" and unprovoked attack).',
             "One point for explaining the effect of that framing on American unity and purpose.",
         ],
         [
@@ -558,7 +563,7 @@ export class Rubrics {
     public static readonly SAQ_SCENARIO_EIGHT_B = new ShortAnswerRubricItem(
         "saq_s8_b",
         8,
-        "Using the \"Careless Talk\" poster and Order No. 227, explain ONE similarity and ONE difference in how Britain and the USSR disciplined their wartime populations.",
+        'Using the "Careless Talk" poster and Order No. 227, explain ONE similarity and ONE difference in how Britain and the USSR disciplined their wartime populations.',
         3,
         [
             "One point for a valid similarity (for example, both used official campaigns to police speech or behavior).",
@@ -848,7 +853,10 @@ export class Rubrics {
     public static readonly QUICKWRITE_RUBRIC = new DiscussionRubric(
         "quickwrite_rubric",
         "Quickwrite on Clemenceau's letter: Based on what you learned about the causes of World War I, what are the weaknesses in Clemenceau's argument?",
-        ["Identify at least one weakness in Clemenceau's argument.", "Support the weakness with evidence from Topic 7.2."],
+        [
+            "Identify at least one weakness in Clemenceau's argument.",
+            "Support the weakness with evidence from Topic 7.2.",
+        ],
         [
             "States a weakness in the argument.",
             "Supports the weakness with evidence from the causes of World War I.",
@@ -858,7 +866,7 @@ export class Rubrics {
 
     public static readonly SOCRATIC_SEMINAR_RUBRIC = new DiscussionRubric(
         "socratic_seminar_rubric",
-        "Socratic seminar on \"The Century of Total War\" from Richard P. Tucker's \"War and the Environment\".",
+        'Socratic seminar on "The Century of Total War" from Richard P. Tucker\'s "War and the Environment".',
         [
             "What is the author's argument?",
             "What evidence does he use to support his argument?",
