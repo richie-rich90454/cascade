@@ -87,11 +87,11 @@ export class TelegramPopupComponent extends Phaser.GameObjects.Container {
 
         const panelHeightPx =
             TelegramPopupComponent.PANEL_PADDING_PX +
-            headerTextObject.height +
+            headerTextObject.displayHeight +
             12 +
-            subjectTextObject.height +
+            subjectTextObject.displayHeight +
             12 +
-            bodyTextObject.height +
+            bodyTextObject.displayHeight +
             20 +
             TelegramPopupComponent.BUTTON_HEIGHT_PX +
             TelegramPopupComponent.PANEL_PADDING_PX;
@@ -115,11 +115,11 @@ export class TelegramPopupComponent extends Phaser.GameObjects.Container {
 
         classificationStampTextObject.setPosition(innerWidthPx / 2 - 80, contentY + 14);
         contentContainer.add(classificationStampTextObject);
-        contentY += headerTextObject.height + 12;
+        contentY += headerTextObject.displayHeight + 12;
 
         subjectTextObject.setPosition(-innerWidthPx / 2, contentY);
         contentContainer.add(subjectTextObject);
-        contentY += subjectTextObject.height + 12;
+        contentY += subjectTextObject.displayHeight + 12;
 
         bodyTextObject.setPosition(-innerWidthPx / 2, contentY);
         contentContainer.add(bodyTextObject);
