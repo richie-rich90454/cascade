@@ -1,8 +1,8 @@
-import { EventBus, GameEventTypes, ResourceChangePayload } from "./EventBus";
 import type { Nation } from "../domain/Nation";
 import type { Province } from "../domain/Province";
-import type { ResourceType } from "../types/ResourceType";
 import type { Unit } from "../domain/Unit";
+import type { ResourceType } from "../types/ResourceType";
+import { EventBus, GameEventTypes, ResourceChangePayload } from "./EventBus";
 
 export class GameState {
     private readonly registeredNations: Map<string, Nation>;
