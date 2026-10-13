@@ -83,7 +83,7 @@ export class Unit extends GameEntity {
         return this.strengthValue <= 0;
     }
 
-    public describe(): string {
+    public override describe(): string {
         return `${this.entityDisplayName} (${this.unitCategory.getDisplayName()})`;
     }
 }
