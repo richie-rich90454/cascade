@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+
 import { SeedRandom } from "../core/SeedRandom";
 
 export class CascadeSvgPalette {
@@ -41,7 +42,9 @@ export class SvgManager {
             const speckleY = seedRandom.nextInt(0, pixelSize);
             const speckleRadius = seedRandom.nextInt(1, 3);
             const speckleOpacity = seedRandom.nextFloatInRange(0.05, 0.18).toFixed(2);
-            const speckleColor = seedRandom.nextBoolean(0.5) ? CascadeSvgPalette.DARK_OLIVE : CascadeSvgPalette.PARCHMENT;
+            const speckleColor = seedRandom.nextBoolean(0.5)
+                ? CascadeSvgPalette.DARK_OLIVE
+                : CascadeSvgPalette.PARCHMENT;
             speckleMarkupParts.push(
                 `<circle cx="${speckleX}" cy="${speckleY}" r="${speckleRadius}" fill="${speckleColor}" opacity="${speckleOpacity}" />`,
             );
