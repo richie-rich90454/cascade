@@ -16,7 +16,11 @@ export class TurnPhase {
         "Decision",
         "Make strategic choices across the five interlocking domains.",
     );
-    public static readonly RESOLUTION = new TurnPhase("resolution", "Resolution", "Observe the consequences of the decisions.");
+    public static readonly RESOLUTION = new TurnPhase(
+        "resolution",
+        "Resolution",
+        "Observe the consequences of the decisions.",
+    );
     public static readonly EVENT = new TurnPhase("event", "Event", "Read the historical event of the turn.");
     public static readonly DEBRIEF = new TurnPhase("debrief", "Debrief", "Write a reflection on the turn.");
     public static readonly JOURNAL = new TurnPhase("journal", "Journal", "Record the learning of the turn.");
