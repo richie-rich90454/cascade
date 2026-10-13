@@ -1,3 +1,4 @@
+import { TeacherSettings } from "../core/TeacherSettings";
 import { AssessmentManager } from "../managers/AssessmentManager";
 import type { Scenario } from "./scenarios/Scenario";
 import { ScenarioEight } from "./scenarios/ScenarioEight";
@@ -10,7 +11,6 @@ import { ScenarioSix } from "./scenarios/ScenarioSix";
 import { ScenarioTen } from "./scenarios/ScenarioTen";
 import { ScenarioThree } from "./scenarios/ScenarioThree";
 import { ScenarioTwo } from "./scenarios/ScenarioTwo";
-import { TeacherSettings } from "../core/TeacherSettings";
 
 export class CampaignDefinition {
     public readonly campaignIdentifier: string;
@@ -18,7 +18,12 @@ export class CampaignDefinition {
     public readonly campaignSubtitle: string;
     public readonly scenarioNumbers: number[];
 
-    constructor(campaignIdentifier: string, campaignDisplayName: string, campaignSubtitle: string, scenarioNumbers: number[]) {
+    constructor(
+        campaignIdentifier: string,
+        campaignDisplayName: string,
+        campaignSubtitle: string,
+        scenarioNumbers: number[],
+    ) {
         this.campaignIdentifier = campaignIdentifier;
         this.campaignDisplayName = campaignDisplayName;
         this.campaignSubtitle = campaignSubtitle;
