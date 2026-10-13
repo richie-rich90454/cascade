@@ -83,7 +83,7 @@ export class SharedInquiryComponent extends Phaser.GameObjects.Container {
                 14,
             );
             this.add(questionTextObject);
-            cursorY += questionTextObject.height + 8;
+            cursorY += questionTextObject.displayHeight + 8;
         }
         cursorY += 8;
         const responseFieldHeight = 150;
