@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+
 import {
     CausalChainPayload,
     DecisionMadePayload,
@@ -14,15 +15,15 @@ import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { PrimarySources } from "../data/PrimarySources";
 import { Rubrics } from "../data/Rubrics";
-import type { Scenario, DecisionRecord } from "../domain/scenarios/Scenario";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
+import type { Scenario, DecisionRecord } from "../domain/scenarios/Scenario";
 import { WorldStatePresent } from "../domain/WorldStatePresent";
 import { FontFamilies } from "../managers/FontManager";
 import { ResourceType } from "../types/ResourceType";
 import { BottomBarComponent } from "../ui/BottomBarComponent";
+import { CasualtyChartComponent } from "../ui/CasualtyChartComponent";
 import { CausalArgumentBuilderComponent } from "../ui/CausalArgumentBuilderComponent";
 import { CausalChainComponent } from "../ui/CausalChainComponent";
-import { CasualtyChartComponent } from "../ui/CasualtyChartComponent";
 import { ComparisonToolComponent } from "../ui/ComparisonToolComponent";
 import { ComplexArgumentBuilderComponent } from "../ui/ComplexArgumentBuilderComponent";
 import { ContinuityChangeChartComponent } from "../ui/ContinuityChangeChartComponent";
@@ -165,7 +166,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 UiPalette.UI_DEPTH_BASE,
             );
             documentationPanel.add(
-                UiPanelFactory.createSectionHeader(this, 20, 18, this.scenario === null ? "" : this.scenario.getScenarioTitle(), 24),
+                UiPanelFactory.createSectionHeader(
+                    this,
+                    20,
+                    18,
+                    this.scenario === null ? "" : this.scenario.getScenarioTitle(),
+                    24,
+                ),
             );
             documentationPanel.add(
                 UiPanelFactory.createBodyText(
@@ -185,7 +192,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         for (const province of allProvinces) {
             const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
             const ownerColor =
-                ownerNation === null ? UiPalette.FIELD_GRAY : UiPalette.getFactionColorForNationCode(ownerNation.getNationCode());
+                ownerNation === null
+                    ? UiPalette.FIELD_GRAY
+                    : UiPalette.getFactionColorForNationCode(ownerNation.getNationCode());
             const tileRectangle = this.add.rectangle(
                 province.getColumnIndex() * tilePixelSize,
                 province.getRowIndex() * tilePixelSize,
@@ -266,7 +275,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (this.scenario.getPrimarySourceIdentifiers().length > 0) {
             launcherEntries.push({
                 labelText: "SOURCES",
-                onActivated: () => this.scene.start(SceneKeys.SOURCE_ANALYSIS, new ScenarioSelectionPayload(this.scenarioNumber)),
+                onActivated: () =>
+                    this.scene.start(SceneKeys.SOURCE_ANALYSIS, new ScenarioSelectionPayload(this.scenarioNumber)),
             });
         }
         if (this.scenario.getScenarioNumber() === 5) {
@@ -283,7 +293,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             launcherEntries.push({ labelText: "ARGUMENT", onActivated: () => this.openArgumentBuilderOverlay() });
         }
         if (this.scenario.getScenarioNumber() === 10) {
-            launcherEntries.push({ labelText: "COMPLEX ARGUMENT", onActivated: () => this.openComplexArgumentOverlay() });
+            launcherEntries.push({
+                labelText: "COMPLEX ARGUMENT",
+                onActivated: () => this.openComplexArgumentOverlay(),
+            });
         }
         if (this.scenario.getTestimonyRecords().length > 0) {
             launcherEntries.push({ labelText: "TESTIMONY", onActivated: () => this.openTestimonyOverlay() });
@@ -295,19 +308,31 @@ export class ScenarioPlayScene extends Phaser.Scene {
             launcherEntries.push({ labelText: "CASUALTIES", onActivated: () => this.openCasualtyChartOverlay() });
         }
         if (this.scenario.getFocusTreeDefinition() !== null) {
-            launcherEntries.push({ labelText: "FOCUS TREE", onActivated: () => this.scene.start(SceneKeys.FOCUS_TREE) });
+            launcherEntries.push({
+                labelText: "FOCUS TREE",
+                onActivated: () => this.scene.start(SceneKeys.FOCUS_TREE),
+            });
         }
         if (this.scenario.supportsProductionQueue()) {
-            launcherEntries.push({ labelText: "PRODUCTION", onActivated: () => this.scene.start(SceneKeys.PRODUCTION_QUEUE) });
+            launcherEntries.push({
+                labelText: "PRODUCTION",
+                onActivated: () => this.scene.start(SceneKeys.PRODUCTION_QUEUE),
+            });
         }
         if (this.scenario.supportsDivisionDesigner()) {
-            launcherEntries.push({ labelText: "DIVISIONS", onActivated: () => this.scene.start(SceneKeys.DIVISION_DESIGNER) });
+            launcherEntries.push({
+                labelText: "DIVISIONS",
+                onActivated: () => this.scene.start(SceneKeys.DIVISION_DESIGNER),
+            });
         }
         if ([2, 3, 7, 8].includes(this.scenario.getScenarioNumber())) {
             launcherEntries.push({ labelText: "WAR SCORE", onActivated: () => this.scene.start(SceneKeys.WAR_SCORE) });
         }
         if (this.scenario.supportsDiplomaticPlay()) {
-            launcherEntries.push({ labelText: "DIPLOMACY", onActivated: () => this.scene.start(SceneKeys.DIPLOMATIC_PLAY) });
+            launcherEntries.push({
+                labelText: "DIPLOMACY",
+                onActivated: () => this.scene.start(SceneKeys.DIPLOMATIC_PLAY),
+            });
         }
         const chipPixelWidth = 156;
         const chipsPerRow = Math.max(1, Math.floor((screenWidth - 640) / (chipPixelWidth + 8)));
@@ -337,10 +362,19 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.phasePanelContainer.setDepth(UiPalette.UI_DEPTH_PANEL);
         const panelWidth = Math.max(560, screenWidth - 960);
         const panelHeight = screenHeight - 400;
-        const phasePanel = UiPanelFactory.createPanelContainer(this, 0, 0, panelWidth, panelHeight, PanelVariant.LEATHER);
+        const phasePanel = UiPanelFactory.createPanelContainer(
+            this,
+            0,
+            0,
+            panelWidth,
+            panelHeight,
+            PanelVariant.LEATHER,
+        );
         this.phasePanelContainer.add(phasePanel);
         const currentPhaseLabel = TurnPhaseLabel.PHASE_LABELS[this.phaseIndex];
-        phasePanel.add(UiPanelFactory.createSectionHeader(this, 20, 16, `TURN PHASE: ${currentPhaseLabel.toUpperCase()}`, 20));
+        phasePanel.add(
+            UiPanelFactory.createSectionHeader(this, 20, 16, `TURN PHASE: ${currentPhaseLabel.toUpperCase()}`, 20),
+        );
         if (this.scenario === null) {
             return;
         }
@@ -388,7 +422,17 @@ export class ScenarioPlayScene extends Phaser.Scene {
         );
         let objectiveOffsetY = 170;
         for (const objectiveSummary of this.scenario.getObjectiveSummaries()) {
-            phasePanel.add(UiPanelFactory.createBodyText(this, 28, objectiveOffsetY, panelWidth - 60, `- ${objectiveSummary}`, 14, UiPalette.AGED_PARCHMENT_CSS));
+            phasePanel.add(
+                UiPanelFactory.createBodyText(
+                    this,
+                    28,
+                    objectiveOffsetY,
+                    panelWidth - 60,
+                    `- ${objectiveSummary}`,
+                    14,
+                    UiPalette.AGED_PARCHMENT_CSS,
+                ),
+            );
             objectiveOffsetY += 30;
         }
         phasePanel.add(this.createContinuePhaseButton(panelWidth));
@@ -436,12 +480,26 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const pendingDecision = this.findNextPendingDecision(gameState);
         if (pendingDecision === null) {
             phasePanel.add(
-                UiPanelFactory.createBodyText(this, 20, 52, panelWidth - 40, "Every decision for this turn has been made.", 16, UiPalette.PARCHMENT_CSS),
+                UiPanelFactory.createBodyText(
+                    this,
+                    20,
+                    52,
+                    panelWidth - 40,
+                    "Every decision for this turn has been made.",
+                    16,
+                    UiPalette.PARCHMENT_CSS,
+                ),
             );
             phasePanel.add(this.createContinuePhaseButton(panelWidth));
             return;
         }
-        const decisionPanelComponent = new DecisionPanelComponent(this, 12, 46, panelWidth - 24, this.scale.height - 480);
+        const decisionPanelComponent = new DecisionPanelComponent(
+            this,
+            12,
+            46,
+            panelWidth - 24,
+            this.scale.height - 480,
+        );
         decisionPanelComponent.setDecision(pendingDecision, gameState);
         phasePanel.add(decisionPanelComponent);
         phasePanel.add(this.createContinuePhaseButton(panelWidth));
@@ -467,16 +525,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
             this.lastConsequenceText.length > 0
                 ? this.lastConsequenceText
                 : "No decisions were made this turn. The simulation has advanced on its own momentum.";
-        phasePanel.add(UiPanelFactory.createBodyText(this, 20, 52, panelWidth - 40, resolutionText, 16, UiPalette.PARCHMENT_CSS));
         phasePanel.add(
-            UiPanelFactory.createTypewriterText(
-                this,
-                20,
-                170,
-                panelWidth - 40,
-                this.buildResourceSummaryLine(),
-                14,
-            ),
+            UiPanelFactory.createBodyText(this, 20, 52, panelWidth - 40, resolutionText, 16, UiPalette.PARCHMENT_CSS),
+        );
+        phasePanel.add(
+            UiPanelFactory.createTypewriterText(this, 20, 170, panelWidth - 40, this.buildResourceSummaryLine(), 14),
         );
         phasePanel.add(this.createContinuePhaseButton(panelWidth));
     }
@@ -492,7 +545,15 @@ export class ScenarioPlayScene extends Phaser.Scene {
             .find((scenarioEventRecord) => scenarioEventRecord.turnNumber === currentTurnNumber);
         if (matchingEventRecord === undefined) {
             phasePanel.add(
-                UiPanelFactory.createBodyText(this, 20, 52, panelWidth - 40, "No dispatch arrived this turn. The world holds its breath.", 16, UiPalette.PARCHMENT_CSS),
+                UiPanelFactory.createBodyText(
+                    this,
+                    20,
+                    52,
+                    panelWidth - 40,
+                    "No dispatch arrived this turn. The world holds its breath.",
+                    16,
+                    UiPalette.PARCHMENT_CSS,
+                ),
             );
             phasePanel.add(this.createContinuePhaseButton(panelWidth));
             return;
@@ -511,7 +572,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         );
         phasePanel.add(
             UiPanelFactory.createBrassButton(this, 20, 140, 260, 44, "READ THE DISPATCH", () => {
-                this.showNewspaperForEventRecord(matchingEventRecord.headline, matchingEventRecord.nationCode, matchingEventRecord.illustrationAssetIdentifier);
+                this.showNewspaperForEventRecord(
+                    matchingEventRecord.headline,
+                    matchingEventRecord.nationCode,
+                    matchingEventRecord.illustrationAssetIdentifier,
+                );
             }),
         );
         phasePanel.add(this.createContinuePhaseButton(panelWidth));
@@ -542,9 +607,20 @@ export class ScenarioPlayScene extends Phaser.Scene {
             return;
         }
         const journalPrompts = this.scenario.getJournalPrompts();
-        const activeJournalPrompt = journalPrompts[GameSession.getInstance().getCurrentTurnNumber() % journalPrompts.length];
+        const activeJournalPrompt =
+            journalPrompts[GameSession.getInstance().getCurrentTurnNumber() % journalPrompts.length];
         phasePanel.add(UiPanelFactory.createSectionHeader(this, 20, 52, "THIS TURN'S REFLECTION PROMPT", 17));
-        phasePanel.add(UiPanelFactory.createBodyText(this, 20, 84, panelWidth - 40, activeJournalPrompt, 15, UiPalette.AGED_PARCHMENT_CSS));
+        phasePanel.add(
+            UiPanelFactory.createBodyText(
+                this,
+                20,
+                84,
+                panelWidth - 40,
+                activeJournalPrompt,
+                15,
+                UiPalette.AGED_PARCHMENT_CSS,
+            ),
+        );
         phasePanel.add(
             UiPanelFactory.createBrassButton(this, 20, 150, 260, 44, "WRITE IN JOURNAL", () => {
                 this.scene.start(SceneKeys.JOURNAL);
@@ -555,9 +631,17 @@ export class ScenarioPlayScene extends Phaser.Scene {
 
     private createContinuePhaseButton(panelWidth: number): Phaser.GameObjects.Container {
         const continueButtonLabel = this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1 ? "END TURN" : "CONTINUE";
-        return UiPanelFactory.createBrassButton(this, panelWidth - 180, this.scale.height - 470, 160, 44, continueButtonLabel, () => {
-            this.advancePhase();
-        });
+        return UiPanelFactory.createBrassButton(
+            this,
+            panelWidth - 180,
+            this.scale.height - 470,
+            160,
+            44,
+            continueButtonLabel,
+            () => {
+                this.advancePhase();
+            },
+        );
     }
 
     private advancePhase(): void {
@@ -593,7 +677,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
             if (resolvedResourceType === null) {
                 continue;
             }
-            summaryParts.push(`${resolvedResourceType.getDisplayName()}: ${gameState.getResourceQuantity(resolvedResourceType)}`);
+            summaryParts.push(
+                `${resolvedResourceType.getDisplayName()}: ${gameState.getResourceQuantity(resolvedResourceType)}`,
+            );
         }
         return summaryParts.join("  |  ");
     }
@@ -629,39 +715,66 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     tileRectangle.setFillStyle(this.getTerrainColorForCode(province.getTerrainTypeCode()));
                     break;
                 case "resource":
-                    tileRectangle.setFillStyle(province.getVictoryPointValue() >= 20 ? UiPalette.BRIGHT_BRASS : UiPalette.DEEP_BRASS);
+                    tileRectangle.setFillStyle(
+                        province.getVictoryPointValue() >= 20 ? UiPalette.BRIGHT_BRASS : UiPalette.DEEP_BRASS,
+                    );
                     break;
                 case "diplomatic": {
                     if (playerNation === null || ownerNation === null || ownerNation === playerNation) {
                         tileRectangle.setFillStyle(UiPalette.MID_OLIVE);
                         break;
                     }
-                    const relationScore = GameSession.getInstance().getDiplomacyManager().getRelationScore(playerNation, ownerNation);
-                    tileRectangle.setFillStyle(relationScore >= 50 ? 0x2d4a8b : relationScore >= 0 ? UiPalette.FIELD_GRAY : UiPalette.BLOOD_RED);
+                    const relationScore = GameSession.getInstance()
+                        .getDiplomacyManager()
+                        .getRelationScore(playerNation, ownerNation);
+                    tileRectangle.setFillStyle(
+                        relationScore >= 50
+                            ? 0x2d4a8b
+                            : relationScore >= 0
+                              ? UiPalette.FIELD_GRAY
+                              : UiPalette.BLOOD_RED,
+                    );
                     break;
                 }
                 case "war": {
-                    const isAtWar = playerNation !== null && ownerNation !== null && playerNation.isAtWarWith(ownerNation);
+                    const isAtWar =
+                        playerNation !== null && ownerNation !== null && playerNation.isAtWarWith(ownerNation);
                     tileRectangle.setFillStyle(isAtWar ? UiPalette.BRIGHT_BLOOD : UiPalette.FIELD_GRAY);
                     break;
                 }
                 case "casualties": {
-                    const casualtiesForNation = ownerNation === null ? 0 : GameSession.getInstance().getMilitaryManager().getTotalCasualtiesForNation(ownerNation.getIdentifier());
+                    const casualtiesForNation =
+                        ownerNation === null
+                            ? 0
+                            : GameSession.getInstance()
+                                  .getMilitaryManager()
+                                  .getTotalCasualtiesForNation(ownerNation.getIdentifier());
                     tileRectangle.setFillStyle(casualtiesForNation > 100 ? UiPalette.BLOOD_RED : UiPalette.MID_OLIVE);
                     break;
                 }
                 case "supply":
-                    tileRectangle.setFillStyle(province.getSupplyValue() >= 10 ? UiPalette.DEEP_BRASS : UiPalette.DARK_OLIVE);
+                    tileRectangle.setFillStyle(
+                        province.getSupplyValue() >= 10 ? UiPalette.DEEP_BRASS : UiPalette.DARK_OLIVE,
+                    );
                     break;
                 case "intelligence": {
-                    const intelligenceValue = GameSession.getInstance().getIntelligenceManager().getCorrectlyAnalyzedSourceCount();
-                    tileRectangle.setFillStyle(province.isCapital() && intelligenceValue >= 2 ? UiPalette.BRIGHT_BRASS : UiPalette.NEAR_BLACK_LEATHER);
+                    const intelligenceValue = GameSession.getInstance()
+                        .getIntelligenceManager()
+                        .getCorrectlyAnalyzedSourceCount();
+                    tileRectangle.setFillStyle(
+                        province.isCapital() && intelligenceValue >= 2
+                            ? UiPalette.BRIGHT_BRASS
+                            : UiPalette.NEAR_BLACK_LEATHER,
+                    );
                     break;
                 }
                 case "political":
                 case "faction":
                 default: {
-                    const ownerColor = ownerNation === null ? UiPalette.FIELD_GRAY : UiPalette.getFactionColorForNationCode(ownerNation.getNationCode());
+                    const ownerColor =
+                        ownerNation === null
+                            ? UiPalette.FIELD_GRAY
+                            : UiPalette.getFactionColorForNationCode(ownerNation.getNationCode());
                     tileRectangle.setFillStyle(ownerColor);
                     break;
                 }
@@ -696,7 +809,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
     }
 
-    private openMechanicOverlay(overlayTitleText: string, buildOverlayContent: (overlayPanel: Phaser.GameObjects.Container, panelWidth: number, panelHeight: number) => void): void {
+    private openMechanicOverlay(
+        overlayTitleText: string,
+        buildOverlayContent: (
+            overlayPanel: Phaser.GameObjects.Container,
+            panelWidth: number,
+            panelHeight: number,
+        ) => void,
+    ): void {
         this.closeMechanicOverlay();
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
@@ -739,7 +859,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const gameState = GameSession.getInstance().getGameState();
         const causalChainDefinitions = this.scenario.getCausalChainDefinitions();
         let activeChainIndex = 0;
-        const renderChainInto = (overlayPanel: Phaser.GameObjects.Container, panelWidth: number, panelHeight: number): void => {
+        const renderChainInto = (
+            overlayPanel: Phaser.GameObjects.Container,
+            panelWidth: number,
+            panelHeight: number,
+        ): void => {
             const activeChain = causalChainDefinitions[activeChainIndex];
             overlayPanel.add(
                 UiPanelFactory.createBodyText(
@@ -787,7 +911,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
         const gameState = GameSession.getInstance().getGameState();
         this.openMechanicOverlay("COMPARISON", (overlayPanel, panelWidth, panelHeight) => {
-            const comparisonToolComponent = new ComparisonToolComponent(this, 16, 52, panelWidth - 32, panelHeight - 90);
+            const comparisonToolComponent = new ComparisonToolComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+            );
             comparisonToolComponent.setComparisonDefinition(comparisonDefinition, this.scenarioNumber, gameState);
             overlayPanel.add(comparisonToolComponent);
         });
@@ -803,8 +933,18 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
         const gameState = GameSession.getInstance().getGameState();
         this.openMechanicOverlay("CONTINUITY AND CHANGE", (overlayPanel, panelWidth, panelHeight) => {
-            const continuityChangeChartComponent = new ContinuityChangeChartComponent(this, 16, 52, panelWidth - 32, panelHeight - 90);
-            continuityChangeChartComponent.setContinuityChangeDefinition(continuityChangeDefinition, this.scenarioNumber, gameState);
+            const continuityChangeChartComponent = new ContinuityChangeChartComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+            );
+            continuityChangeChartComponent.setContinuityChangeDefinition(
+                continuityChangeDefinition,
+                this.scenarioNumber,
+                gameState,
+            );
             overlayPanel.add(continuityChangeChartComponent);
         });
     }
@@ -813,8 +953,18 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const gameState = GameSession.getInstance().getGameState();
         const territorialHoldingsRows = WorldStatePresent.getTerritorialHoldingsRowsForContinuityAndChangeChart();
         this.openMechanicOverlay("TERRITORIAL HOLDINGS, 1900 TO PRESENT", (overlayPanel, panelWidth, panelHeight) => {
-            const territorialHoldingsChartComponent = new TerritorialHoldingsChartComponent(this, 16, 52, panelWidth - 32, panelHeight - 90);
-            territorialHoldingsChartComponent.setTerritorialHoldingsRows(territorialHoldingsRows, this.scenarioNumber, gameState);
+            const territorialHoldingsChartComponent = new TerritorialHoldingsChartComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+            );
+            territorialHoldingsChartComponent.setTerritorialHoldingsRows(
+                territorialHoldingsRows,
+                this.scenarioNumber,
+                gameState,
+            );
             overlayPanel.add(territorialHoldingsChartComponent);
         });
     }
@@ -824,7 +974,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const assessmentManager = GameSession.getInstance().getAssessmentManager();
         const quickwritePromptText = Rubrics.QUICKWRITE_RUBRIC.descriptionText;
         this.openMechanicOverlay("QUICKWRITE", (overlayPanel, panelWidth, panelHeight) => {
-            const quickwriteComponent = new QuickwriteComponent(this, 16, 52, panelWidth - 32, panelHeight - 90, assessmentManager);
+            const quickwriteComponent = new QuickwriteComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+                assessmentManager,
+            );
             quickwriteComponent.setQuickwritePrompt(quickwritePromptText, this.scenarioNumber, gameState);
             overlayPanel.add(quickwriteComponent);
         });
@@ -839,7 +996,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
             return;
         }
         this.openMechanicOverlay("SHARED INQUIRY", (overlayPanel, panelWidth, panelHeight) => {
-            const sharedInquiryComponent = new SharedInquiryComponent(this, 16, 52, panelWidth - 32, panelHeight - 90, assessmentManager);
+            const sharedInquiryComponent = new SharedInquiryComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+                assessmentManager,
+            );
             sharedInquiryComponent.setInquiryDocuments(leftSource, rightSource, this.scenarioNumber, gameState);
             overlayPanel.add(sharedInquiryComponent);
         });
@@ -862,7 +1026,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 ),
             );
             const interventionMeterComponent = new GovernmentInterventionMeterComponent(this, 20, 150, 700);
-            interventionMeterComponent.setInterventionLevel(domesticManager.getGovernmentInterventionLevel(playerNationIdentifier));
+            interventionMeterComponent.setInterventionLevel(
+                domesticManager.getGovernmentInterventionLevel(playerNationIdentifier),
+            );
             overlayPanel.add(interventionMeterComponent);
         });
     }
@@ -871,7 +1037,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const gameState = GameSession.getInstance().getGameState();
         const assessmentManager = GameSession.getInstance().getAssessmentManager();
         this.openMechanicOverlay("SOCRATIC SEMINAR", (overlayPanel, panelWidth, panelHeight) => {
-            const socraticSeminarComponent = new SocraticSeminarComponent(this, 16, 52, panelWidth - 32, panelHeight - 90, assessmentManager);
+            const socraticSeminarComponent = new SocraticSeminarComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+                assessmentManager,
+            );
             socraticSeminarComponent.setSeminarRubric(Rubrics.SOCRATIC_SEMINAR_RUBRIC, this.scenarioNumber, gameState);
             overlayPanel.add(socraticSeminarComponent);
         });
@@ -887,7 +1060,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
         const gameState = GameSession.getInstance().getGameState();
         this.openMechanicOverlay("ARGUMENT BUILDER", (overlayPanel, panelWidth, panelHeight) => {
-            const causalArgumentBuilderComponent = new CausalArgumentBuilderComponent(this, 16, 52, panelWidth - 32, panelHeight - 90);
+            const causalArgumentBuilderComponent = new CausalArgumentBuilderComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+            );
             causalArgumentBuilderComponent.setArgumentDefinition(argumentDefinition, this.scenarioNumber, gameState);
             overlayPanel.add(causalArgumentBuilderComponent);
         });
@@ -930,7 +1109,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const testimonyRecords = this.scenario.getTestimonyRecords();
         const gameState = GameSession.getInstance().getGameState();
         this.openMechanicOverlay("TESTIMONY", (overlayPanel, panelWidth, panelHeight) => {
-            const testimonyPanelComponent = new TestimonyPanelComponent(this, 16, 52, panelWidth - 32, panelHeight - 90);
+            const testimonyPanelComponent = new TestimonyPanelComponent(
+                this,
+                16,
+                52,
+                panelWidth - 32,
+                panelHeight - 90,
+            );
             testimonyPanelComponent.setTestimonyRecords(testimonyRecords, this.scenarioNumber, gameState);
             overlayPanel.add(testimonyPanelComponent);
         });
@@ -953,7 +1138,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const gameState = GameSession.getInstance().getGameState();
         const playerNationIdentifier = gameState.getPlayerNationIdentifier();
         const playerNation = gameState.getNation(playerNationIdentifier);
-        const casualtiesByCategory = GameSession.getInstance().getMilitaryManager().getCasualtiesByCategory(playerNationIdentifier);
+        const casualtiesByCategory = GameSession.getInstance()
+            .getMilitaryManager()
+            .getCasualtiesByCategory(playerNationIdentifier);
         this.openMechanicOverlay("CASUALTIES BY ARM", (overlayPanel, panelWidth, panelHeight) => {
             const casualtyChartComponent = new CasualtyChartComponent(this, 16, 52, panelWidth - 32, panelHeight - 90);
             casualtyChartComponent.setCasualtyData(
@@ -977,7 +1164,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         });
     }
 
-    private showNewspaperForEventRecord(headlineText: string, nationCode: string, illustrationAssetIdentifier: string): void {
+    private showNewspaperForEventRecord(
+        headlineText: string,
+        nationCode: string,
+        illustrationAssetIdentifier: string,
+    ): void {
         const newspaperPopupComponent = new NewspaperPopupComponent(this, 0, 0, this.scale.width);
         newspaperPopupComponent.showNewspaper(
             `newspaper_masthead_${nationCode === "GER" ? "germany" : nationCode === "ENG" ? "britain" : nationCode === "FRA" ? "france" : nationCode === "USA" ? "usa" : nationCode === "RUS" ? "ussr" : nationCode === "JAP" ? "japan" : "default"}`,
@@ -985,7 +1176,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
             [
                 `Dispatch carried by cable and wireless from the offices of the ${nationCode} press.`,
                 `The editors note that the full meaning of these events will be taught in the debrief that follows.`,
-                illustrationAssetIdentifier.length > 0 ? "An illustration accompanies this report in the printed edition." : "",
+                illustrationAssetIdentifier.length > 0
+                    ? "An illustration accompanies this report in the printed edition."
+                    : "",
             ].filter((paragraph) => paragraph.length > 0),
             nationCode,
         );
@@ -999,7 +1192,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             newspaperPopupComponent.showNewspaper(
                 newspaperRequestPayload.newspaperAssetId,
                 newspaperRequestPayload.headline,
-                ["The wire services report the following from the capitals of Europe and beyond.", "Read carefully: the examination of causes follows in the debrief."],
+                [
+                    "The wire services report the following from the capitals of Europe and beyond.",
+                    "Read carefully: the examination of causes follows in the debrief.",
+                ],
                 newspaperRequestPayload.nationCode,
             );
         };
