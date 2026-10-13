@@ -5,18 +5,18 @@ export class TeacherSettings {
     private readonly disabledScenarioNumbers: Set<number>;
     private readonly storage: Storage | null;
 
-    private isContentAdvisoryEnabled: boolean;
-    private isScenarioNineRequiredBeforeTen: boolean;
+    private contentAdvisoryEnabled: boolean;
+    private scenarioNineRequiredBeforeTen: boolean;
     private contentDetailLevel: string;
-    private isMasterAudioEnabled: boolean;
+    private masterAudioEnabled: boolean;
 
     private constructor() {
         this.disabledScenarioNumbers = new Set<number>();
         this.storage = typeof localStorage === "undefined" ? null : localStorage;
-        this.isContentAdvisoryEnabled = true;
-        this.isScenarioNineRequiredBeforeTen = true;
+        this.contentAdvisoryEnabled = true;
+        this.scenarioNineRequiredBeforeTen = true;
         this.contentDetailLevel = "full";
-        this.isMasterAudioEnabled = true;
+        this.masterAudioEnabled = true;
         this.loadFromStorage();
     }
 
@@ -25,20 +25,20 @@ export class TeacherSettings {
     }
 
     public isContentAdvisoryEnabled(): boolean {
-        return this.isContentAdvisoryEnabled;
+        return this.contentAdvisoryEnabled;
     }
 
     public setContentAdvisoryEnabled(isEnabled: boolean): void {
-        this.isContentAdvisoryEnabled = isEnabled;
+        this.contentAdvisoryEnabled = isEnabled;
         this.saveToStorage();
     }
 
     public isScenarioNineRequiredBeforeTen(): boolean {
-        return this.isScenarioNineRequiredBeforeTen;
+        return this.scenarioNineRequiredBeforeTen;
     }
 
     public setScenarioNineRequiredBeforeTen(isRequired: boolean): void {
-        this.isScenarioNineRequiredBeforeTen = isRequired;
+        this.scenarioNineRequiredBeforeTen = isRequired;
         this.saveToStorage();
     }
 
@@ -52,11 +52,11 @@ export class TeacherSettings {
     }
 
     public isMasterAudioEnabled(): boolean {
-        return this.isMasterAudioEnabled;
+        return this.masterAudioEnabled;
     }
 
     public setMasterAudioEnabled(isEnabled: boolean): void {
-        this.isMasterAudioEnabled = isEnabled;
+        this.masterAudioEnabled = isEnabled;
         this.saveToStorage();
     }
 
@@ -75,10 +75,10 @@ export class TeacherSettings {
 
     public resetAllSettings(): void {
         this.disabledScenarioNumbers.clear();
-        this.isContentAdvisoryEnabled = true;
-        this.isScenarioNineRequiredBeforeTen = true;
+        this.contentAdvisoryEnabled = true;
+        this.scenarioNineRequiredBeforeTen = true;
         this.contentDetailLevel = "full";
-        this.isMasterAudioEnabled = true;
+        this.masterAudioEnabled = true;
         this.saveToStorage();
     }
 
@@ -87,10 +87,10 @@ export class TeacherSettings {
             return;
         }
         const serializedSettings = JSON.stringify({
-            isContentAdvisoryEnabled: this.isContentAdvisoryEnabled,
-            isScenarioNineRequiredBeforeTen: this.isScenarioNineRequiredBeforeTen,
+            isContentAdvisoryEnabled: this.contentAdvisoryEnabled,
+            isScenarioNineRequiredBeforeTen: this.scenarioNineRequiredBeforeTen,
             contentDetailLevel: this.contentDetailLevel,
-            isMasterAudioEnabled: this.isMasterAudioEnabled,
+            isMasterAudioEnabled: this.masterAudioEnabled,
             disabledScenarioNumbers: Array.from(this.disabledScenarioNumbers),
         });
         this.storage.setItem(TeacherSettings.STORAGE_KEY, serializedSettings);
@@ -112,10 +112,10 @@ export class TeacherSettings {
                 isMasterAudioEnabled: boolean;
                 disabledScenarioNumbers: number[];
             };
-            this.isContentAdvisoryEnabled = parsedSettings.isContentAdvisoryEnabled;
-            this.isScenarioNineRequiredBeforeTen = parsedSettings.isScenarioNineRequiredBeforeTen;
+            this.contentAdvisoryEnabled = parsedSettings.isContentAdvisoryEnabled;
+            this.scenarioNineRequiredBeforeTen = parsedSettings.isScenarioNineRequiredBeforeTen;
             this.contentDetailLevel = parsedSettings.contentDetailLevel;
-            this.isMasterAudioEnabled = parsedSettings.isMasterAudioEnabled;
+            this.masterAudioEnabled = parsedSettings.isMasterAudioEnabled;
             for (const disabledScenarioNumber of parsedSettings.disabledScenarioNumbers) {
                 this.disabledScenarioNumbers.add(disabledScenarioNumber);
             }
