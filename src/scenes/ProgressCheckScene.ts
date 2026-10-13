@@ -182,7 +182,7 @@ export class ProgressCheckScene extends Phaser.Scene {
             question.questionText,
         );
         contentContainer.add(questionTextObject);
-        cursorY += questionTextObject.height + 18;
+        cursorY += questionTextObject.displayHeight + 18;
         for (let answerOptionIndex = 0; answerOptionIndex < question.answerOptions.length; answerOptionIndex += 1) {
             const selectedAnswerIndex = answerOptionIndex;
             contentContainer.add(
@@ -227,12 +227,12 @@ export class ProgressCheckScene extends Phaser.Scene {
             40,
             cursorY,
             this.getProgressCheckContentWidth(),
-            rationaleTextObject.height + 40,
+            rationaleTextObject.displayHeight + 40,
             PanelVariant.PARCHMENT,
         );
         rationalePanel.add(rationaleTextObject);
         this.contentContainer.add(rationalePanel);
-        cursorY += rationaleTextObject.height + 56;
+        cursorY += rationaleTextObject.displayHeight + 56;
         this.contentContainer.add(
             UiPanelFactory.createBrassButton(this, 40, cursorY, 300, 44, "NEXT QUESTION", () => {
                 this.advanceToNextMultipleChoiceQuestion();
@@ -274,7 +274,7 @@ export class ProgressCheckScene extends Phaser.Scene {
             22,
         );
         contentContainer.add(scoreTextObject);
-        cursorY += scoreTextObject.height + 30;
+        cursorY += scoreTextObject.displayHeight + 30;
         contentContainer.add(
             UiPanelFactory.createBrassButton(this, 40, cursorY, 220, 44, "RETRY", () => {
                 this.restartMultipleChoiceMode();
@@ -335,12 +335,12 @@ export class ProgressCheckScene extends Phaser.Scene {
                     40,
                     cursorY,
                     this.getProgressCheckContentWidth(),
-                    stimulusTextObject.height + 40,
+                    stimulusTextObject.displayHeight + 40,
                     PanelVariant.NEWSPAPER,
                 );
                 stimulusPanel.add(stimulusTextObject);
                 contentContainer.add(stimulusPanel);
-                cursorY += stimulusTextObject.height + 56;
+                cursorY += stimulusTextObject.displayHeight + 56;
             }
             const questionTextObject = UiPanelFactory.createBodyText(
                 this,
@@ -350,7 +350,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                 shortAnswerQuestion.questionText,
             );
             contentContainer.add(questionTextObject);
-            cursorY += questionTextObject.height + 14;
+            cursorY += questionTextObject.displayHeight + 14;
             const responseField = new StudentTextEntryField(
                 this,
                 40,
@@ -423,7 +423,7 @@ export class ProgressCheckScene extends Phaser.Scene {
             lineSpacing: 6,
         });
         contentContainer.add(promptTextObject);
-        cursorY += promptTextObject.height + 24;
+        cursorY += promptTextObject.displayHeight + 24;
         let cardIndex = 0;
         for (const sourceIdentifier of documentBasedQuestion.documentSourceIdentifiers) {
             const primarySource = PrimarySources.findBySourceIdentifier(sourceIdentifier);
@@ -446,7 +446,7 @@ export class ProgressCheckScene extends Phaser.Scene {
             "Write your essay below, using at least six of the documents.",
         );
         contentContainer.add(essayPromptTextObject);
-        cursorY += essayPromptTextObject.height + 14;
+        cursorY += essayPromptTextObject.displayHeight + 14;
         const essayField = new StudentTextEntryField(this, 40, cursorY, this.getProgressCheckContentWidth(), 220);
         this.textEntryFields.push(essayField);
         contentContainer.add(essayField.getFieldContainer());
@@ -481,7 +481,7 @@ export class ProgressCheckScene extends Phaser.Scene {
         cardContainer.add(titleTextObject);
         const attributionTextObject = this.add.text(
             16,
-            12 + titleTextObject.height + 4,
+            12 + titleTextObject.displayHeight + 4,
             `${primarySource.authorOrOrigin} — ${primarySource.dateText}`,
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
@@ -493,7 +493,7 @@ export class ProgressCheckScene extends Phaser.Scene {
         cardContainer.add(attributionTextObject);
         const excerptTextObject = this.add.text(
             16,
-            12 + titleTextObject.height + 4 + attributionTextObject.height + 6,
+            12 + titleTextObject.displayHeight + 4 + attributionTextObject.displayHeight + 6,
             this.buildExcerptText(primarySource.excerptText),
             {
                 fontFamily: FontFamilies.BODY_SERIF,
