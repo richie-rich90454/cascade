@@ -80,7 +80,7 @@ export class PrimarySourceScenarioNineLibrary {
         "March 29-31, 1933",
         "soviet_union",
         "Press dispatch",
-        "I walked along through villages and twelve collective farms. Everywhere was the cry, \"There is no bread; we are dying.\" I saw children with swollen stomachs... I visited villages where every single animal was gone, the horses and the cows all dead, and peasants eating bark and leaves. There is famine on a gigantic scale, and the control of food is being used as a weapon of the state against the countryside.",
+        'I walked along through villages and twelve collective farms. Everywhere was the cry, "There is no bread; we are dying." I saw children with swollen stomachs... I visited villages where every single animal was gone, the horses and the cows all dead, and peasants eating bark and leaves. There is famine on a gigantic scale, and the control of food is being used as a weapon of the state against the countryside.',
         "A young British journalist traveling the countryside in defiance of Soviet restrictions.",
         "To inform the world of the famine that the Soviet government was concealing and denying.",
         "1933: collectivization and grain requisitions had produced mass starvation across Ukraine and the North Caucasus.",
@@ -99,7 +99,7 @@ export class PrimarySourceScenarioNineLibrary {
 
     public static readonly LAW_OF_THREE_SPIKELETS = new PrimarySource(
         "law_of_three_spikelets_1932",
-        "Decree on the Protection of State Property (\"The Law of Three Spikelets\")",
+        'Decree on the Protection of State Property ("The Law of Three Spikelets")',
         "Central Executive Committee and Council of People's Commissars of the U.S.S.R.",
         "August 7, 1932",
         "soviet_union",
@@ -110,7 +110,7 @@ export class PrimarySourceScenarioNineLibrary {
         "1932: requisitions had stripped Ukraine's grain supply, and peasants were taking individual ears of wheat to survive.",
         "Collective farmers, local officials, and courts across the Soviet Union, intended to enforce the decree ruthlessly.",
         "The decree documents the legal instrument of the famine, not its total human result; it says nothing of mortality, and should be read with accounts of courts issuing ten-year sentences and executions for a handful of ears.",
-        "The \"Law of Three Spikelets\" is best used as evidence of what about the Holodomor?",
+        'The "Law of Three Spikelets" is best used as evidence of what about the Holodomor?',
         [
             "The Soviet state criminalized and punished the very acts of survival of starving peasants.",
             "The famine was a purely natural disaster caused by drought.",
@@ -148,7 +148,7 @@ export class PrimarySourceScenarioNineLibrary {
     public static readonly POL_POT_PARTY_SPEECH_1976 = new PrimarySource(
         "pol_pot_party_speech_1976",
         "Speech on the First Anniversary of the Communist Party of Kampuchea",
-        "Pol Pot (\"Brother Number One\")",
+        'Pol Pot ("Brother Number One")',
         "September 1976",
         "cambodia",
         "Political speech",
@@ -156,7 +156,7 @@ export class PrimarySourceScenarioNineLibrary {
         "The leader of the Communist Party of Kampuchea addressing the party on its anniversary.",
         "To celebrate and justify the regime's radical transformation of Cambodian society and the purge of alleged enemies.",
         "1976: the Khmer Rouge had evacuated Phnom Penh, abolished markets and money, and begun mass purges at centers like S-21.",
-        "Party cadres and the state apparatus, who were to identify and eliminate the \"enemies\" the speech describes.",
+        'Party cadres and the state apparatus, who were to identify and eliminate the "enemies" the speech describes.',
         "The speech is doctrine presented by the party to itself; it encodes the political line behind the terror but says nothing of its scale, the foreign pressures on Cambodia, or the experience of the targeted.",
         "Pol Pot's speech is most directly useful as evidence of which cause of the Cambodian genocide?",
         [
