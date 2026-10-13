@@ -12,6 +12,10 @@ import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
 export class ProgressCheckScene extends Phaser.Scene {
+    private getProgressCheckContentWidth(): number {
+        return Math.min(980, this.scale.width - 80);
+    }
+
     private static readonly CONTENT_BASE_Y: number = 170;
 
     private currentMultipleChoiceQuestionIndex: number;
@@ -125,7 +129,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                 this,
                 40,
                 0,
-                900,
+                this.getProgressCheckContentWidth(),
                 "Select a mode above to begin the Personal Progress Check for Unit 7.",
             ),
         );
@@ -160,7 +164,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                 this,
                 40,
                 cursorY,
-                900,
+                this.getProgressCheckContentWidth(),
                 `Progress Check in progress — question ${this.currentMultipleChoiceQuestionIndex + 1} ` +
                     `of ${multipleChoiceQuestions.length}.`,
             ),
@@ -170,7 +174,13 @@ export class ProgressCheckScene extends Phaser.Scene {
             UiPanelFactory.createBadgeChip(this, 40, cursorY, "Topic " + question.cedTopicCode, UiPalette.DEEP_BRASS),
         );
         cursorY += 36;
-        const questionTextObject = UiPanelFactory.createBodyText(this, 40, cursorY, 900, question.questionText);
+        const questionTextObject = UiPanelFactory.createBodyText(
+            this,
+            40,
+            cursorY,
+            this.getProgressCheckContentWidth(),
+            question.questionText,
+        );
         contentContainer.add(questionTextObject);
         cursorY += questionTextObject.height + 18;
         for (let answerOptionIndex = 0; answerOptionIndex < question.answerOptions.length; answerOptionIndex += 1) {
@@ -180,7 +190,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                     this,
                     40,
                     cursorY,
-                    900,
+                    this.getProgressCheckContentWidth(),
                     44,
                     question.answerOptions[selectedAnswerIndex],
                     () => {
@@ -216,7 +226,7 @@ export class ProgressCheckScene extends Phaser.Scene {
             this,
             40,
             cursorY,
-            900,
+            this.getProgressCheckContentWidth(),
             rationaleTextObject.height + 40,
             PanelVariant.PARCHMENT,
         );
@@ -245,13 +255,21 @@ export class ProgressCheckScene extends Phaser.Scene {
             this.selectedAnswerIndexesByQuestionIdentifier,
         );
         let cursorY = 0;
-        contentContainer.add(UiPanelFactory.createTypewriterText(this, 40, cursorY, 900, "Progress Check complete."));
+        contentContainer.add(
+            UiPanelFactory.createTypewriterText(
+                this,
+                40,
+                cursorY,
+                this.getProgressCheckContentWidth(),
+                "Progress Check complete.",
+            ),
+        );
         cursorY += 44;
         const scoreTextObject = UiPanelFactory.createBodyText(
             this,
             40,
             cursorY,
-            900,
+            this.getProgressCheckContentWidth(),
             `You answered ${correctAnswerCount} of ${multipleChoiceQuestions.length} correctly.`,
             22,
         );
@@ -286,7 +304,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                 this,
                 40,
                 cursorY,
-                900,
+                this.getProgressCheckContentWidth(),
                 "Write a complete response to each question, then save it to your journal.",
             ),
         );
@@ -316,7 +334,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                     this,
                     40,
                     cursorY,
-                    900,
+                    this.getProgressCheckContentWidth(),
                     stimulusTextObject.height + 40,
                     PanelVariant.NEWSPAPER,
                 );
@@ -328,16 +346,28 @@ export class ProgressCheckScene extends Phaser.Scene {
                 this,
                 40,
                 cursorY,
-                900,
+                this.getProgressCheckContentWidth(),
                 shortAnswerQuestion.questionText,
             );
             contentContainer.add(questionTextObject);
             cursorY += questionTextObject.height + 14;
-            const responseField = new StudentTextEntryField(this, 40, cursorY, 900, 120);
+            const responseField = new StudentTextEntryField(
+                this,
+                40,
+                cursorY,
+                this.getProgressCheckContentWidth(),
+                120,
+            );
             this.textEntryFields.push(responseField);
             contentContainer.add(responseField.getFieldContainer());
             cursorY += 132;
-            const feedbackTextObject = UiPanelFactory.createTypewriterText(this, 40, cursorY, 900, "");
+            const feedbackTextObject = UiPanelFactory.createTypewriterText(
+                this,
+                40,
+                cursorY,
+                this.getProgressCheckContentWidth(),
+                "",
+            );
             contentContainer.add(feedbackTextObject);
             cursorY += 28;
             contentContainer.add(
@@ -412,16 +442,22 @@ export class ProgressCheckScene extends Phaser.Scene {
             this,
             40,
             cursorY,
-            900,
+            this.getProgressCheckContentWidth(),
             "Write your essay below, using at least six of the documents.",
         );
         contentContainer.add(essayPromptTextObject);
         cursorY += essayPromptTextObject.height + 14;
-        const essayField = new StudentTextEntryField(this, 40, cursorY, 900, 220);
+        const essayField = new StudentTextEntryField(this, 40, cursorY, this.getProgressCheckContentWidth(), 220);
         this.textEntryFields.push(essayField);
         contentContainer.add(essayField.getFieldContainer());
         cursorY += 232;
-        const feedbackTextObject = UiPanelFactory.createTypewriterText(this, 40, cursorY, 900, "");
+        const feedbackTextObject = UiPanelFactory.createTypewriterText(
+            this,
+            40,
+            cursorY,
+            this.getProgressCheckContentWidth(),
+            "",
+        );
         contentContainer.add(feedbackTextObject);
         cursorY += 28;
         contentContainer.add(
