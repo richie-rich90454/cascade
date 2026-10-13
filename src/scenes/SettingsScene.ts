@@ -49,7 +49,7 @@ export class SettingsScene extends Phaser.Scene {
             40,
             118,
             1200,
-            advisoryTextObject.height + 40,
+            advisoryTextObject.displayHeight + 40,
             PanelVariant.PARCHMENT,
         );
         advisoryPanel.add(advisoryTextObject);
