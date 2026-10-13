@@ -181,7 +181,9 @@ export class AssessmentManager {
         }
         let shortAnswerPointsEarned = 0;
         for (const journalEntry of journalEntriesForScenario) {
-            const matchingRubricItem = scenarioRubricItems.find((rubricItem) => rubricItem.promptText === journalEntry.promptText);
+            const matchingRubricItem = scenarioRubricItems.find(
+                (rubricItem) => rubricItem.promptText === journalEntry.promptText,
+            );
             if (matchingRubricItem !== undefined) {
                 shortAnswerPointsEarned += this.scoreShortAnswerResponse(matchingRubricItem, journalEntry.responseText);
             }
@@ -204,7 +206,9 @@ export class AssessmentManager {
         exportLines.push("");
         for (const journalEntry of this.journalEntries) {
             exportLines.push("------------------------------------------------------------");
-            exportLines.push(`Scenario ${journalEntry.scenarioNumber} | Turn ${journalEntry.turnNumber} | ${journalEntry.entryCategory}`);
+            exportLines.push(
+                `Scenario ${journalEntry.scenarioNumber} | Turn ${journalEntry.turnNumber} | ${journalEntry.entryCategory}`,
+            );
             exportLines.push(`Prompt: ${journalEntry.promptText}`);
             exportLines.push("");
             exportLines.push(journalEntry.responseText);
