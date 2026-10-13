@@ -7,7 +7,12 @@ export class InterestGroup {
 
     private politicalPowerLevel: number;
 
-    constructor(groupIdentifier: string, groupDisplayName: string, portraitAssetIdentifier: string, initialPoliticalPower: number) {
+    constructor(
+        groupIdentifier: string,
+        groupDisplayName: string,
+        portraitAssetIdentifier: string,
+        initialPoliticalPower: number,
+    ) {
         this.groupIdentifier = groupIdentifier;
         this.groupDisplayName = groupDisplayName;
         this.portraitAssetIdentifier = portraitAssetIdentifier;
@@ -80,7 +85,10 @@ export class DomesticManager {
     }
 
     public setGovernmentInterventionLevel(nationIdentifier: string, interventionLevel: number): void {
-        this.governmentInterventionByNationIdentifier.set(nationIdentifier, Math.max(0, Math.min(100, interventionLevel)));
+        this.governmentInterventionByNationIdentifier.set(
+            nationIdentifier,
+            Math.max(0, Math.min(100, interventionLevel)),
+        );
     }
 
     public adjustGovernmentInterventionLevel(nationIdentifier: string, deltaIntervention: number): number {
@@ -99,9 +107,13 @@ export class DomesticManager {
         const interestGroups = this.getInterestGroupsForNation(nation.getIdentifier());
         const summaryLines: string[] = [];
         for (const interestGroup of interestGroups) {
-            summaryLines.push(`${interestGroup.groupDisplayName}: political power ${interestGroup.getPoliticalPower()}`);
+            summaryLines.push(
+                `${interestGroup.groupDisplayName}: political power ${interestGroup.getPoliticalPower()}`,
+            );
         }
-        summaryLines.push(`Government intervention: ${this.getGovernmentInterventionLevel(nation.getIdentifier())} of 100`);
+        summaryLines.push(
+            `Government intervention: ${this.getGovernmentInterventionLevel(nation.getIdentifier())} of 100`,
+        );
         summaryLines.push(`Public opinion: ${this.getPublicOpinionLevel(nation)} of 100`);
         return summaryLines;
     }
