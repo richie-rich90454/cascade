@@ -1,3 +1,21 @@
+import type { GameState } from "../../core/GameState";
+import { GameSystem } from "../../core/GameSystem";
+import { Nations } from "../../data/Nations";
+import { Rubrics } from "../../data/Rubrics";
+import { LearningObjective } from "../../types/LearningObjective";
+import { ReasoningProcess } from "../../types/ReasoningProcess";
+import { ResourceType } from "../../types/ResourceType";
+import { SuggestedSkill } from "../../types/SuggestedSkill";
+import { ThematicFocus } from "../../types/ThematicFocus";
+import { Nation } from "../Nation";
+import { WorldState1900 } from "../WorldState1900";
+import { NegativeRepercussionsMechanic } from "./mechanics/NegativeRepercussionsMechanic";
+import { RepressivePolicyMechanic } from "./mechanics/RepressivePolicyMechanic";
+import { BrazilianPath } from "./paths/BrazilianPath";
+import { FascistCorporatistPath } from "./paths/FascistCorporatistPath";
+import { MexicanPath } from "./paths/MexicanPath";
+import { NewDealPath } from "./paths/NewDealPath";
+import { SovietFiveYearPlanPath } from "./paths/SovietFiveYearPlanPath";
 import {
     ArgumentDefinition,
     CausalChainDefinition,
@@ -12,30 +30,12 @@ import {
     ScenarioEventRecord,
     TestimonyRecord,
 } from "./Scenario";
-import { BrazilianPath } from "./paths/BrazilianPath";
-import { FascistCorporatistPath } from "./paths/FascistCorporatistPath";
-import { MexicanPath } from "./paths/MexicanPath";
-import { NewDealPath } from "./paths/NewDealPath";
-import { SovietFiveYearPlanPath } from "./paths/SovietFiveYearPlanPath";
 import { BrazilianPopulistSystem } from "./systems/BrazilianPopulistSystem";
 import { FascistCorporatistSystem } from "./systems/FascistCorporatistSystem";
 import { LaissezFaireToInterventionSystem } from "./systems/LaissezFaireToInterventionSystem";
 import { MexicanPopulistSystem } from "./systems/MexicanPopulistSystem";
 import { NewDealSystem } from "./systems/NewDealSystem";
 import { SovietFiveYearPlanSystem } from "./systems/SovietFiveYearPlanSystem";
-import { NegativeRepercussionsMechanic } from "./mechanics/NegativeRepercussionsMechanic";
-import { RepressivePolicyMechanic } from "./mechanics/RepressivePolicyMechanic";
-import { GameSystem } from "../../core/GameSystem";
-import type { GameState } from "../../core/GameState";
-import { Nation } from "../Nation";
-import { Nations } from "../../data/Nations";
-import { Rubrics } from "../../data/Rubrics";
-import { WorldState1900 } from "../WorldState1900";
-import { LearningObjective } from "../../types/LearningObjective";
-import { ReasoningProcess } from "../../types/ReasoningProcess";
-import { ResourceType } from "../../types/ResourceType";
-import { SuggestedSkill } from "../../types/SuggestedSkill";
-import { ThematicFocus } from "../../types/ThematicFocus";
 
 export class ScenarioFour extends Scenario {
     private readonly playableSystems: GameSystem[];
@@ -452,78 +452,83 @@ export class ScenarioFour extends Scenario {
     }
 
     public override getComparisonDefinition(): ComparisonDefinition | null {
-        return new ComparisonDefinition("Five Responses to Economic Crisis", "State-Directed Responses", "Market and Populist Responses", [
-            new ComparisonRow(
-                "s4_comparison_row_state_industry",
-                "The state's role in industry: Soviet five-year plans compared with the American New Deal",
-                "The Soviet state owned the means of production and set output targets for heavy industry through central plans.",
-                "The New Deal preserved private ownership but used federal agencies and public works to regulate industry and create jobs.",
-                true,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_ownership",
-                "Ownership of industry: the Soviet planned economy compared with Italian fascist corporatism",
-                "Soviet planners abolished private ownership of factories and farms and directed all output through the state.",
-                "Fascist Italy kept private property and profit while binding employers and workers into state-supervised corporations.",
-                false,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_agriculture",
-                "Agricultural policy: Soviet collectivization compared with Mexican land reform under Cárdenas",
-                "Collectivization forced peasants into state farms through requisitioning, deportation, and terror.",
-                "Cárdenas distributed estates to peasant communities as ejidos and won rural support for the revolutionary state.",
-                false,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_dissent",
-                "Politics and dissent: the Soviet one-party state compared with the democratic New Deal",
-                "The Soviet Union suppressed rival parties and independent unions through the secret police and the gulag.",
-                "The New Deal operated within elections, courts, and contested politics despite fierce opposition from its enemies.",
-                false,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_labor_organization",
-                "Labor organization: Italian corporatism compared with the Brazilian Estado Novo under Vargas",
-                "Fascist Italy replaced independent unions with corporations in which employers and workers served under state authority.",
-                "Vargas's Brazil created state-controlled unions that offered workers welfare benefits while banning strikes and rivals.",
-                true,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_popular_appeal",
-                "Appeals to workers and peasants: Brazil under Vargas compared with Mexico under Lázaro Cárdenas",
-                "Vargas courted the urban working class with labor laws and social insurance tied to the state.",
-                "Cárdenas organized peasants and workers into mass organizations that made the revolution a popular cause.",
-                true,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_industrialization_above",
-                "Industrialization from above: the Soviet five-year plans compared with state-led development in Brazil and Mexico",
-                "The Soviet Union concentrated investment in heavy industry and forced the pace of growth at enormous human cost.",
-                "Brazil and Mexico used tariffs, state enterprises, and infrastructure to promote industry while private landowners kept much of their power.",
-                true,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_laissez_faire",
-                "The fate of laissez-faire: the American New Deal compared with the Italian corporate state",
-                "The New Deal regulated markets but left competition, private property, and consumer choice largely intact.",
-                "The corporate state replaced free competition with compulsory syndicates bound to the party's plans.",
-                false,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_natural_resources",
-                "Control of natural resources: Mexican oil under Cárdenas compared with Soviet industry",
-                "Cárdenas expropriated foreign oil companies in 1938, compensating them while asserting national sovereignty over resources.",
-                "The Soviet state seized industry outright, without compensation, and folded it into the planned economy.",
-                false,
-            ),
-            new ComparisonRow(
-                "s4_comparison_row_recovery",
-                "Recovery from depression: the Soviet claim of planned growth compared with market recovery in the United States",
-                "Soviet propaganda presented uninterrupted planned growth as proof that socialism had escaped the capitalist crisis.",
-                "American recovery after 1933 depended on restored confidence, bank reform, and private investment as much as on federal spending.",
-                false,
-            ),
-        ]);
+        return new ComparisonDefinition(
+            "Five Responses to Economic Crisis",
+            "State-Directed Responses",
+            "Market and Populist Responses",
+            [
+                new ComparisonRow(
+                    "s4_comparison_row_state_industry",
+                    "The state's role in industry: Soviet five-year plans compared with the American New Deal",
+                    "The Soviet state owned the means of production and set output targets for heavy industry through central plans.",
+                    "The New Deal preserved private ownership but used federal agencies and public works to regulate industry and create jobs.",
+                    true,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_ownership",
+                    "Ownership of industry: the Soviet planned economy compared with Italian fascist corporatism",
+                    "Soviet planners abolished private ownership of factories and farms and directed all output through the state.",
+                    "Fascist Italy kept private property and profit while binding employers and workers into state-supervised corporations.",
+                    false,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_agriculture",
+                    "Agricultural policy: Soviet collectivization compared with Mexican land reform under Cárdenas",
+                    "Collectivization forced peasants into state farms through requisitioning, deportation, and terror.",
+                    "Cárdenas distributed estates to peasant communities as ejidos and won rural support for the revolutionary state.",
+                    false,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_dissent",
+                    "Politics and dissent: the Soviet one-party state compared with the democratic New Deal",
+                    "The Soviet Union suppressed rival parties and independent unions through the secret police and the gulag.",
+                    "The New Deal operated within elections, courts, and contested politics despite fierce opposition from its enemies.",
+                    false,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_labor_organization",
+                    "Labor organization: Italian corporatism compared with the Brazilian Estado Novo under Vargas",
+                    "Fascist Italy replaced independent unions with corporations in which employers and workers served under state authority.",
+                    "Vargas's Brazil created state-controlled unions that offered workers welfare benefits while banning strikes and rivals.",
+                    true,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_popular_appeal",
+                    "Appeals to workers and peasants: Brazil under Vargas compared with Mexico under Lázaro Cárdenas",
+                    "Vargas courted the urban working class with labor laws and social insurance tied to the state.",
+                    "Cárdenas organized peasants and workers into mass organizations that made the revolution a popular cause.",
+                    true,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_industrialization_above",
+                    "Industrialization from above: the Soviet five-year plans compared with state-led development in Brazil and Mexico",
+                    "The Soviet Union concentrated investment in heavy industry and forced the pace of growth at enormous human cost.",
+                    "Brazil and Mexico used tariffs, state enterprises, and infrastructure to promote industry while private landowners kept much of their power.",
+                    true,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_laissez_faire",
+                    "The fate of laissez-faire: the American New Deal compared with the Italian corporate state",
+                    "The New Deal regulated markets but left competition, private property, and consumer choice largely intact.",
+                    "The corporate state replaced free competition with compulsory syndicates bound to the party's plans.",
+                    false,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_natural_resources",
+                    "Control of natural resources: Mexican oil under Cárdenas compared with Soviet industry",
+                    "Cárdenas expropriated foreign oil companies in 1938, compensating them while asserting national sovereignty over resources.",
+                    "The Soviet state seized industry outright, without compensation, and folded it into the planned economy.",
+                    false,
+                ),
+                new ComparisonRow(
+                    "s4_comparison_row_recovery",
+                    "Recovery from depression: the Soviet claim of planned growth compared with market recovery in the United States",
+                    "Soviet propaganda presented uninterrupted planned growth as proof that socialism had escaped the capitalist crisis.",
+                    "American recovery after 1933 depended on restored confidence, bank reform, and private investment as much as on federal spending.",
+                    false,
+                ),
+            ],
+        );
     }
 
     public override getContinuityChangeDefinition(): ContinuityChangeDefinition | null {
@@ -610,7 +615,10 @@ export class ScenarioFour extends Scenario {
             { flagIdentifier: "path_s4_fascist_corporatist", flagDescription: "Path played: The Corporate State" },
             { flagIdentifier: "path_s4_brazil", flagDescription: "Path played: The Estado Novo" },
             { flagIdentifier: "path_s4_mexico", flagDescription: "Path played: The Revolution's Harvest" },
-            { flagIdentifier: "comparison_s4_complete", flagDescription: "Comparison completed: Five Responses to Economic Crisis" },
+            {
+                flagIdentifier: "comparison_s4_complete",
+                flagDescription: "Comparison completed: Five Responses to Economic Crisis",
+            },
             { flagIdentifier: "shared_inquiry_s4_saved", flagDescription: "Shared inquiry saved" },
         ]);
         const pathFlagIdentifiers = [
