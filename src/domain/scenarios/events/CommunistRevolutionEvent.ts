@@ -1,6 +1,6 @@
 import { EventBus, GameEventTypes, TelegramRequestPayload } from "../../../core/EventBus";
-import { GameSystem } from "../../../core/GameSystem";
 import type { GameState } from "../../../core/GameState";
+import { GameSystem } from "../../../core/GameSystem";
 
 export class CommunistRevolutionEvent extends GameSystem {
     private hasFiredEvent: boolean;
