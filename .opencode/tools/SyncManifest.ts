@@ -7,7 +7,16 @@ function runManifestSynchronization(): number {
     const manifestPath = join(repositoryRootPath, "public", "assets", "manifest.json");
     const manifestRecord = JSON.parse(readFileSync(manifestPath, "utf8")) as {
         generatedAtIsoTimestamp: string;
-        assets: Array<{ assetId: string; category: string; tier: number; source: string; file: string; width: number; height: number; status: string }>;
+        assets: Array<{
+            assetId: string;
+            category: string;
+            tier: number;
+            source: string;
+            file: string;
+            width: number;
+            height: number;
+            status: string;
+        }>;
     };
 
     let updatedStatusCount = 0;
