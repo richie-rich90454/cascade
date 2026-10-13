@@ -7,7 +7,7 @@ import { FontFamilies } from "../managers/FontManager";
 import type { IntelligenceManager } from "../managers/IntelligenceManager";
 import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
-import { UiScrollHelper } from "./UiScrollHelper";
+import { ScrollRegion, UiPointerRouting } from "./UiPointerRouting";
 
 export class QuestObjectiveRecord {
     public readonly objectiveIdentifier: string;
@@ -33,6 +33,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     private readonly nextStepButtonHolder: Phaser.GameObjects.Container;
 
     private requiredObjectives: QuestObjectiveRecord[];
+    private pointerRegion: ScrollRegion | null;
     private recommendedObjectives: QuestObjectiveRecord[];
 
     constructor(
@@ -49,6 +50,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         this.onMechanicRequested = onMechanicRequested;
         this.requiredObjectives = [];
         this.recommendedObjectives = [];
+        this.pointerRegion = null;
 
         const panelBackground = UiPanelFactory.createPanelContainer(scene, 0, 0, width, height, PanelVariant.LEATHER);
         this.add(panelBackground);
@@ -56,11 +58,11 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         blockingZone.setInteractive();
         this.add(blockingZone);
 
-        const headerText = UiPanelFactory.createSectionHeader(scene, 16, 12, "SCENARIO PROGRESS", 18);
+        const headerText = UiPanelFactory.createSectionHeader(scene, 16, 12, "SCENARIO PROGRESS", 17);
         this.add(headerText);
-        this.progressLabelText = scene.add.text(width - 16, 16, "", {
+        this.progressLabelText = scene.add.text(width - 16, 60, "", {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
-            fontSize: "13px",
+            fontSize: "12px",
             color: UiPalette.AGED_PARCHMENT_CSS,
         });
         this.progressLabelText.setOrigin(1, 0);
@@ -86,6 +88,14 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         );
         this.add(allToolsButton);
 
+        this.pointerRegion = new ScrollRegion(x, y, width, height);
+        UiPointerRouting.registerScrollRegion(this.pointerRegion);
+        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            if (this.pointerRegion !== null) {
+                UiPointerRouting.unregisterScrollRegion(this.pointerRegion);
+                this.pointerRegion = null;
+            }
+        });
         scene.add.existing(this);
         this.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
     }
@@ -367,36 +377,45 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     private renderObjectivesList(): void {
         this.contentContainer.removeAll(true);
         const listWidth = this.panelWidth - 32;
+        const listHeightPx = this.panelHeight - 84 - 120;
         let rowOffsetY = 0;
+        let hasOverflowedList = false;
         this.contentContainer.add(
             this.createObjectiveSectionLabel("VICTORY CHECKLIST", rowOffsetY, UiPalette.HIGHLIGHT_BRASS_CSS),
         );
         rowOffsetY += 26;
         for (const requiredObjective of this.requiredObjectives) {
+            if (rowOffsetY + 30 > listHeightPx) {
+                hasOverflowedList = true;
+                break;
+            }
             const rowHeight = this.createObjectiveRow(requiredObjective, rowOffsetY, listWidth);
-            rowOffsetY += rowHeight + 6;
+            rowOffsetY += rowHeight + 4;
         }
-        if (this.recommendedObjectives.length > 0) {
+        if (!hasOverflowedList && this.recommendedObjectives.length > 0) {
             rowOffsetY += 8;
             this.contentContainer.add(
                 this.createObjectiveSectionLabel("RECOMMENDED", rowOffsetY, UiPalette.BRASS_TAN_CSS),
             );
             rowOffsetY += 26;
             for (const recommendedObjective of this.recommendedObjectives) {
+                if (rowOffsetY + 30 > listHeightPx) {
+                    hasOverflowedList = true;
+                    break;
+                }
                 const rowHeight = this.createObjectiveRow(recommendedObjective, rowOffsetY, listWidth);
-                rowOffsetY += rowHeight + 6;
+                rowOffsetY += rowHeight + 4;
             }
         }
-        const listHeightPx = this.panelHeight - 84 - 120;
-        UiScrollHelper.enableWheelScrolling(
-            this.scene,
-            this.x,
-            this.y + 84,
-            this.panelWidth,
-            listHeightPx,
-            this.contentContainer,
-            rowOffsetY + 16,
-        );
+        if (hasOverflowedList) {
+            this.contentContainer.add(
+                this.createObjectiveSectionLabel(
+                    "More objectives appear as you progress.",
+                    rowOffsetY,
+                    UiPalette.FIELD_GRAY_CSS,
+                ),
+            );
+        }
     }
 
     private createObjectiveSectionLabel(labelText: string, offsetY: number, colorCss: string): Phaser.GameObjects.Text {
@@ -423,16 +442,16 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         rowContainer.add(checkText);
         const objectiveText = this.scene.add.text(22, 0, objectiveRecord.objectiveTitle, {
             fontFamily: FontFamilies.BODY_SERIF,
-            fontSize: "14px",
+            fontSize: "13px",
             color: objectiveRecord.isCompleted ? UiPalette.AGED_PARCHMENT_CSS : UiPalette.PARCHMENT_CSS,
             wordWrap: { width: rowWidth - 34, useAdvancedWrap: true },
-            lineSpacing: 2,
+            lineSpacing: 1,
         });
         if (objectiveRecord.isCompleted) {
             objectiveText.setAlpha(0.65);
         }
         rowContainer.add(objectiveText);
-        const rowHeight = Math.max(30, objectiveText.height + 6);
+        const rowHeight = Math.max(24, objectiveText.displayHeight + 4);
         const rowZone = this.scene.add.zone(0, 0, rowWidth, rowHeight).setOrigin(0, 0);
         rowZone.setInteractive({ useHandCursor: true });
         rowZone.on("pointerover", () => {
@@ -475,7 +494,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         const buttonLabelText =
             nextIncompleteObjective === undefined
                 ? "COMPLETE DEBRIEF"
-                : `NEXT STEP: ${this.buildShortButtonLabel(nextIncompleteObjective.objectiveTitle)}`;
+                : `NEXT: ${this.buildShortButtonLabel(nextIncompleteObjective.objectiveTitle)}`;
         const nextStepButton = UiPanelFactory.createBrassButton(
             this.scene,
             0,
@@ -493,7 +512,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     }
 
     private buildShortButtonLabel(objectiveTitle: string): string {
-        const maximumLabelLength = 26;
+        const maximumLabelLength = 20;
         if (objectiveTitle.length <= maximumLabelLength) {
             return objectiveTitle.toUpperCase();
         }
