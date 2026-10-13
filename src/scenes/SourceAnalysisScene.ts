@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+
 import { EventBus, GameEventTypes, SourceAnalysisPayload } from "../core/EventBus";
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
@@ -6,9 +7,9 @@ import { PrimarySource } from "../data/PrimarySource";
 import { PrimarySources } from "../data/PrimarySources";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { FontFamilies } from "../managers/FontManager";
-import { UiPanelFactory } from "../ui/UiPanelFactory";
 import { SourceAnalysisComponent } from "../ui/SourceAnalysisComponent";
 import { UiPalette } from "../ui/UiPalette";
+import { UiPanelFactory } from "../ui/UiPanelFactory";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class SourceAnalysisScene extends Phaser.Scene {
@@ -103,8 +104,17 @@ export class SourceAnalysisScene extends Phaser.Scene {
             this.sourceListContainer?.add(listEntryContainer);
             const analysisResult = intelligenceManager.getSourceAnalysisResult(scenarioSource.sourceIdentifier);
             const statusText =
-                analysisResult === null ? "Not yet analyzed" : analysisResult ? "Analyzed - intelligence reliable" : "Analyzed - reading corrected";
-            const statusColorCss = analysisResult === null ? UiPalette.AGED_PARCHMENT_CSS : analysisResult ? UiPalette.HIGHLIGHT_BRASS_CSS : UiPalette.BRIGHT_BLOOD_CSS;
+                analysisResult === null
+                    ? "Not yet analyzed"
+                    : analysisResult
+                      ? "Analyzed - intelligence reliable"
+                      : "Analyzed - reading corrected";
+            const statusColorCss =
+                analysisResult === null
+                    ? UiPalette.AGED_PARCHMENT_CSS
+                    : analysisResult
+                      ? UiPalette.HIGHLIGHT_BRASS_CSS
+                      : UiPalette.BRIGHT_BLOOD_CSS;
             const statusLabel = this.add.text(12, 58, statusText, {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: "12px",
