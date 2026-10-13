@@ -3,7 +3,7 @@ import { PrimarySource } from "../PrimarySource";
 export class PrimarySourceScenarioEightLibrary {
     public static readonly ROOSEVELT_DAY_OF_INFAMY = new PrimarySource(
         "roosevelt_day_of_infamy_1941",
-        "\"Day of Infamy\" Address to Congress",
+        '"Day of Infamy" Address to Congress',
         "President Franklin D. Roosevelt",
         "December 8, 1941",
         "united_states",
@@ -27,7 +27,7 @@ export class PrimarySourceScenarioEightLibrary {
 
     public static readonly CARELESS_TALK_POSTER = new PrimarySource(
         "careless_talk_costs_lives_poster",
-        "\"Careless Talk Costs Lives\" Security Poster",
+        '"Careless Talk Costs Lives" Security Poster',
         "British Ministry of Information (design by Fougasse)",
         "1940",
         "british_empire",
@@ -38,7 +38,7 @@ export class PrimarySourceScenarioEightLibrary {
         "1940: Britain faced invasion and actual German spy networks while the Home Front's morale and habits were a target of policy.",
         "British civilians, whose ordinary conversation the campaign invites them to police themselves - and their neighbors.",
         "The poster is official security propaganda; its implied claims about how military secrets leaked are simplified, and it says nothing about the government's own censorship machinery or actual espionage cases.",
-        "The \"Careless Talk\" series is best understood as evidence of which method of conducting total war?",
+        'The "Careless Talk" series is best understood as evidence of which method of conducting total war?',
         [
             "The use of propaganda and censorship to discipline home-front populations and defend military intelligence.",
             "The mechanization of agriculture to feed industrial workers.",
