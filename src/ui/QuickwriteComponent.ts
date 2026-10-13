@@ -166,7 +166,7 @@ export class QuickwriteComponent extends Phaser.GameObjects.Container {
         this.add(titleTextObject);
         const promptTextObject = UiPanelFactory.createBodyText(this.scene, 16, 52, this.panelWidth - 32, promptText);
         this.add(promptTextObject);
-        const fieldTopY = 52 + promptTextObject.height + 14;
+        const fieldTopY = 52 + promptTextObject.displayHeight + 14;
         const fieldHeight = Math.max(120, this.panelHeight - fieldTopY - 76);
         this.responseField = new StudentTextEntryField(this.scene, 16, fieldTopY, this.panelWidth - 32, fieldHeight);
         this.add(this.responseField.getFieldContainer());
