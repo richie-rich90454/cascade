@@ -7,10 +7,9 @@ import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import type { ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { FontFamilies } from "../managers/FontManager";
 import { StudentTextEntryField } from "../ui/QuickwriteComponent";
-import { FlowCursor } from "../ui/UiFlowLayout";
+import { FlowCursor, FlowLayout } from "../ui/UiFlowLayout";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
-import { UiScrollHelper } from "../ui/UiScrollHelper";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class DebriefScene extends Phaser.Scene {
@@ -67,6 +66,7 @@ export class DebriefScene extends Phaser.Scene {
         const panelHeight = screenHeight - 200;
         UiPanelFactory.createPanelContainer(this, panelLeftX, panelTopY, panelWidth, panelHeight, PanelVariant.LEATHER);
         const contentContainer = this.add.container(panelLeftX, panelTopY);
+        contentContainer.setDepth(UiPalette.UI_DEPTH_PANEL + 1);
         const contentWrapWidth = panelWidth - 72;
         const flowCursor = new FlowCursor(36, 22);
 
@@ -198,15 +198,7 @@ export class DebriefScene extends Phaser.Scene {
         flowCursor.placeContainer(contentContainer, contextualizationSaveButton, 4);
         flowCursor.placeText(contentContainer, contextualizationScoreLabel, 24);
 
-        UiScrollHelper.enableWheelScrolling(
-            this,
-            panelLeftX,
-            panelTopY,
-            panelWidth,
-            panelHeight,
-            contentContainer,
-            flowCursor.getCurrentY() + 24,
-        );
+        FlowLayout.fitContentIntoViewport(contentContainer, flowCursor.getCurrentY() + 24, panelHeight - 24);
 
         UiPanelFactory.createBrassButton(
             this,
@@ -354,6 +346,7 @@ export class DebriefScene extends Phaser.Scene {
         );
 
         const criteriaContainer = this.add.container(resultPanelLeftX, resultPanelTopY);
+        criteriaContainer.setDepth(UiPalette.UI_DEPTH_POPUP + 1);
         const criteriaCursor = new FlowCursor(32, 104);
         criteriaCursor.placeText(criteriaContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "MET", 16), 8);
         for (const satisfiedCriterion of scenarioEvaluationResult.satisfiedCriteria) {
@@ -394,14 +387,10 @@ export class DebriefScene extends Phaser.Scene {
                 );
             }
         }
-        UiScrollHelper.enableWheelScrolling(
-            this,
-            resultPanelLeftX,
-            resultPanelTopY + 90,
-            resultPanelWidth,
-            resultPanelHeight - 170,
+        FlowLayout.fitContentIntoViewport(
             criteriaContainer,
             criteriaCursor.getCurrentY() + 24,
+            resultPanelHeight - 190,
         );
 
         const buttonRowLeftX = 28;
