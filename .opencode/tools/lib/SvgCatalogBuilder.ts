@@ -222,17 +222,41 @@ export class SvgCatalogBuilder {
         for (const terrainType of SvgCatalogBuilder.TERRAIN_TYPES) {
             for (let variantIndex = 1; variantIndex <= 12; variantIndex++) {
                 const variantSuffix = variantIndex < 10 ? `0${variantIndex}` : `${variantIndex}`;
-                catalogEntries.push(new CatalogAssetEntry(`tile_${terrainType}_${variantSuffix}`, "tile", 64, 64, `tile_${terrainType}_${variantSuffix}`));
                 catalogEntries.push(
-                    new CatalogAssetEntry(`tile_${terrainType}_detail_${variantSuffix}`, "tile", 128, 128, `tile_detail_${terrainType}_${variantSuffix}`),
+                    new CatalogAssetEntry(
+                        `tile_${terrainType}_${variantSuffix}`,
+                        "tile",
+                        64,
+                        64,
+                        `tile_${terrainType}_${variantSuffix}`,
+                    ),
+                );
+                catalogEntries.push(
+                    new CatalogAssetEntry(
+                        `tile_${terrainType}_detail_${variantSuffix}`,
+                        "tile",
+                        128,
+                        128,
+                        `tile_detail_${terrainType}_${variantSuffix}`,
+                    ),
                 );
             }
         }
         for (const riverOrientation of ["horizontal", "vertical", "corner"]) {
-            catalogEntries.push(new CatalogAssetEntry(`tile_river_${riverOrientation}`, "tile", 64, 64, `river_${riverOrientation}`));
+            catalogEntries.push(
+                new CatalogAssetEntry(`tile_river_${riverOrientation}`, "tile", 64, 64, `river_${riverOrientation}`),
+            );
         }
         for (const railroadOrientation of ["horizontal", "vertical", "corner"]) {
-            catalogEntries.push(new CatalogAssetEntry(`tile_railroad_${railroadOrientation}`, "tile", 64, 64, `railroad_${railroadOrientation}`));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `tile_railroad_${railroadOrientation}`,
+                    "tile",
+                    64,
+                    64,
+                    `railroad_${railroadOrientation}`,
+                ),
+            );
         }
         catalogEntries.push(new CatalogAssetEntry("tile_border_brass", "tile", 64, 64, "border_brass"));
         catalogEntries.push(new CatalogAssetEntry("tile_border_dashed", "tile", 64, 64, "border_dashed"));
@@ -260,19 +284,47 @@ export class SvgCatalogBuilder {
             { assetId: "marker_victory_point", width: 24, height: 24 },
         ];
         for (const markerDefinition of markerIds) {
-            catalogEntries.push(new CatalogAssetEntry(markerDefinition.assetId, "marker", markerDefinition.width, markerDefinition.height, markerDefinition.assetId));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    markerDefinition.assetId,
+                    "marker",
+                    markerDefinition.width,
+                    markerDefinition.height,
+                    markerDefinition.assetId,
+                ),
+            );
         }
     }
 
     private static appendCounterEntries(catalogEntries: CatalogAssetEntry[]): void {
         for (const unitType of SvgCatalogBuilder.UNIT_TYPE_KEYS) {
             for (const factionKey of SvgCatalogBuilder.FACTION_KEYS) {
-                catalogEntries.push(new CatalogAssetEntry(`counter_${unitType}_${factionKey}`, "counter", 56, 32, `counter_${unitType}_${factionKey}`));
                 catalogEntries.push(
-                    new CatalogAssetEntry(`counter_${unitType}_${factionKey}_small`, "counter", 40, 24, `counter_small_${unitType}_${factionKey}`),
+                    new CatalogAssetEntry(
+                        `counter_${unitType}_${factionKey}`,
+                        "counter",
+                        56,
+                        32,
+                        `counter_${unitType}_${factionKey}`,
+                    ),
                 );
                 catalogEntries.push(
-                    new CatalogAssetEntry(`counter_${unitType}_${factionKey}_large`, "counter", 72, 44, `counter_large_${unitType}_${factionKey}`),
+                    new CatalogAssetEntry(
+                        `counter_${unitType}_${factionKey}_small`,
+                        "counter",
+                        40,
+                        24,
+                        `counter_small_${unitType}_${factionKey}`,
+                    ),
+                );
+                catalogEntries.push(
+                    new CatalogAssetEntry(
+                        `counter_${unitType}_${factionKey}_large`,
+                        "counter",
+                        72,
+                        44,
+                        `counter_large_${unitType}_${factionKey}`,
+                    ),
                 );
             }
         }
@@ -281,29 +333,67 @@ export class SvgCatalogBuilder {
     private static appendInsigniaEntries(catalogEntries: CatalogAssetEntry[]): void {
         const insigniaFactionKeys = [...SvgCatalogBuilder.FACTION_KEYS, "india"];
         for (const insigniaFactionKey of insigniaFactionKeys) {
-            catalogEntries.push(new CatalogAssetEntry(`faction_${insigniaFactionKey}`, "insignia", 64, 64, `faction_${insigniaFactionKey}`));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `faction_${insigniaFactionKey}`,
+                    "insignia",
+                    64,
+                    64,
+                    `faction_${insigniaFactionKey}`,
+                ),
+            );
         }
     }
 
     private static appendIconEntries(catalogEntries: CatalogAssetEntry[]): void {
         for (const resourceIconKey of SvgCatalogBuilder.RESOURCE_ICON_KEYS) {
-            catalogEntries.push(new CatalogAssetEntry(`icon_resource_${resourceIconKey}`, "icon", 32, 32, `resource_${resourceIconKey}`));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `icon_resource_${resourceIconKey}`,
+                    "icon",
+                    32,
+                    32,
+                    `resource_${resourceIconKey}`,
+                ),
+            );
             for (let alternativeIndex = 1; alternativeIndex <= 3; alternativeIndex++) {
                 catalogEntries.push(
-                    new CatalogAssetEntry(`icon_resource_${resourceIconKey}_alt_0${alternativeIndex}`, "icon", 32, 32, `resource_alt_${resourceIconKey}_${alternativeIndex}`),
+                    new CatalogAssetEntry(
+                        `icon_resource_${resourceIconKey}_alt_0${alternativeIndex}`,
+                        "icon",
+                        32,
+                        32,
+                        `resource_alt_${resourceIconKey}_${alternativeIndex}`,
+                    ),
                 );
             }
         }
         for (const techIconKey of SvgCatalogBuilder.TECH_ICON_KEYS) {
             catalogEntries.push(new CatalogAssetEntry(`tech_${techIconKey}`, "icon", 40, 40, `tech_${techIconKey}`));
             for (let alternativeIndex = 1; alternativeIndex <= 2; alternativeIndex++) {
-                catalogEntries.push(new CatalogAssetEntry(`tech_${techIconKey}_alt_0${alternativeIndex}`, "icon", 40, 40, `tech_alt_${techIconKey}_${alternativeIndex}`));
+                catalogEntries.push(
+                    new CatalogAssetEntry(
+                        `tech_${techIconKey}_alt_0${alternativeIndex}`,
+                        "icon",
+                        40,
+                        40,
+                        `tech_alt_${techIconKey}_${alternativeIndex}`,
+                    ),
+                );
             }
         }
         for (const ideaIconKey of SvgCatalogBuilder.IDEA_ICON_KEYS) {
             catalogEntries.push(new CatalogAssetEntry(`idea_${ideaIconKey}`, "icon", 40, 40, `idea_${ideaIconKey}`));
             for (let alternativeIndex = 1; alternativeIndex <= 2; alternativeIndex++) {
-                catalogEntries.push(new CatalogAssetEntry(`idea_${ideaIconKey}_alt_0${alternativeIndex}`, "icon", 40, 40, `idea_alt_${ideaIconKey}_${alternativeIndex}`));
+                catalogEntries.push(
+                    new CatalogAssetEntry(
+                        `idea_${ideaIconKey}_alt_0${alternativeIndex}`,
+                        "icon",
+                        40,
+                        40,
+                        `idea_alt_${ideaIconKey}_${alternativeIndex}`,
+                    ),
+                );
             }
         }
     }
@@ -370,7 +460,13 @@ export class SvgCatalogBuilder {
         ];
         for (const uiElementDefinition of uiElementDefinitions) {
             catalogEntries.push(
-                new CatalogAssetEntry(uiElementDefinition.assetId, "ui", uiElementDefinition.width, uiElementDefinition.height, uiElementDefinition.assetId),
+                new CatalogAssetEntry(
+                    uiElementDefinition.assetId,
+                    "ui",
+                    uiElementDefinition.width,
+                    uiElementDefinition.height,
+                    uiElementDefinition.assetId,
+                ),
             );
         }
     }
@@ -400,8 +496,12 @@ export class SvgCatalogBuilder {
         ];
         for (const ornamentId of ornamentIds) {
             catalogEntries.push(new CatalogAssetEntry(ornamentId, "ornament", 48, 48, ornamentId));
-            catalogEntries.push(new CatalogAssetEntry(`${ornamentId}_alt_01`, "ornament", 48, 48, `${ornamentId}_alt_01`));
-            catalogEntries.push(new CatalogAssetEntry(`${ornamentId}_alt_02`, "ornament", 48, 48, `${ornamentId}_alt_02`));
+            catalogEntries.push(
+                new CatalogAssetEntry(`${ornamentId}_alt_01`, "ornament", 48, 48, `${ornamentId}_alt_01`),
+            );
+            catalogEntries.push(
+                new CatalogAssetEntry(`${ornamentId}_alt_02`, "ornament", 48, 48, `${ornamentId}_alt_02`),
+            );
         }
     }
 
@@ -431,7 +531,15 @@ export class SvgCatalogBuilder {
         for (const patternId of patternIds) {
             for (let variantIndex = 1; variantIndex <= 4; variantIndex++) {
                 const variantSuffix = `_v0${variantIndex}`;
-                catalogEntries.push(new CatalogAssetEntry(`${patternId}${variantSuffix}`, "pattern", 64, 64, `${patternId}${variantSuffix}`));
+                catalogEntries.push(
+                    new CatalogAssetEntry(
+                        `${patternId}${variantSuffix}`,
+                        "pattern",
+                        64,
+                        64,
+                        `${patternId}${variantSuffix}`,
+                    ),
+                );
             }
             catalogEntries.push(new CatalogAssetEntry(patternId, "pattern", 64, 64, patternId));
         }
@@ -439,8 +547,24 @@ export class SvgCatalogBuilder {
 
     private static appendScenarioEntries(catalogEntries: CatalogAssetEntry[]): void {
         for (let scenarioNumber = 1; scenarioNumber <= 10; scenarioNumber++) {
-            catalogEntries.push(new CatalogAssetEntry(`scenario_${scenarioNumber}_icon`, "scenario", 96, 96, `scenario_${scenarioNumber}_icon`));
-            catalogEntries.push(new CatalogAssetEntry(`scenario_${scenarioNumber}_icon_banner`, "scenario", 320, 96, `scenario_${scenarioNumber}_banner`));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `scenario_${scenarioNumber}_icon`,
+                    "scenario",
+                    96,
+                    96,
+                    `scenario_${scenarioNumber}_icon`,
+                ),
+            );
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `scenario_${scenarioNumber}_icon_banner`,
+                    "scenario",
+                    320,
+                    96,
+                    `scenario_${scenarioNumber}_banner`,
+                ),
+            );
         }
     }
 
@@ -464,19 +588,78 @@ export class SvgCatalogBuilder {
     private static appendEventEntries(catalogEntries: CatalogAssetEntry[]): void {
         for (const eventIllustrationKey of SvgCatalogBuilder.EVENT_ILLUSTRATION_KEYS) {
             catalogEntries.push(new CatalogAssetEntry(eventIllustrationKey, "event", 320, 180, eventIllustrationKey));
-            catalogEntries.push(new CatalogAssetEntry(`${eventIllustrationKey}_wide`, "event", 480, 200, `${eventIllustrationKey}_wide`));
-            catalogEntries.push(new CatalogAssetEntry(`${eventIllustrationKey}_small`, "event", 160, 120, `${eventIllustrationKey}_small`));
-            catalogEntries.push(new CatalogAssetEntry(`${eventIllustrationKey}_tall`, "event", 240, 320, `${eventIllustrationKey}_tall`));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `${eventIllustrationKey}_wide`,
+                    "event",
+                    480,
+                    200,
+                    `${eventIllustrationKey}_wide`,
+                ),
+            );
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `${eventIllustrationKey}_small`,
+                    "event",
+                    160,
+                    120,
+                    `${eventIllustrationKey}_small`,
+                ),
+            );
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `${eventIllustrationKey}_tall`,
+                    "event",
+                    240,
+                    320,
+                    `${eventIllustrationKey}_tall`,
+                ),
+            );
         }
     }
 
     private static appendPortraitEntries(catalogEntries: CatalogAssetEntry[]): void {
-        const portraitFrameKeys = ["germany", "britain", "france", "russia", "ussr", "italy", "japan", "usa", "ottoman"];
+        const portraitFrameKeys = [
+            "germany",
+            "britain",
+            "france",
+            "russia",
+            "ussr",
+            "italy",
+            "japan",
+            "usa",
+            "ottoman",
+        ];
         for (const portraitFrameKey of portraitFrameKeys) {
-            catalogEntries.push(new CatalogAssetEntry(`portrait_frame_${portraitFrameKey}`, "portrait", 120, 150, `portrait_${portraitFrameKey}`));
-            catalogEntries.push(new CatalogAssetEntry(`portrait_frame_${portraitFrameKey}_small`, "portrait", 80, 100, `portrait_small_${portraitFrameKey}`));
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `portrait_frame_${portraitFrameKey}`,
+                    "portrait",
+                    120,
+                    150,
+                    `portrait_${portraitFrameKey}`,
+                ),
+            );
+            catalogEntries.push(
+                new CatalogAssetEntry(
+                    `portrait_frame_${portraitFrameKey}_small`,
+                    "portrait",
+                    80,
+                    100,
+                    `portrait_small_${portraitFrameKey}`,
+                ),
+            );
         }
-        const interestGroupIds = ["ig_aristocracy", "ig_bourgeoisie", "ig_workers", "ig_clergy", "ig_military", "ig_intelligentsia", "ig_peasants", "ig_merchants"];
+        const interestGroupIds = [
+            "ig_aristocracy",
+            "ig_bourgeoisie",
+            "ig_workers",
+            "ig_clergy",
+            "ig_military",
+            "ig_intelligentsia",
+            "ig_peasants",
+            "ig_merchants",
+        ];
         for (const interestGroupId of interestGroupIds) {
             catalogEntries.push(new CatalogAssetEntry(interestGroupId, "portrait", 64, 80, interestGroupId));
         }
@@ -506,7 +689,14 @@ export class SvgCatalogBuilder {
     }
 
     private static appendLedgerEntries(catalogEntries: CatalogAssetEntry[]): void {
-        const ledgerIds = ["ledger_row_odd", "ledger_row_even", "ledger_header_row", "ledger_column_divider", "ledger_total_row", "ledger_footer"];
+        const ledgerIds = [
+            "ledger_row_odd",
+            "ledger_row_even",
+            "ledger_header_row",
+            "ledger_column_divider",
+            "ledger_total_row",
+            "ledger_footer",
+        ];
         for (const ledgerId of ledgerIds) {
             catalogEntries.push(new CatalogAssetEntry(ledgerId, "ledger", 400, 24, ledgerId));
         }
