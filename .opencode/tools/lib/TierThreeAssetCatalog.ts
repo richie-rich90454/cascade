@@ -70,10 +70,19 @@ export class TierThreeAssetCatalog {
         }
         const newspaperPhotoDefinitions: Array<{ assetId: string; subjectName: string }> = [
             { assetId: "newspaper_photo_sarajevo_1914", subjectName: "the aftermath of the Sarajevo assassination" },
-            { assetId: "newspaper_photo_mobilization_1914", subjectName: "European crowds cheering mobilization in 1914" },
+            {
+                assetId: "newspaper_photo_mobilization_1914",
+                subjectName: "European crowds cheering mobilization in 1914",
+            },
             { assetId: "newspaper_photo_trench_1916", subjectName: "soldiers in a trench at the Somme in 1916" },
-            { assetId: "newspaper_photo_revolution_1917", subjectName: "a crowd in Petrograd during the 1917 revolution" },
-            { assetId: "newspaper_photo_versailles_1919", subjectName: "the signing hall of the Treaty of Versailles in 1919" },
+            {
+                assetId: "newspaper_photo_revolution_1917",
+                subjectName: "a crowd in Petrograd during the 1917 revolution",
+            },
+            {
+                assetId: "newspaper_photo_versailles_1919",
+                subjectName: "the signing hall of the Treaty of Versailles in 1919",
+            },
             { assetId: "newspaper_photo_depression_1930", subjectName: "a bread line during the Great Depression" },
             { assetId: "newspaper_photo_blitz_1940", subjectName: "Londoners sheltering during the Blitz" },
             { assetId: "newspaper_photo_stalingrad_1943", subjectName: "the ruins of Stalingrad in 1943" },
