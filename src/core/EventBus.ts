@@ -108,6 +108,32 @@ export class NotificationPayload {
     }
 }
 
+export class MapModeSelectedPayload {
+    public readonly mapModeCode: string;
+
+    constructor(mapModeCode: string) {
+        this.mapModeCode = mapModeCode;
+    }
+}
+
+export class NavigationRequestedPayload {
+    public readonly destinationSceneKey: string;
+
+    constructor(destinationSceneKey: string) {
+        this.destinationSceneKey = destinationSceneKey;
+    }
+}
+
+export class MechanicCompletedPayload {
+    public readonly mechanicIdentifier: string;
+    public readonly scenarioNumber: number;
+
+    constructor(mechanicIdentifier: string, scenarioNumber: number) {
+        this.mechanicIdentifier = mechanicIdentifier;
+        this.scenarioNumber = scenarioNumber;
+    }
+}
+
 type EventSubscriber<T> = (payload: T) => void;
 
 export class EventBus {
@@ -196,4 +222,7 @@ export class GameEventTypes {
     public static readonly NOTIFICATION_RAISED = "notification:raised";
     public static readonly SCENARIO_COMPLETED = "scenario:completed";
     public static readonly JOURNAL_UPDATED = "journal:updated";
+    public static readonly UI_MAP_MODE_SELECTED = "ui:map:mode:selected";
+    public static readonly UI_NAVIGATION_REQUESTED = "ui:navigation:requested";
+    public static readonly MECHANIC_COMPLETED = "mechanic:completed";
 }
