@@ -98,7 +98,7 @@ export class DiplomaticPlayComponent extends Phaser.GameObjects.Container {
             UiPalette.PARCHMENT_CSS,
         );
         this.contentContainer.add(likelyMovesTextObject);
-        currentY += likelyMovesTextObject.height + 10;
+        currentY += likelyMovesTextObject.displayHeight + 10;
 
         const neutralNations = allNations
             .filter(
