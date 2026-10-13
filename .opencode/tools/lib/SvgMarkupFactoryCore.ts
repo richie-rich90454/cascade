@@ -1,5 +1,5 @@
-import { CatalogAssetEntry, FactionColorTable, SvgPalette, TerrainFillTable } from "./CatalogAssetEntry";
 import { SeedRandom } from "../../../src/core/SeedRandom";
+import { CatalogAssetEntry, FactionColorTable, SvgPalette, TerrainFillTable } from "./CatalogAssetEntry";
 
 export class SvgMarkupFactoryCore {
     public static wrapSvg(catalogEntry: CatalogAssetEntry, bodyMarkup: string): string {
@@ -25,7 +25,9 @@ export class SvgMarkupFactoryCore {
             const speckleY = seedRandom.nextInt(0, height);
             const speckleRadius = seedRandom.nextInt(1, 3);
             const speckleOpacity = seedRandom.nextFloatInRange(minimumOpacity, maximumOpacity).toFixed(2);
-            speckleMarkupParts.push(`<circle cx="${speckleX}" cy="${speckleY}" r="${speckleRadius}" fill="${speckleColor}" opacity="${speckleOpacity}" />`);
+            speckleMarkupParts.push(
+                `<circle cx="${speckleX}" cy="${speckleY}" r="${speckleRadius}" fill="${speckleColor}" opacity="${speckleOpacity}" />`,
+            );
         }
         return speckleMarkupParts;
     }
@@ -49,20 +51,36 @@ export class SvgMarkupFactoryCore {
             ? catalogEntry.assetId.replace("tile_detail_", "").replace(/_\d{2}$/, "")
             : catalogEntry.assetId.replace("tile_", "").replace(/_\d{2}$/, "");
         const fillColor = TerrainFillTable.FILL_COLORS[baseTerrainType] ?? "#5A6B42";
-        const bodyMarkupParts: string[] = [`<rect width="${catalogEntry.width}" height="${catalogEntry.height}" fill="${fillColor}" />`];
-        bodyMarkupParts.push(...SvgMarkupFactoryCore.buildSeededSpeckles(seedRandom, catalogEntry.width, catalogEntry.height, 18, SvgPalette.NEAR_BLACK_LEATHER, 0.05, 0.16));
+        const bodyMarkupParts: string[] = [
+            `<rect width="${catalogEntry.width}" height="${catalogEntry.height}" fill="${fillColor}" />`,
+        ];
+        bodyMarkupParts.push(
+            ...SvgMarkupFactoryCore.buildSeededSpeckles(
+                seedRandom,
+                catalogEntry.width,
+                catalogEntry.height,
+                18,
+                SvgPalette.NEAR_BLACK_LEATHER,
+                0.05,
+                0.16,
+            ),
+        );
         if (baseTerrainType === "forest") {
             for (let treeIndex = 0; treeIndex < 7; treeIndex++) {
                 const treeX = seedRandom.nextInt(8, catalogEntry.width - 8);
                 const treeY = seedRandom.nextInt(10, catalogEntry.height - 6);
-                bodyMarkupParts.push(`<path d="M ${treeX} ${treeY - 8} L ${treeX - 5} ${treeY + 4} L ${treeX + 5} ${treeY + 4} Z" fill="#2A3B22" opacity="0.85" />`);
+                bodyMarkupParts.push(
+                    `<path d="M ${treeX} ${treeY - 8} L ${treeX - 5} ${treeY + 4} L ${treeX + 5} ${treeY + 4} Z" fill="#2A3B22" opacity="0.85" />`,
+                );
             }
         }
         if (baseTerrainType === "mountains") {
             for (let peakIndex = 0; peakIndex < 3; peakIndex++) {
                 const peakX = seedRandom.nextInt(12, catalogEntry.width - 12);
                 const peakY = seedRandom.nextInt(14, catalogEntry.height - 8);
-                bodyMarkupParts.push(`<path d="M ${peakX} ${peakY - 12} L ${peakX - 10} ${peakY + 8} L ${peakX + 10} ${peakY + 8} Z" fill="#8B8B7E" opacity="0.7" />`);
+                bodyMarkupParts.push(
+                    `<path d="M ${peakX} ${peakY - 12} L ${peakX - 10} ${peakY + 8} L ${peakX + 10} ${peakY + 8} Z" fill="#8B8B7E" opacity="0.7" />`,
+                );
             }
         }
         if (baseTerrainType === "desert") {
@@ -76,15 +94,21 @@ export class SvgMarkupFactoryCore {
         if (baseTerrainType === "ocean" || baseTerrainType === "coastal") {
             for (let waveIndex = 0; waveIndex < 4; waveIndex++) {
                 const waveY = seedRandom.nextInt(6, catalogEntry.height - 6);
-                bodyMarkupParts.push(`<path d="M 2 ${waveY} q 8 -4 16 0 q 8 4 16 0 q 8 -4 16 0 q 8 4 16 0" stroke="#7FA0C0" stroke-width="1.5" fill="none" opacity="0.4" />`);
+                bodyMarkupParts.push(
+                    `<path d="M 2 ${waveY} q 8 -4 16 0 q 8 4 16 0 q 8 -4 16 0 q 8 4 16 0" stroke="#7FA0C0" stroke-width="1.5" fill="none" opacity="0.4" />`,
+                );
             }
         }
         if (baseTerrainType === "urban") {
             for (let buildingIndex = 0; buildingIndex < 5; buildingIndex++) {
                 const buildingX = seedRandom.nextInt(4, catalogEntry.width - 16);
                 const buildingY = seedRandom.nextInt(10, catalogEntry.height - 18);
-                bodyMarkupParts.push(`<rect x="${buildingX}" y="${buildingY}" width="10" height="14" fill="#5A4A2E" opacity="0.85" />`);
-                bodyMarkupParts.push(`<rect x="${buildingX + 2}" y="${buildingY + 2}" width="2" height="2" fill="#E5CC8A" opacity="0.8" />`);
+                bodyMarkupParts.push(
+                    `<rect x="${buildingX}" y="${buildingY}" width="10" height="14" fill="#5A4A2E" opacity="0.85" />`,
+                );
+                bodyMarkupParts.push(
+                    `<rect x="${buildingX + 2}" y="${buildingY + 2}" width="2" height="2" fill="#E5CC8A" opacity="0.8" />`,
+                );
             }
         }
         if (baseTerrainType === "industrial") {
@@ -92,8 +116,12 @@ export class SvgMarkupFactoryCore {
                 const factoryX = seedRandom.nextInt(4, catalogEntry.width - 20);
                 const factoryY = seedRandom.nextInt(14, catalogEntry.height - 14);
                 bodyMarkupParts.push(`<rect x="${factoryX}" y="${factoryY}" width="16" height="10" fill="#3A3A3A" />`);
-                bodyMarkupParts.push(`<rect x="${factoryX + 12}" y="${factoryY - 8}" width="4" height="10" fill="#5A5A5A" />`);
-                bodyMarkupParts.push(`<circle cx="${factoryX + 14}" cy="${factoryY - 12}" r="3" fill="#8B8B7E" opacity="0.6" />`);
+                bodyMarkupParts.push(
+                    `<rect x="${factoryX + 12}" y="${factoryY - 8}" width="4" height="10" fill="#5A5A5A" />`,
+                );
+                bodyMarkupParts.push(
+                    `<circle cx="${factoryX + 14}" cy="${factoryY - 12}" r="3" fill="#8B8B7E" opacity="0.6" />`,
+                );
             }
         }
         if (baseTerrainType === "tundra") {
@@ -107,11 +135,15 @@ export class SvgMarkupFactoryCore {
             for (let poolIndex = 0; poolIndex < 4; poolIndex++) {
                 const poolX = seedRandom.nextInt(6, catalogEntry.width - 14);
                 const poolY = seedRandom.nextInt(6, catalogEntry.height - 10);
-                bodyMarkupParts.push(`<ellipse cx="${poolX}" cy="${poolY}" rx="7" ry="4" fill="#2E3B2A" opacity="0.7" />`);
+                bodyMarkupParts.push(
+                    `<ellipse cx="${poolX}" cy="${poolY}" rx="7" ry="4" fill="#2E3B2A" opacity="0.7" />`,
+                );
             }
         }
         if (catalogEntry.assetId.startsWith("tile_river_")) {
-            bodyMarkupParts.push(`<rect width="${catalogEntry.width}" height="${catalogEntry.height}" fill="#5A6B42" />`);
+            bodyMarkupParts.push(
+                `<rect width="${catalogEntry.width}" height="${catalogEntry.height}" fill="#5A6B42" />`,
+            );
             if (catalogEntry.assetId.endsWith("horizontal")) {
                 bodyMarkupParts.push(`<rect x="0" y="24" width="${catalogEntry.width}" height="16" fill="#2D4A6B" />`);
             } else if (catalogEntry.assetId.endsWith("vertical")) {
@@ -122,7 +154,9 @@ export class SvgMarkupFactoryCore {
             }
         }
         if (catalogEntry.assetId.startsWith("tile_railroad_")) {
-            bodyMarkupParts.push(`<rect width="${catalogEntry.width}" height="${catalogEntry.height}" fill="#5A6B42" />`);
+            bodyMarkupParts.push(
+                `<rect width="${catalogEntry.width}" height="${catalogEntry.height}" fill="#5A6B42" />`,
+            );
             if (catalogEntry.assetId.endsWith("horizontal")) {
                 bodyMarkupParts.push(`<rect x="0" y="29" width="${catalogEntry.width}" height="3" fill="#3A3A3A" />`);
                 bodyMarkupParts.push(`<rect x="0" y="34" width="${catalogEntry.width}" height="3" fill="#3A3A3A" />`);
@@ -141,7 +175,9 @@ export class SvgMarkupFactoryCore {
             }
         }
         if (catalogEntry.assetId === "tile_border_brass") {
-            bodyMarkupParts.push(`<rect x="1" y="1" width="${catalogEntry.width - 2}" height="${catalogEntry.height - 2}" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                `<rect x="1" y="1" width="${catalogEntry.width - 2}" height="${catalogEntry.height - 2}" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`,
+            );
         }
         if (catalogEntry.assetId === "tile_border_dashed") {
             bodyMarkupParts.push(
@@ -162,39 +198,79 @@ export class SvgMarkupFactoryCore {
         const centerY = catalogEntry.height / 2;
         const bodyMarkupParts: string[] = [];
         if (catalogEntry.assetId === "marker_capital") {
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="${centerX - 4}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="${centerX - 4}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`,
+            );
             bodyMarkupParts.push(SvgMarkupFactoryCore.buildStarPath(centerX, centerY, 14, 6));
         } else if (catalogEntry.assetId === "marker_city_major") {
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="7" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="7" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`,
+            );
         } else if (catalogEntry.assetId === "marker_city_minor") {
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="4" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="4" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`,
+            );
         } else if (catalogEntry.assetId === "marker_port") {
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="${centerX - 3}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`);
-            bodyMarkupParts.push(`<path d="M ${centerX} ${centerY - 9} L ${centerX} ${centerY + 7} M ${centerX - 6} ${centerY + 2} q 6 8 12 0" stroke="${SvgPalette.PARCHMENT}" stroke-width="2.5" fill="none" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="${centerX - 3}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`,
+            );
+            bodyMarkupParts.push(
+                `<path d="M ${centerX} ${centerY - 9} L ${centerX} ${centerY + 7} M ${centerX - 6} ${centerY + 2} q 6 8 12 0" stroke="${SvgPalette.PARCHMENT}" stroke-width="2.5" fill="none" />`,
+            );
         } else if (catalogEntry.assetId === "marker_airbase") {
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="${centerX - 3}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`);
-            bodyMarkupParts.push(`<path d="M ${centerX} ${centerY - 8} L ${centerX} ${centerY + 8} M ${centerX - 8} ${centerY + 2} L ${centerX + 8} ${centerY + 2}" stroke="${SvgPalette.PARCHMENT}" stroke-width="2.5" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="${centerX - 3}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`,
+            );
+            bodyMarkupParts.push(
+                `<path d="M ${centerX} ${centerY - 8} L ${centerX} ${centerY + 8} M ${centerX - 8} ${centerY + 2} L ${centerX + 8} ${centerY + 2}" stroke="${SvgPalette.PARCHMENT}" stroke-width="2.5" />`,
+            );
         } else if (catalogEntry.assetId === "marker_fortress") {
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="${centerX - 3}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`);
-            bodyMarkupParts.push(`<rect x="${centerX - 7}" y="${centerY - 4}" width="14" height="10" fill="${SvgPalette.PARCHMENT}" />`);
-            bodyMarkupParts.push(`<rect x="${centerX - 7}" y="${centerY - 8}" width="4" height="4" fill="${SvgPalette.PARCHMENT}" />`);
-            bodyMarkupParts.push(`<rect x="${centerX - 2}" y="${centerY - 8}" width="4" height="4" fill="${SvgPalette.PARCHMENT}" />`);
-            bodyMarkupParts.push(`<rect x="${centerX + 3}" y="${centerY - 8}" width="4" height="4" fill="${SvgPalette.PARCHMENT}" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="${centerX - 3}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`,
+            );
+            bodyMarkupParts.push(
+                `<rect x="${centerX - 7}" y="${centerY - 4}" width="14" height="10" fill="${SvgPalette.PARCHMENT}" />`,
+            );
+            bodyMarkupParts.push(
+                `<rect x="${centerX - 7}" y="${centerY - 8}" width="4" height="4" fill="${SvgPalette.PARCHMENT}" />`,
+            );
+            bodyMarkupParts.push(
+                `<rect x="${centerX - 2}" y="${centerY - 8}" width="4" height="4" fill="${SvgPalette.PARCHMENT}" />`,
+            );
+            bodyMarkupParts.push(
+                `<rect x="${centerX + 3}" y="${centerY - 8}" width="4" height="4" fill="${SvgPalette.PARCHMENT}" />`,
+            );
         } else if (catalogEntry.assetId.startsWith("marker_resource_")) {
             const resourceColor = seedRandom.nextBoolean(0.5) ? SvgPalette.BRIGHT_BRASS : SvgPalette.AGED_PARCHMENT;
-            bodyMarkupParts.push(`<rect x="2" y="2" width="${catalogEntry.width - 4}" height="${catalogEntry.height - 4}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${resourceColor}" stroke-width="2" />`);
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="5" fill="${resourceColor}" opacity="0.9" />`);
+            bodyMarkupParts.push(
+                `<rect x="2" y="2" width="${catalogEntry.width - 4}" height="${catalogEntry.height - 4}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" stroke="${resourceColor}" stroke-width="2" />`,
+            );
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="5" fill="${resourceColor}" opacity="0.9" />`,
+            );
         } else if (catalogEntry.assetId.startsWith("marker_battle")) {
             const circleRadius = catalogEntry.width === 48 ? 21 : 13;
             const circleFill = catalogEntry.width === 48 ? SvgPalette.BLOOD_RED : SvgPalette.NEAR_BLACK_LEATHER;
-            bodyMarkupParts.push(`<circle cx="${centerX}" cy="${centerY}" r="${circleRadius}" fill="${circleFill}" stroke="${SvgPalette.PARCHMENT}" stroke-width="2" />`);
-            bodyMarkupParts.push(`<path d="M ${centerX - 8} ${centerY - 8} L ${centerX + 8} ${centerY + 8} M ${centerX + 8} ${centerY - 8} L ${centerX - 8} ${centerY + 8}" stroke="${SvgPalette.PARCHMENT}" stroke-width="2.5" />`);
+            bodyMarkupParts.push(
+                `<circle cx="${centerX}" cy="${centerY}" r="${circleRadius}" fill="${circleFill}" stroke="${SvgPalette.PARCHMENT}" stroke-width="2" />`,
+            );
+            bodyMarkupParts.push(
+                `<path d="M ${centerX - 8} ${centerY - 8} L ${centerX + 8} ${centerY + 8} M ${centerX + 8} ${centerY - 8} L ${centerX - 8} ${centerY + 8}" stroke="${SvgPalette.PARCHMENT}" stroke-width="2.5" />`,
+            );
         } else if (catalogEntry.assetId === "marker_treaty") {
-            bodyMarkupParts.push(`<rect x="6" y="4" width="20" height="24" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`);
-            bodyMarkupParts.push(`<path d="M 10 12 h 12 M 10 17 h 12 M 10 22 h 8" stroke="${SvgPalette.DEEP_PARCHMENT}" stroke-width="1.5" />`);
+            bodyMarkupParts.push(
+                `<rect x="6" y="4" width="20" height="24" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`,
+            );
+            bodyMarkupParts.push(
+                `<path d="M 10 12 h 12 M 10 17 h 12 M 10 22 h 8" stroke="${SvgPalette.DEEP_PARCHMENT}" stroke-width="1.5" />`,
+            );
         } else if (catalogEntry.assetId === "marker_atrocity") {
-            bodyMarkupParts.push(`<path d="M ${centerX} ${centerY - 12} q 6 10 0 20 q -6 -10 0 -20 Z" fill="${SvgPalette.BLOOD_RED}" />`);
-            bodyMarkupParts.push(`<path d="M ${centerX} ${centerY - 12} q -6 10 0 20 q 6 -10 0 -20 Z" fill="${SvgPalette.BRIGHT_BLOOD}" />`);
+            bodyMarkupParts.push(
+                `<path d="M ${centerX} ${centerY - 12} q 6 10 0 20 q -6 -10 0 -20 Z" fill="${SvgPalette.BLOOD_RED}" />`,
+            );
+            bodyMarkupParts.push(
+                `<path d="M ${centerX} ${centerY - 12} q -6 10 0 20 q 6 -10 0 -20 Z" fill="${SvgPalette.BRIGHT_BLOOD}" />`,
+            );
         } else if (catalogEntry.assetId === "marker_victory_point") {
             bodyMarkupParts.push(SvgMarkupFactoryCore.buildStarPath(centerX, centerY, 10, 4));
         }
@@ -355,52 +431,118 @@ export class SvgMarkupFactoryCore {
         const height = catalogEntry.height;
         if (assetId.startsWith("ui_panel_parchment")) {
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.PARCHMENT}" />`);
-            bodyMarkupParts.push(...SvgMarkupFactoryCore.buildSeededSpeckles(new SeedRandom(catalogEntry.seedKey), width, height, 30, SvgPalette.DEEP_PARCHMENT, 0.03, 0.08));
-            bodyMarkupParts.push(`<rect x="3" y="3" width="${width - 6}" height="${height - 6}" fill="none" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                ...SvgMarkupFactoryCore.buildSeededSpeckles(
+                    new SeedRandom(catalogEntry.seedKey),
+                    width,
+                    height,
+                    30,
+                    SvgPalette.DEEP_PARCHMENT,
+                    0.03,
+                    0.08,
+                ),
+            );
+            bodyMarkupParts.push(
+                `<rect x="3" y="3" width="${width - 6}" height="${height - 6}" fill="none" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="3" />`,
+            );
         } else if (assetId === "ui_panel_brass_frame") {
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.MID_OLIVE}" />`);
-            bodyMarkupParts.push(`<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="5" />`);
+            bodyMarkupParts.push(
+                `<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="5" />`,
+            );
         } else if (assetId === "ui_panel_dark_leather") {
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.DARK_OLIVE}" />`);
-            bodyMarkupParts.push(...SvgMarkupFactoryCore.buildSeededSpeckles(new SeedRandom(catalogEntry.seedKey), width, height, 24, SvgPalette.NEAR_BLACK_LEATHER, 0.1, 0.25));
-            bodyMarkupParts.push(`<rect x="3" y="3" width="${width - 6}" height="${height - 6}" fill="none" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`);
+            bodyMarkupParts.push(
+                ...SvgMarkupFactoryCore.buildSeededSpeckles(
+                    new SeedRandom(catalogEntry.seedKey),
+                    width,
+                    height,
+                    24,
+                    SvgPalette.NEAR_BLACK_LEATHER,
+                    0.1,
+                    0.25,
+                ),
+            );
+            bodyMarkupParts.push(
+                `<rect x="3" y="3" width="${width - 6}" height="${height - 6}" fill="none" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`,
+            );
         } else if (assetId === "ui_panel_newspaper") {
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.AGED_PARCHMENT}" />`);
-            bodyMarkupParts.push(`<rect x="6" y="6" width="${width - 12}" height="${height - 12}" fill="none" stroke="${SvgPalette.FIELD_GRAY}" stroke-width="1" />`);
+            bodyMarkupParts.push(
+                `<rect x="6" y="6" width="${width - 12}" height="${height - 12}" fill="none" stroke="${SvgPalette.FIELD_GRAY}" stroke-width="1" />`,
+            );
         } else if (assetId === "ui_panel_telegram") {
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.PARCHMENT}" />`);
-            bodyMarkupParts.push(`<rect x="4" y="4" width="${width - 8}" height="${height - 8}" fill="none" stroke="${SvgPalette.FIELD_GRAY}" stroke-width="2" stroke-dasharray="6 4" />`);
+            bodyMarkupParts.push(
+                `<rect x="4" y="4" width="${width - 8}" height="${height - 8}" fill="none" stroke="${SvgPalette.FIELD_GRAY}" stroke-width="2" stroke-dasharray="6 4" />`,
+            );
         } else if (assetId === "ui_panel_ledger") {
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.DARK_OLIVE}" />`);
             for (let ledgerLineIndex = 12; ledgerLineIndex < height; ledgerLineIndex += 14) {
-                bodyMarkupParts.push(`<line x1="4" y1="${ledgerLineIndex}" x2="${width - 4}" y2="${ledgerLineIndex}" stroke="${SvgPalette.FIELD_GRAY}" stroke-width="1" opacity="0.5" />`);
+                bodyMarkupParts.push(
+                    `<line x1="4" y1="${ledgerLineIndex}" x2="${width - 4}" y2="${ledgerLineIndex}" stroke="${SvgPalette.FIELD_GRAY}" stroke-width="1" opacity="0.5" />`,
+                );
             }
         } else if (assetId.startsWith("ui_button_")) {
-            const buttonFillColor = assetId.includes("danger") ? SvgPalette.BLOOD_RED : assetId.includes("secondary") ? SvgPalette.PARCHMENT : SvgPalette.DEEP_BRASS;
-            const buttonStrokeColor = assetId.includes("hover") ? SvgPalette.HIGHLIGHT_BRASS : assetId.includes("pressed") ? SvgPalette.NEAR_BLACK_LEATHER : SvgPalette.BRIGHT_BRASS;
+            const buttonFillColor = assetId.includes("danger")
+                ? SvgPalette.BLOOD_RED
+                : assetId.includes("secondary")
+                  ? SvgPalette.PARCHMENT
+                  : SvgPalette.DEEP_BRASS;
+            const buttonStrokeColor = assetId.includes("hover")
+                ? SvgPalette.HIGHLIGHT_BRASS
+                : assetId.includes("pressed")
+                  ? SvgPalette.NEAR_BLACK_LEATHER
+                  : SvgPalette.BRIGHT_BRASS;
             const buttonOpacity = assetId.includes("disabled") ? 0.4 : 1;
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${buttonFillColor}" opacity="${buttonOpacity}" />`);
-            bodyMarkupParts.push(`<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="${buttonStrokeColor}" stroke-width="2" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" fill="${buttonFillColor}" opacity="${buttonOpacity}" />`,
+            );
+            bodyMarkupParts.push(
+                `<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="${buttonStrokeColor}" stroke-width="2" />`,
+            );
         } else if (assetId.startsWith("ui_border_")) {
-            bodyMarkupParts.push(`<rect x="4" y="4" width="${width - 8}" height="${height - 8}" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                `<rect x="4" y="4" width="${width - 8}" height="${height - 8}" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`,
+            );
             if (assetId.includes("double")) {
-                bodyMarkupParts.push(`<rect x="10" y="10" width="${width - 20}" height="${height - 20}" fill="none" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="1.5" />`);
+                bodyMarkupParts.push(
+                    `<rect x="10" y="10" width="${width - 20}" height="${height - 20}" fill="none" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="1.5" />`,
+                );
             }
             if (assetId.includes("ornate")) {
                 bodyMarkupParts.push(`<circle cx="10" cy="10" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`);
-                bodyMarkupParts.push(`<circle cx="${width - 10}" cy="10" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`);
-                bodyMarkupParts.push(`<circle cx="10" cy="${height - 10}" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`);
-                bodyMarkupParts.push(`<circle cx="${width - 10}" cy="${height - 10}" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`);
+                bodyMarkupParts.push(
+                    `<circle cx="${width - 10}" cy="10" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`,
+                );
+                bodyMarkupParts.push(
+                    `<circle cx="10" cy="${height - 10}" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`,
+                );
+                bodyMarkupParts.push(
+                    `<circle cx="${width - 10}" cy="${height - 10}" r="4" fill="${SvgPalette.HIGHLIGHT_BRASS}" />`,
+                );
             }
         } else if (assetId.startsWith("ui_divider_")) {
-            bodyMarkupParts.push(`<line x1="0" y1="${height / 2}" x2="${width}" y2="${height / 2}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`);
+            bodyMarkupParts.push(
+                `<line x1="0" y1="${height / 2}" x2="${width}" y2="${height / 2}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="2" />`,
+            );
             if (assetId.includes("ornate")) {
-                bodyMarkupParts.push(`<circle cx="${width / 2}" cy="${height / 2}" r="5" fill="${SvgPalette.BRIGHT_BRASS}" />`);
+                bodyMarkupParts.push(
+                    `<circle cx="${width / 2}" cy="${height / 2}" r="5" fill="${SvgPalette.BRIGHT_BRASS}" />`,
+                );
             }
         } else if (assetId.startsWith("ui_progress_bar_")) {
-            const barFillColor = assetId.includes("blood") ? SvgPalette.BLOOD_RED : assetId.includes("brass") ? SvgPalette.BRIGHT_BRASS : assetId.includes("bg") ? SvgPalette.DARK_OLIVE : SvgPalette.DEEP_BRASS;
+            const barFillColor = assetId.includes("blood")
+                ? SvgPalette.BLOOD_RED
+                : assetId.includes("brass")
+                  ? SvgPalette.BRIGHT_BRASS
+                  : assetId.includes("bg")
+                    ? SvgPalette.DARK_OLIVE
+                    : SvgPalette.DEEP_BRASS;
             bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${barFillColor}" />`);
-            bodyMarkupParts.push(`<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" fill="none" stroke="${SvgPalette.NEAR_BLACK_LEATHER}" stroke-width="1" />`);
+            bodyMarkupParts.push(
+                `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" fill="none" stroke="${SvgPalette.NEAR_BLACK_LEATHER}" stroke-width="1" />`,
+            );
         } else if (assetId.startsWith("ui_checkbox_") || assetId.startsWith("ui_radio_")) {
             const isChecked = assetId.includes("checked") || assetId.includes("selected");
             bodyMarkupParts.push(
@@ -417,16 +559,28 @@ export class SvgMarkupFactoryCore {
             }
         } else if (assetId.startsWith("ui_dropdown_") || assetId.startsWith("ui_tab_")) {
             const isActive = assetId.includes("open") || assetId.includes("active");
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${isActive ? SvgPalette.DEEP_BRASS : SvgPalette.MID_OLIVE}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="1.5" />`);
-            bodyMarkupParts.push(`<path d="M ${width - 20} ${height / 2 - 3} l 6 0 l -3 6 Z" fill="${SvgPalette.PARCHMENT}" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" fill="${isActive ? SvgPalette.DEEP_BRASS : SvgPalette.MID_OLIVE}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="1.5" />`,
+            );
+            bodyMarkupParts.push(
+                `<path d="M ${width - 20} ${height / 2 - 3} l 6 0 l -3 6 Z" fill="${SvgPalette.PARCHMENT}" />`,
+            );
         } else if (assetId === "ui_tooltip_bg") {
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" fill="${SvgPalette.PARCHMENT}" stroke="${SvgPalette.DEEP_BRASS}" stroke-width="3" />`,
+            );
         } else if (assetId === "ui_tooltip_arrow") {
-            bodyMarkupParts.push(`<path d="M 0 0 L ${width} 0 L ${width / 2} ${height} Z" fill="${SvgPalette.PARCHMENT}" />`);
+            bodyMarkupParts.push(
+                `<path d="M 0 0 L ${width} 0 L ${width / 2} ${height} Z" fill="${SvgPalette.PARCHMENT}" />`,
+            );
         } else if (assetId === "ui_modal_overlay") {
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" opacity="0.7" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" fill="${SvgPalette.NEAR_BLACK_LEATHER}" opacity="0.7" />`,
+            );
         } else if (assetId.startsWith("ui_scrollbar_")) {
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" rx="5" fill="${assetId.includes("thumb") ? SvgPalette.DEEP_BRASS : SvgPalette.DARK_OLIVE}" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" rx="5" fill="${assetId.includes("thumb") ? SvgPalette.DEEP_BRASS : SvgPalette.DARK_OLIVE}" />`,
+            );
         } else if (assetId.startsWith("ui_slider_")) {
             bodyMarkupParts.push(
                 assetId.includes("thumb")
@@ -435,14 +589,20 @@ export class SvgMarkupFactoryCore {
             );
         } else if (assetId.startsWith("ui_badge_")) {
             const badgeLabelText = assetId.replace("ui_badge_", "").toUpperCase().replace("_", " ");
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.DEEP_BRASS}" stroke="${SvgPalette.HIGHLIGHT_BRASS}" stroke-width="1" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" fill="${SvgPalette.DEEP_BRASS}" stroke="${SvgPalette.HIGHLIGHT_BRASS}" stroke-width="1" />`,
+            );
             bodyMarkupParts.push(
                 `<text x="${width / 2}" y="${height / 2 + 4}" font-family="Spectral SC, serif" font-size="11" fill="${SvgPalette.PARCHMENT}" text-anchor="middle">${badgeLabelText}</text>`,
             );
         } else if (assetId === "ui_border_corner") {
-            bodyMarkupParts.push(`<path d="M 2 30 L 2 2 L 30 2" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`);
+            bodyMarkupParts.push(
+                `<path d="M 2 30 L 2 2 L 30 2" fill="none" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="3" />`,
+            );
         } else {
-            bodyMarkupParts.push(`<rect width="${width}" height="${height}" fill="${SvgPalette.MID_OLIVE}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`);
+            bodyMarkupParts.push(
+                `<rect width="${width}" height="${height}" fill="${SvgPalette.MID_OLIVE}" stroke="${SvgPalette.BRIGHT_BRASS}" stroke-width="2" />`,
+            );
         }
         return SvgMarkupFactoryCore.wrapSvg(catalogEntry, bodyMarkupParts.join(""));
     }
