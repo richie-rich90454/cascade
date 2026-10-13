@@ -19,6 +19,10 @@ export class GameEntity {
         this.entityDisplayName = displayName;
     }
 
+    public renameEntity(displayName: string): void {
+        this.entityDisplayName = displayName;
+    }
+
     public describe(): string {
         return this.entityDisplayName;
     }
