@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import "./style.css";
+import { GameSession } from "./core/GameSession";
 import { HighDpiConfigurator } from "./core/HighDpiConfigurator";
 import { BootScene } from "./scenes/BootScene";
 import { CampaignSelectorScene } from "./scenes/CampaignSelectorScene";
@@ -63,6 +64,14 @@ HighDpiConfigurator.getInstance().installHighDpiTextPatch();
 export const cascadeGame = new Phaser.Game(cascadeGameConfiguration);
 
 (window as unknown as Record<string, unknown>).cascadeGame = cascadeGame;
+
+const unlockGameAudio = (): void => {
+    window.removeEventListener("pointerdown", unlockGameAudio);
+    window.removeEventListener("keydown", unlockGameAudio);
+    GameSession.getInstance().getAudioManager().activateAudioFromUserGesture();
+};
+window.addEventListener("pointerdown", unlockGameAudio, { once: true });
+window.addEventListener("keydown", unlockGameAudio, { once: true });
 
 cascadeGame.events.once(Phaser.Core.Events.READY, () => {
     for (const registeredScene of cascadeGame.scene.scenes) {
