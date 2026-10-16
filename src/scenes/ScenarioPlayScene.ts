@@ -298,16 +298,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
         const rightColumnHeight = rightColumnBottomY - rightColumnTopY;
-        const questTrackerHeight = Math.max(220, Math.round(rightColumnHeight * 0.58));
         return {
             map: new LayoutRect(contentLeftX, 96, contentWidth, Math.max(280, phaseCardTopY - 96 - 8)),
-            questTracker: new LayoutRect(screenWidth - 340, rightColumnTopY, 324, questTrackerHeight),
-            contextPanel: new LayoutRect(
-                screenWidth - 340,
-                rightColumnTopY + questTrackerHeight + 8,
-                324,
-                rightColumnHeight - questTrackerHeight - 8,
-            ),
+            questTracker: new LayoutRect(screenWidth - 340, rightColumnTopY, 324, rightColumnHeight),
+            contextPanel: new LayoutRect(screenWidth - 340, rightColumnTopY, 324, rightColumnHeight),
             phaseCard: new LayoutRect(
                 contentLeftX,
                 screenHeight - 64 - phaseCardHeight - 4,
@@ -401,9 +395,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             .text(
                 mapPixelWidth - 18,
                 14,
-                mapPixelWidth < 620
-                    ? `DOCUMENTED · ${historicalMapYear}`
-                    : `DOCUMENTED BORDERS · ${historicalMapYear} · PRECISION VARIES BY REGION`,
+                mapPixelWidth < 620 ? `DOCUMENTED · ${historicalMapYear}` : `DOCUMENTED BORDERS · ${historicalMapYear}`,
                 {
                     fontFamily: FontFamilies.TYPEWRITER_BODY,
                     fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -417,9 +409,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const mapInstructions = this.add.text(
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 95 : 58),
-            mapPixelWidth < 620
-                ? "DRAG · WHEEL · CLICK"
-                : "DRAG TO PAN · WHEEL OR + / − TO ZOOM · CLICK A RING TO INSPECT · ← / → + ENTER SELECT",
+            mapPixelWidth < 620 ? "DRAG · SCROLL · SELECT" : "DRAG TO PAN · SCROLL TO ZOOM · SELECT A MARKER",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -432,9 +422,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.disputedMapLegendText = this.add.text(
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 125 : 25),
-            mapPixelWidth < 620
-                ? "HATCHED · INDIA ADMIN. · CHINA CLAIM · MODERN REF."
-                : "MODERN DISPUTE REFERENCE · HATCHED APPROXIMATE AREA · ADMINISTERED BY INDIA · CLAIMED BY CHINA",
+            mapPixelWidth < 620 ? "DISPUTED TERRITORY · HATCHED" : "DISPUTED TERRITORY · HATCHED AREA IS APPROXIMATE",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -622,6 +610,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             (mechanicKey: string) => {
                 this.openMechanicByKey(mechanicKey);
             },
+            () => this.setInformationPanelsOpen(false),
         );
         this.questTrackerComponent.setVisible(this.areInformationPanelsOpen);
         this.rightSidebarComponent = new RightSidebarComponent(
@@ -650,20 +639,21 @@ export class ScenarioPlayScene extends Phaser.Scene {
         contextPanelBlockingZone.setOrigin(0, 0);
         contextPanelBlockingZone.setInteractive();
         contextPanelBlockingZone.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
-        this.mapModesToggleButton = UiPanelFactory.createBrassButton(this, 8, 144, 128, 38, "SHOW MAP MODES", () =>
+        this.mapModesToggleButton = UiPanelFactory.createBrassButton(this, 8, 144, 176, 38, "SHOW MAP MODES", () =>
             this.setMapModesPanelOpen(!this.isMapModesPanelOpen),
         );
         this.mapModesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
         this.objectivesToggleButton = UiPanelFactory.createBrassButton(
             this,
-            screenWidth - 166,
-            100,
-            158,
+            screenWidth - 198,
+            54,
+            190,
             38,
             "SHOW OBJECTIVES",
             () => this.setInformationPanelsOpen(!this.areInformationPanelsOpen),
         );
         this.objectivesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
+        this.objectivesToggleButton.setVisible(!this.areInformationPanelsOpen);
         this.bottomBarComponent = new BottomBarComponent(this, 0, screenHeight - 56, screenWidth, 56);
         this.bottomBarComponent.setTurnDisplay(gameSession.getCurrentTurnNumber(), gameSession.getTotalTurnCount());
         this.bottomBarComponent.setPhaseDisplay(TurnPhaseLabel.PHASE_LABELS[this.phaseIndex]);
@@ -684,8 +674,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private setInformationPanelsOpen(isOpen: boolean): void {
         this.areInformationPanelsOpen = isOpen;
         this.questTrackerComponent?.setVisible(isOpen);
-        this.rightSidebarComponent?.setVisible(isOpen);
-        const buttonLabel = isOpen ? "HIDE OBJECTIVES" : "SHOW OBJECTIVES";
+        this.rightSidebarComponent?.setVisible(false);
+        const buttonLabel = "SHOW OBJECTIVES";
+        this.objectivesToggleButton?.setVisible(!isOpen);
         this.objectivesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
             if (child instanceof Phaser.GameObjects.Text) {
                 child.setText(buttonLabel);
@@ -771,7 +762,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     20,
                     164,
                     44,
-                    "OPEN DETAILS",
+                    `OPEN ${currentPhaseLabel.toUpperCase()}`,
                     () => {
                         this.isPhaseDetailsExpanded = true;
                         this.renderPhaseCard();
@@ -785,7 +776,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     20,
                     170,
                     44,
-                    this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1 ? "END TURN" : "CONTINUE",
+                    this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1
+                        ? "END TURN"
+                        : `NEXT: ${TurnPhaseLabel.PHASE_LABELS[this.phaseIndex + 1].toUpperCase()}`,
                     () => this.advancePhase(),
                 ),
             );
@@ -851,7 +844,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 layoutRects.phaseCard.height - 58,
                 170,
                 44,
-                this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1 ? "END TURN" : "CONTINUE",
+                this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1
+                    ? "END TURN"
+                    : `NEXT: ${TurnPhaseLabel.PHASE_LABELS[this.phaseIndex + 1].toUpperCase()}`,
                 () => {
                     this.advancePhase();
                 },
@@ -1137,7 +1132,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const layoutRects = this.getLayoutRects();
         const mapPixelWidth = Math.min(layoutRects.map.width, layoutRects.map.height * 2);
         this.historicalMapYearLabel.setText(
-            mapPixelWidth < 620 ? `DOCUMENTED · ${year}` : `DOCUMENTED BORDERS · ${year} · PRECISION VARIES BY REGION`,
+            mapPixelWidth < 620 ? `DOCUMENTED · ${year}` : `DOCUMENTED BORDERS · ${year}`,
         );
         this.disputedMapLegendText?.setVisible(true);
         this.tibetHistoryNoteText?.setVisible(year >= 1960);
@@ -1175,11 +1170,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.selectedProvinceMapIndex = this.provinceIdentifiersInMapOrder.indexOf(provinceIdentifier);
         this.updateProvinceMarkerDisplaySizes();
         const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
-        this.rightSidebarComponent.clearContextContent();
         const provincePanelComponent = new ProvincePanelComponent(this, 0, 0, 300);
         provincePanelComponent.setProvince(province, ownerNation);
         this.rightSidebarComponent.addContextContent(provincePanelComponent);
-        this.setInformationPanelsOpen(true);
+        this.setInformationPanelsOpen(false);
+        this.rightSidebarComponent.setVisible(true);
     }
 
     private applyMapMode(mapModeCode: string): void {
@@ -1912,24 +1907,24 @@ export class ScenarioPlayScene extends Phaser.Scene {
         overlayPanel.add(UiPanelFactory.createSectionHeader(this, 28, 22, "HOW THIS GAME WORKS", 26));
         const steps: Array<{ stepTitle: string; stepBody: string }> = [
             {
-                stepTitle: "1. FOLLOW THE CHECKLIST",
+                stepTitle: "1. KNOW WHAT MOVES THE GAME",
                 stepBody:
-                    "The progress panel on the right lists everything that wins the scenario. Press NEXT STEP and it opens the right tool for you.",
+                    "This is turn-based: the world advances only when you press the next-step button. Open SHOW OBJECTIVES for your checklist; NEXT OBJECTIVE jumps to the right tool.",
             },
             {
                 stepTitle: "2. READ, THEN DECIDE",
                 stepBody:
-                    "Each turn walks through briefing, intelligence, decision, and reflection. Read the sources, then choose. Every choice teaches real history.",
+                    "Work through the seven stages: briefing, intelligence, decision, resolution, event, debrief, and journal. Open each stage, complete its activity, then continue.",
             },
             {
                 stepTitle: "3. WATCH THE MAP",
                 stepBody:
-                    "Click any province to inspect it. Use the left buttons to repaint the map: political, terrain, war, and more.",
+                    "Select a province to inspect it. MAP MODES changes the map view. Your choices create a hypothetical path; the map and history notes identify the documented record.",
             },
             {
                 stepTitle: "4. WRITE TO WIN",
                 stepBody:
-                    "Answers you write are scored against AP-style criteria and saved to the journal your teacher can export.",
+                    "Complete the objectives and explain your reasoning in the debrief. Writing feedback is practice guidance, and your journal can be exported for review.",
             },
         ];
         const stepCardWidth = (panelWidth - 96) / 2;
