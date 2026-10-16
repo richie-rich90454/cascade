@@ -1,8 +1,8 @@
 export class UiPalette {
-    public static readonly NEAR_BLACK_LEATHER = 0x1a1410;
-    public static readonly DARK_OLIVE = 0x2b2520;
-    public static readonly MID_OLIVE = 0x3d3a31;
-    public static readonly FIELD_GRAY = 0x6e6a5c;
+    public static readonly NEAR_BLACK_LEATHER = 0x171b20;
+    public static readonly DARK_OLIVE = 0x252c32;
+    public static readonly MID_OLIVE = 0x374148;
+    public static readonly FIELD_GRAY = 0x68737a;
     public static readonly BRASS_TAN = 0xb6a472;
     public static readonly BRIGHT_BRASS = 0xc9a961;
     public static readonly HIGHLIGHT_BRASS = 0xe5cc8a;
@@ -14,10 +14,10 @@ export class UiPalette {
     public static readonly DEEP_PARCHMENT = 0x8b7355;
     public static readonly WHITE_INK = 0xfaf5ea;
 
-    public static readonly NEAR_BLACK_LEATHER_CSS = "#1A1410";
-    public static readonly DARK_OLIVE_CSS = "#2B2520";
-    public static readonly MID_OLIVE_CSS = "#3D3A31";
-    public static readonly FIELD_GRAY_CSS = "#6E6A5C";
+    public static readonly NEAR_BLACK_LEATHER_CSS = "#171B20";
+    public static readonly DARK_OLIVE_CSS = "#252C32";
+    public static readonly MID_OLIVE_CSS = "#374148";
+    public static readonly FIELD_GRAY_CSS = "#68737A";
     public static readonly BRASS_TAN_CSS = "#B6A472";
     public static readonly BRIGHT_BRASS_CSS = "#C9A961";
     public static readonly HIGHLIGHT_BRASS_CSS = "#E5CC8A";
