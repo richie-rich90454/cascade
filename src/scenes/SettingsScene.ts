@@ -147,10 +147,10 @@ export class SettingsScene extends Phaser.Scene {
             550,
             800,
             "Cascade\n" +
-                "A Century of Global Conflict, 1900-1945\n" +
+                "Global Conflict, c. 1900 to the Present\n" +
                 "Version 4.0\n" +
                 "Built with Phaser 4 and TypeScript.\n" +
-                "All assets are generated procedurally from the game's own palette.",
+                "Original atlas artwork with source-attributed historical map data.",
         );
     }
 }
