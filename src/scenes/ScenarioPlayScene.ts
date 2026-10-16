@@ -64,13 +64,13 @@ class TurnPhaseLabel {
         "Journal",
     ];
     public static readonly PHASE_GUIDANCE: string[] = [
-        "Read the situation. The map shows the world you are about to change.",
-        "Analyze at least one primary source. A source read correctly becomes reliable intelligence.",
-        "Choose an option to create a scenario path, then compare its consequences with the documented history.",
-        "See what your decision set in motion, then continue.",
-        "DOCUMENTED HISTORY: a dispatch from the capitals has arrived. Compare it with the path your decisions are creating.",
-        "Answer the short-answer questions in the debrief to record what you learned.",
-        "Write a short reflection in the journal, then end the turn.",
+        "Step 1 of 7: review the scenario goals in this briefing, then choose NEXT: INTELLIGENCE to analyze a primary source.",
+        "Open source analysis. Choose a document, answer its questions, and use evidence from it.",
+        "Open the decision. Choose a policy, then compare its likely effects with documented history.",
+        "Review what your choices changed in this scenario, then continue.",
+        "Read the documented dispatch. Compare it with the hypothetical path your choices created.",
+        "Open the debrief and answer the short-answer questions with historical evidence.",
+        "Open the journal and write a brief reflection. End the turn when you are ready.",
     ];
 }
 
@@ -89,8 +89,6 @@ class LayoutRect {
 }
 
 export class ScenarioPlayScene extends Phaser.Scene {
-    private static readonly ONBOARDING_STORAGE_KEY = "cascade.onboarding.seen";
-
     private scenarioNumber: number;
     private scenario: Scenario | null;
     private phaseIndex: number;
@@ -189,7 +187,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
     }
 
     public init(data: unknown): void {
-        const selectionPayload = data as ScenarioSelectionPayload;
+        const selectionPayload = (data ?? {}) as ScenarioSelectionPayload;
         const sessionScenario = GameSession.getInstance().getCurrentScenario();
         this.scenarioNumber =
             typeof selectionPayload.scenarioNumber === "number"
@@ -232,7 +230,6 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.renderPhaseCard();
         this.subscribeToGameEvents();
         gameSession.getAudioManager().playMusicTrack(`ambient_scenario_${scenario.getScenarioNumber()}`);
-        this.maybeShowOnboardingOverlay();
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
             this.unsubscribeFromGameEvents();
         });
@@ -734,13 +731,15 @@ export class ScenarioPlayScene extends Phaser.Scene {
         blockingZone.setInteractive();
         this.phaseCardContainer.add(blockingZone);
         const currentPhaseLabel = TurnPhaseLabel.PHASE_LABELS[this.phaseIndex];
+        const currentTurnNumber = GameSession.getInstance().getCurrentTurnNumber();
+        const phaseProgressLabel = currentTurnNumber === 1 ? "GUIDED FIRST ROUND · " : "";
         phasePanel.add(
             UiPanelFactory.createSectionHeader(
                 this,
                 20,
                 14,
-                `TURN ${GameSession.getInstance().getCurrentTurnNumber()} - ${currentPhaseLabel.toUpperCase()}`,
-                20,
+                `${phaseProgressLabel}TURN ${currentTurnNumber} OF ${GameSession.getInstance().getTotalTurnCount()} · STEP ${this.phaseIndex + 1} OF ${TurnPhaseLabel.PHASE_LABELS.length} · ${currentPhaseLabel.toUpperCase()}`,
+                17,
             ),
         );
         if (!this.isPhaseDetailsExpanded) {
@@ -1075,7 +1074,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
         );
         phasePanel.add(
             UiPanelFactory.createBrassButton(this, 20, phaseCardRect.height - 58, 260, 44, "WRITE IN JOURNAL", () => {
-                this.scene.start(SceneKeys.JOURNAL);
+                this.scene.start(
+                    SceneKeys.JOURNAL,
+                    new ScenarioSelectionPayload(this.scenarioNumber, SceneKeys.SCENARIO_PLAY),
+                );
             }),
         );
     }
@@ -1872,107 +1874,6 @@ export class ScenarioPlayScene extends Phaser.Scene {
         });
     }
 
-    private maybeShowOnboardingOverlay(): void {
-        let hasSeenOnboarding = false;
-        try {
-            hasSeenOnboarding = window.localStorage.getItem(ScenarioPlayScene.ONBOARDING_STORAGE_KEY) === "true";
-        } catch {
-            hasSeenOnboarding = true;
-        }
-        if (hasSeenOnboarding) {
-            return;
-        }
-        try {
-            window.localStorage.setItem(ScenarioPlayScene.ONBOARDING_STORAGE_KEY, "true");
-        } catch {
-            return;
-        }
-        const screenWidth = this.scale.width;
-        const screenHeight = this.scale.height;
-        const overlayContainer = this.add.container(0, 0);
-        overlayContainer.setDepth(UiPalette.UI_DEPTH_POPUP);
-        const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.78).setOrigin(0, 0);
-        overlayRectangle.setInteractive();
-        overlayContainer.add(overlayRectangle);
-        const panelWidth = Math.min(880, screenWidth - 80);
-        const panelHeight = Math.min(460, screenHeight - 80);
-        const overlayPanel = UiPanelFactory.createPanelContainer(
-            this,
-            (screenWidth - panelWidth) / 2,
-            (screenHeight - panelHeight) / 2,
-            panelWidth,
-            panelHeight,
-            PanelVariant.LEATHER,
-        );
-        overlayPanel.add(UiPanelFactory.createSectionHeader(this, 28, 22, "HOW THIS GAME WORKS", 26));
-        const steps: Array<{ stepTitle: string; stepBody: string }> = [
-            {
-                stepTitle: "1. KNOW WHAT MOVES THE GAME",
-                stepBody:
-                    "This is turn-based: the world advances only when you press the next-step button. Open SHOW OBJECTIVES for your checklist; NEXT OBJECTIVE jumps to the right tool.",
-            },
-            {
-                stepTitle: "2. READ, THEN DECIDE",
-                stepBody:
-                    "Work through the seven stages: briefing, intelligence, decision, resolution, event, debrief, and journal. Open each stage, complete its activity, then continue.",
-            },
-            {
-                stepTitle: "3. WATCH THE MAP",
-                stepBody:
-                    "Select a province to inspect it. MAP MODES changes the map view. Your choices create a hypothetical path; the map and history notes identify the documented record.",
-            },
-            {
-                stepTitle: "4. WRITE TO WIN",
-                stepBody:
-                    "Complete the objectives and explain your reasoning in the debrief. Writing feedback is practice guidance, and your journal can be exported for review.",
-            },
-        ];
-        const stepCardWidth = (panelWidth - 96) / 2;
-        steps.forEach((step, stepIndex) => {
-            const rowIndex = Math.floor(stepIndex / 2);
-            const columnIndex = stepIndex % 2;
-            const stepCardLeftX = 28 + columnIndex * (stepCardWidth + 40);
-            const stepCardTopY = 84 + rowIndex * 148;
-            const stepCard = UiPanelFactory.createPanelContainer(
-                this,
-                stepCardLeftX,
-                stepCardTopY,
-                stepCardWidth,
-                128,
-                PanelVariant.PARCHMENT,
-            );
-            stepCard.add(
-                UiPanelFactory.createSectionHeader(this, 14, 12, step.stepTitle, 16, UiPalette.NEAR_BLACK_LEATHER_CSS),
-            );
-            stepCard.add(
-                UiPanelFactory.createBodyText(
-                    this,
-                    14,
-                    40,
-                    stepCardWidth - 28,
-                    step.stepBody,
-                    14,
-                    UiPalette.NEAR_BLACK_LEATHER_CSS,
-                ),
-            );
-            overlayPanel.add(stepCard);
-        });
-        overlayPanel.add(
-            UiPanelFactory.createBrassButton(
-                this,
-                panelWidth / 2 - 130,
-                panelHeight - 66,
-                260,
-                48,
-                "GOT IT - LET ME PLAY",
-                () => {
-                    overlayContainer.destroy(true);
-                },
-            ),
-        );
-        overlayContainer.add(overlayPanel);
-    }
-
     private subscribeToGameEvents(): void {
         const eventBus = EventBus.getInstance();
         this.boundNewspaperHandler = (payload: unknown) => {
@@ -2001,7 +1902,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             const navigationRequestedPayload = payload as NavigationRequestedPayload;
             switch (navigationRequestedPayload.destinationSceneKey) {
                 case "journal":
-                    this.scene.start(SceneKeys.JOURNAL);
+                    this.scene.start(
+                        SceneKeys.JOURNAL,
+                        new ScenarioSelectionPayload(this.scenarioNumber, SceneKeys.SCENARIO_PLAY),
+                    );
                     break;
                 case "ledger":
                     this.scene.start(SceneKeys.LEDGER);
