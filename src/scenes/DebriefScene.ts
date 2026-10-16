@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { prefersReducedMotion } from "../core/AccessibilityPreferences";
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { Rubrics, ShortAnswerRubricItem } from "../data/Rubrics";
@@ -236,10 +237,15 @@ export class DebriefScene extends Phaser.Scene {
                 responseText,
             );
         if (matchingRubricItem !== undefined) {
-            const earnedPoints = gameSession
+            const practiceFeedback = gameSession
                 .getAssessmentManager()
-                .scoreShortAnswerResponse(matchingRubricItem, responseText);
-            scoreLabel.setText(`Saved. Criteria met: ${earnedPoints} of ${matchingRubricItem.maximumPointValue}.`);
+                .getShortAnswerPracticeFeedback(matchingRubricItem, responseText);
+            const detectedCriteria = practiceFeedback.criteria
+                .map((criterion) => `${criterion.wasSignalDetected ? "✓" : "○"} ${criterion.criterionText}`)
+                .join("\n");
+            scoreLabel.setText(
+                `Saved. Practice estimate: ${practiceFeedback.detectedSignalCount} of ${practiceFeedback.maximumSignalCount} criterion signals detected. This keyword-based check can miss valid wording; ask your teacher to review.\n${detectedCriteria}`,
+            );
         } else {
             scoreLabel.setText("Saved to journal.");
         }
@@ -269,12 +275,14 @@ export class DebriefScene extends Phaser.Scene {
             );
         if (achievedScore >= 3) {
             gameSession.getGameState().setScenarioFlag(`contextualization_s${this.scenarioNumber}_scored`);
-            scoreLabel.setText(`Saved. Contextualization scored ${achievedScore} of 3. Criterion met.`);
+            scoreLabel.setText(
+                `Saved. Practice estimate: ${achievedScore} of 3 contextualization signals detected. This automatic check cannot judge historical accuracy or nuance; ask your teacher to review. Check for broader context, an explicit connection, and an explanation of significance.`,
+            );
             scoreLabel.setColor(UiPalette.HIGHLIGHT_BRASS_CSS);
             return;
         }
         scoreLabel.setText(
-            `Saved. Contextualization scored ${achievedScore} of 3. Add context and explanation for a stronger score.`,
+            `Saved. Practice estimate: ${achievedScore} of 3 contextualization signals detected. This automatic check can miss valid wording; ask your teacher to review. Check for broader context, an explicit connection, and an explanation of significance.`,
         );
         scoreLabel.setColor(UiPalette.AGED_PARCHMENT_CSS);
     }
@@ -414,6 +422,9 @@ export class DebriefScene extends Phaser.Scene {
     }
 
     private spawnVictoryCelebrationParticles(): void {
+        if (prefersReducedMotion()) {
+            return;
+        }
         const particleTextureKey = "asset-status_star_full";
         if (!this.textures.exists(particleTextureKey)) {
             return;
