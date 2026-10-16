@@ -142,7 +142,7 @@ export class SharedInquiryComponent extends Phaser.GameObjects.Container {
         });
         const sourceMetaTextObject = this.scene.add.text(10, 38, source.authorOrOrigin + ", " + source.dateText + ".", {
             fontFamily: FontFamilies.BODY_SERIF,
-            fontSize: "12px",
+            fontSize: "14px",
             color: UiPalette.DEEP_PARCHMENT_CSS,
             wordWrap: { width: panelWidth - 20, useAdvancedWrap: true },
         });
