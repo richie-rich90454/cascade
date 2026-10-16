@@ -97,6 +97,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private provinceTilesByProvinceIdentifier: Map<string, Phaser.GameObjects.Arc>;
     private historicalMapImage: Phaser.GameObjects.Image | null;
     private historicalMapYearLabel: Phaser.GameObjects.Text | null;
+    private disputedMapLegendText: Phaser.GameObjects.Text | null;
+    private tibetHistoryNoteText: Phaser.GameObjects.Text | null;
+    private taiwanHistoryNoteText: Phaser.GameObjects.Text | null;
     private provinceIdentifiersInMapOrder: string[];
     private selectedProvinceMapIndex: number;
     private phaseCardContainer: Phaser.GameObjects.Container | null;
@@ -130,6 +133,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Arc>();
         this.historicalMapImage = null;
         this.historicalMapYearLabel = null;
+        this.disputedMapLegendText = null;
+        this.tibetHistoryNoteText = null;
+        this.taiwanHistoryNoteText = null;
         this.provinceIdentifiersInMapOrder = [];
         this.selectedProvinceMapIndex = -1;
         this.phaseCardContainer = null;
@@ -177,6 +183,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Arc>();
         this.historicalMapImage = null;
         this.historicalMapYearLabel = null;
+        this.disputedMapLegendText = null;
         this.provinceIdentifiersInMapOrder = [];
         this.selectedProvinceMapIndex = -1;
         this.mechanicOverlayContainer = null;
@@ -268,6 +275,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     18,
                     this.scenario === null ? "" : this.scenario.getScenarioTitle(),
                     24,
+                    UiPalette.NEAR_BLACK_LEATHER_CSS,
                 ),
             );
             documentationPanel.add(
@@ -297,34 +305,117 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 .setDisplaySize(mapPixelWidth, mapPixelHeight);
             mapContainer.add(this.historicalMapImage);
         }
+        const mapHudContainer = this.add
+            .container(layoutRects.map.leftX, layoutRects.map.topY)
+            .setDepth(UiPalette.UI_DEPTH_SIDEBAR);
         this.historicalMapYearLabel = this.add
             .text(
                 mapPixelWidth - 18,
-                mapTopY + 16,
-                `DOCUMENTED BORDERS · ${historicalMapYear} · PRECISION VARIES BY REGION`,
+                14,
+                mapPixelWidth < 620
+                    ? `DOCUMENTED · ${historicalMapYear}`
+                    : `DOCUMENTED BORDERS · ${historicalMapYear} · PRECISION VARIES BY REGION`,
                 {
                     fontFamily: FontFamilies.TYPEWRITER_BODY,
-                    fontSize: "12px",
+                    fontSize: mapPixelWidth < 620 ? "12px" : "14px",
                     color: UiPalette.PARCHMENT_CSS,
-                    backgroundColor: "#1a1410cc",
-                    padding: { x: 8, y: 5 },
+                    backgroundColor: "#172128",
+                    padding: { x: 10, y: 7 },
                 },
             )
             .setOrigin(1, 0);
-        mapContainer.add(this.historicalMapYearLabel);
+        mapHudContainer.add(this.historicalMapYearLabel);
         const mapInstructions = this.add.text(
-            mapLeftX + 18,
-            mapTopY + mapPixelHeight - 34,
-            "LOCATION MARKERS · LARGER RING = CAPITAL · SELECT TO READ OWNER · ARROW KEYS + ENTER WORK",
+            18,
+            mapPixelHeight - (mapPixelWidth < 620 ? 95 : 58),
+            mapPixelWidth < 620
+                ? "DRAG · WHEEL · CLICK"
+                : "DRAG TO PAN · WHEEL OR + / − TO ZOOM · CLICK A RING TO INSPECT · ← / → + ENTER SELECT",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: "11px",
+                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
                 color: UiPalette.PARCHMENT_CSS,
-                backgroundColor: "#1a1410cc",
-                padding: { x: 8, y: 5 },
+                backgroundColor: "#172128",
+                padding: { x: 10, y: 7 },
             },
         );
-        mapContainer.add(mapInstructions);
+        mapHudContainer.add(mapInstructions);
+        this.disputedMapLegendText = this.add.text(
+            18,
+            mapPixelHeight - (mapPixelWidth < 620 ? 125 : 25),
+            mapPixelWidth < 620
+                ? "HATCHED · INDIA ADMIN. · CHINA CLAIM · MODERN REF."
+                : "MODERN DISPUTE REFERENCE · HATCHED APPROXIMATE AREA · ADMINISTERED BY INDIA · CLAIMED BY CHINA",
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                color: UiPalette.PARCHMENT_CSS,
+                backgroundColor: "#172128",
+                padding: { x: 10, y: 7 },
+            },
+        );
+        this.disputedMapLegendText.setVisible(true);
+        mapHudContainer.add(this.disputedMapLegendText);
+        this.tibetHistoryNoteText = this.add.text(
+            18,
+            48,
+            mapPixelWidth < 620
+                ? "TIBET · PRC CONTROL BY 1960"
+                : "TIBET · SHOWN WITHIN PRC ADMINISTRATION BY 1960 · ACCOUNTS OF THE 1951 AGREEMENT DIFFER",
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                color: UiPalette.PARCHMENT_CSS,
+                backgroundColor: "#172128",
+                padding: { x: 10, y: 7 },
+            },
+        );
+        this.tibetHistoryNoteText.setVisible(historicalMapYear >= 1960);
+        this.tibetHistoryNoteText.setInteractive({ useHandCursor: true });
+        this.tibetHistoryNoteText.on("pointerup", () => {
+            this.showToast(
+                "By 1960 the PRC administered Tibet. PRC sources describe the 1951 agreement as peaceful liberation; Tibetan sources describe it as signed under duress.",
+            );
+        });
+        mapHudContainer.add(this.tibetHistoryNoteText);
+        this.taiwanHistoryNoteText = this.add.text(
+            18,
+            82,
+            mapPixelWidth < 620
+                ? "TAIWAN · CHINA COLOR GROUP · ROC ADMIN."
+                : "TAIWAN · CHINA COLOR GROUP FROM 1945 · GOVERNED BY ROC · CLAIMED BY PRC FROM 1949",
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                color: UiPalette.PARCHMENT_CSS,
+                backgroundColor: "#172128",
+                padding: { x: 10, y: 7 },
+            },
+        );
+        this.taiwanHistoryNoteText.setVisible(historicalMapYear >= 1945);
+        this.taiwanHistoryNoteText.setInteractive({ useHandCursor: true });
+        this.taiwanHistoryNoteText.on("pointerup", () => {
+            this.showToast(
+                "Taiwan uses the China color group from 1945. The Republic of China has governed Taiwan since 1945; the PRC claims Taiwan.",
+            );
+        });
+        mapHudContainer.add(this.taiwanHistoryNoteText);
+        const zoomControlTopY = mapPixelHeight - 51;
+        mapHudContainer.add(
+            UiPanelFactory.createBrassButton(this, mapPixelWidth - 184, zoomControlTopY, 42, 38, "+", () => {
+                this.mapCameraController?.zoomIn();
+            }),
+        );
+        mapHudContainer.add(
+            UiPanelFactory.createBrassButton(this, mapPixelWidth - 136, zoomControlTopY, 42, 38, "−", () => {
+                this.mapCameraController?.zoomOut();
+            }),
+        );
+        mapHudContainer.add(
+            UiPanelFactory.createBrassButton(this, mapPixelWidth - 86, zoomControlTopY, 78, 38, "WORLD", () => {
+                this.mapCameraController?.resetToOverview();
+            }),
+        );
         for (const province of allProvinces) {
             const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
             const ownerColor =
@@ -354,6 +445,29 @@ export class ScenarioPlayScene extends Phaser.Scene {
             this.provinceIdentifiersInMapOrder.push(province.getIdentifier());
             mapContainer.add(provinceMarker);
         }
+        const disputedAreaMapZone = this.add
+            .zone(((94.4 + 180) / 360) * mapPixelWidth, ((90 - 28.2) / 180) * mapPixelHeight, 54, 28)
+            .setInteractive({ useHandCursor: true });
+        disputedAreaMapZone.on("pointerup", () => {
+            this.showToast(
+                "Modern reference only: Arunachal Pradesh is administered by India and claimed by China. The hatched area is approximate, not a historical border.",
+            );
+        });
+        mapContainer.add(disputedAreaMapZone);
+        const taiwanStatusMapZone = this.add
+            .zone(((121 + 180) / 360) * mapPixelWidth, ((90 - 23.7) / 180) * mapPixelHeight, 32, 24)
+            .setInteractive({ useHandCursor: true });
+        taiwanStatusMapZone.on("pointerup", () => {
+            const selectedMapYear = this.getHistoricalMapYearForCurrentTurn();
+            this.showToast(
+                selectedMapYear >= 1960
+                    ? "Taiwan is shown in the China color group. The Republic of China has governed Taiwan since 1945; the PRC claims Taiwan and has not administered the island."
+                    : selectedMapYear >= 1945
+                      ? "Taiwan is shown in the China color group. The Republic of China took control of Taiwan in 1945."
+                      : "This historical snapshot shows Taiwan under Japanese rule, which began in 1895.",
+            );
+        });
+        mapContainer.add(taiwanStatusMapZone);
         this.mapCameraController = new MapCameraController(this, mapPixelWidth, mapPixelHeight);
         this.mapCameraController.setViewport(
             layoutRects.map.leftX,
@@ -847,7 +961,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (this.textures.exists(textureKey)) {
             this.historicalMapImage.setTexture(textureKey);
         }
-        this.historicalMapYearLabel.setText(`DOCUMENTED BORDERS · ${year} · PRECISION VARIES BY REGION`);
+        const layoutRects = this.getLayoutRects();
+        const mapPixelWidth = Math.min(layoutRects.map.width, layoutRects.map.height * 2);
+        this.historicalMapYearLabel.setText(
+            mapPixelWidth < 620 ? `DOCUMENTED · ${year}` : `DOCUMENTED BORDERS · ${year} · PRECISION VARIES BY REGION`,
+        );
+        this.disputedMapLegendText?.setVisible(true);
+        this.tibetHistoryNoteText?.setVisible(year >= 1960);
+        this.taiwanHistoryNoteText?.setVisible(year >= 1945);
         this.applyMapMode(this.activeMapModeCode);
     }
 
@@ -1649,7 +1770,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 128,
                 PanelVariant.PARCHMENT,
             );
-            stepCard.add(UiPanelFactory.createSectionHeader(this, 14, 12, step.stepTitle, 16));
+            stepCard.add(
+                UiPanelFactory.createSectionHeader(this, 14, 12, step.stepTitle, 16, UiPalette.NEAR_BLACK_LEATHER_CSS),
+            );
             stepCard.add(
                 UiPanelFactory.createBodyText(
                     this,
