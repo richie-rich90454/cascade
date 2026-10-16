@@ -148,7 +148,7 @@ export class DebriefScene extends Phaser.Scene {
 
         flowCursor.placeText(
             contentContainer,
-            UiPanelFactory.createSectionHeader(this, 0, 0, "CONTEXTUALIZATION PARAGRAPH (SKILL 4.B)", 18),
+            UiPanelFactory.createSectionHeader(this, 0, 0, "CONTEXTUALIZATION PARAGRAPH · HISTORICAL CONTEXT", 18),
             8,
         );
         flowCursor.placeText(
@@ -270,7 +270,7 @@ export class DebriefScene extends Phaser.Scene {
                 this.scenarioNumber,
                 gameSession.getCurrentTurnNumber(),
                 "contextualization",
-                "Contextualization paragraph (Skill 4.B)",
+                "Contextualization paragraph",
                 responseText,
             );
         if (achievedScore >= 3) {
