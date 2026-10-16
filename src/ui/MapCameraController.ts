@@ -6,8 +6,8 @@ import { UiPointerRouting } from "./UiPointerRouting";
 
 export class MapCameraController {
     private static readonly RELATIVE_MINIMUM_SCALE = 0.75;
-    private static readonly RELATIVE_MAXIMUM_SCALE = 2.5;
-    private static readonly SCALE_STEP_FACTOR = 1.1;
+    private static readonly RELATIVE_MAXIMUM_SCALE = 4;
+    private static readonly SCALE_STEP_FACTOR = 1.2;
     private static readonly FOCUS_TWEEN_DURATION_MS = 450;
 
     private readonly scene: Phaser.Scene;
@@ -110,23 +110,11 @@ export class MapCameraController {
             if (UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)) {
                 return;
             }
-            this.cancelFocusTween();
-            const scaleFactor =
-                deltaY > 0 ? 1 / MapCameraController.SCALE_STEP_FACTOR : MapCameraController.SCALE_STEP_FACTOR;
-            const targetScaleValue = Phaser.Math.Clamp(
-                this.mapScaleValue * scaleFactor,
-                MapCameraController.RELATIVE_MINIMUM_SCALE,
-                MapCameraController.RELATIVE_MAXIMUM_SCALE,
+            this.zoomByFactor(
+                deltaY > 0 ? 1 / MapCameraController.SCALE_STEP_FACTOR : MapCameraController.SCALE_STEP_FACTOR,
+                pointerCssX,
+                pointerCssY,
             );
-            if (targetScaleValue === this.mapScaleValue) {
-                return;
-            }
-            const worldPointBeforeScale = this.convertViewPointToMapPoint(pointerCssX, pointerCssY);
-            this.mapScaleValue = targetScaleValue;
-            this.targetContainer.setScale(this.mapScaleValue);
-            const worldPointAfterScale = this.convertViewPointToMapPoint(pointerCssX, pointerCssY);
-            this.targetContainer.x += (worldPointAfterScale.x - worldPointBeforeScale.x) * this.mapScaleValue;
-            this.targetContainer.y += (worldPointAfterScale.y - worldPointBeforeScale.y) * this.mapScaleValue;
         };
         this.scene.input.on("wheel", this.zoomWheelHandler);
         this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -135,6 +123,50 @@ export class MapCameraController {
                 this.zoomWheelHandler = null;
             }
         });
+    }
+
+    public zoomIn(): void {
+        this.zoomByFactor(MapCameraController.SCALE_STEP_FACTOR);
+    }
+
+    public zoomOut(): void {
+        this.zoomByFactor(1 / MapCameraController.SCALE_STEP_FACTOR);
+    }
+
+    public resetToOverview(): void {
+        if (this.targetContainer === null) {
+            return;
+        }
+        this.cancelFocusTween();
+        this.mapScaleValue = 1;
+        this.targetContainer.setScale(1);
+        this.targetContainer.setPosition(this.viewportLeftX, this.viewportTopY);
+        this.update();
+    }
+
+    private zoomByFactor(factor: number, anchorX?: number, anchorY?: number): void {
+        if (this.targetContainer === null || !Number.isFinite(factor) || factor <= 0) {
+            return;
+        }
+        this.cancelFocusTween();
+        const resolvedAnchorX = anchorX ?? this.viewportLeftX + this.viewportWidth / 2;
+        const resolvedAnchorY = anchorY ?? this.viewportTopY + this.viewportHeight / 2;
+        const mapPoint = this.convertViewPointToMapPoint(resolvedAnchorX, resolvedAnchorY);
+        const nextScale = Phaser.Math.Clamp(
+            this.mapScaleValue * factor,
+            MapCameraController.RELATIVE_MINIMUM_SCALE,
+            MapCameraController.RELATIVE_MAXIMUM_SCALE,
+        );
+        if (nextScale === this.mapScaleValue) {
+            return;
+        }
+        this.mapScaleValue = nextScale;
+        this.targetContainer.setScale(nextScale);
+        this.targetContainer.setPosition(
+            resolvedAnchorX - mapPoint.x * nextScale,
+            resolvedAnchorY - mapPoint.y * nextScale,
+        );
+        this.update();
     }
 
     public focusOnPoint(mapPointX: number, mapPointY: number, relativeScaleValue: number): void {
