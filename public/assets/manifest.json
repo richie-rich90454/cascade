@@ -15910,6 +15910,116 @@
       "width": 0,
       "height": 0,
       "status": "placeholder"
+    },
+    {
+      "assetId": "cascade_world_atlas_hero",
+      "category": "scenario",
+      "tier": 1,
+      "source": "generated",
+      "file": "assets/cascade-world-atlas-hero.png",
+      "width": 1536,
+      "height": 1024,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1900",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1900.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1914",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1914.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1920",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1920.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1930",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1930.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1938",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1938.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1945",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1945.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1960",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1960.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1994",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1994.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_2000",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_2000.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_2010",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_2010.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
     }
   ]
 }
