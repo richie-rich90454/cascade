@@ -123,7 +123,7 @@ export class StudentTextEntryField {
 
     private refreshDisplayedText(): void {
         if (this.contentText.length === 0) {
-            this.contentTextObject.setColor(UiPalette.FIELD_GRAY_CSS);
+            this.contentTextObject.setColor(UiPalette.DEEP_PARCHMENT_CSS);
             this.contentTextObject.setText(this.isFocusedOnField ? "|" : this.placeholderText);
             return;
         }
