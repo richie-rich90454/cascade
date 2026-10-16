@@ -41,8 +41,9 @@ export class TopBarComponent extends Phaser.GameObjects.Container {
             const slotCenterX = slotLeftX + slotWidthPx / 2;
             const slotLabelTextObject = scene.add.text(slotCenterX, 6, TopBarComponent.getSlotLabelText(resourceType), {
                 fontFamily: FontFamilies.SMALL_CAPS,
-                fontSize: "12px",
+                fontSize: "13px",
                 color: UiPalette.HIGHLIGHT_BRASS_CSS,
+                fontStyle: "bold",
             });
             slotLabelTextObject.setOrigin(0.5, 0);
             const slotValueTextObject = scene.add.text(slotCenterX, 23, "", {
@@ -90,23 +91,6 @@ export class TopBarComponent extends Phaser.GameObjects.Container {
     };
 
     private static getSlotLabelText(resourceType: ResourceType): string {
-        switch (resourceType.getCode()) {
-            case "production":
-                return "PRODU";
-            case "manpower":
-                return "MANPW";
-            case "treasury":
-                return "TREAS";
-            case "legitimacy":
-                return "LEGIT";
-            case "influence":
-                return "INFLU";
-            case "morale":
-                return "MORAL";
-            case "intelligence":
-                return "INTEL";
-            default:
-                return resourceType.getDisplayName().substring(0, 5).toUpperCase();
-        }
+        return resourceType.getDisplayName();
     }
 }
