@@ -114,10 +114,10 @@ export class SourceAnalysisScene extends Phaser.Scene {
                     ? UiPalette.AGED_PARCHMENT_CSS
                     : analysisResult
                       ? UiPalette.HIGHLIGHT_BRASS_CSS
-                      : UiPalette.BRIGHT_BLOOD_CSS;
+                      : UiPalette.ALERT_TEXT_ON_DARK_CSS;
             const statusLabel = this.add.text(12, 58, statusText, {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: "12px",
+                fontSize: "14px",
                 color: statusColorCss,
             });
             this.sourceListContainer?.add(statusLabel);
