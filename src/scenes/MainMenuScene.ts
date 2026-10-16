@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
+import { AssetManager } from "../managers/AssetManager";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
@@ -23,6 +24,14 @@ export class MainMenuScene extends Phaser.Scene {
 
     public create(): void {
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, UiPalette.NEAR_BLACK_LEATHER).setOrigin(0, 0);
+        const heroTextureKey = AssetManager.getInstance().getTextureKey("cascade_world_atlas_hero");
+        if (this.textures.exists(heroTextureKey)) {
+            this.add
+                .image(0, 0, heroTextureKey)
+                .setOrigin(0, 0)
+                .setDisplaySize(this.scale.width, this.scale.height)
+                .setAlpha(0.64);
+        }
         this.add.rectangle(0, 0, this.scale.width, 240, UiPalette.DARK_OLIVE).setOrigin(0, 0).setAlpha(0.5);
         this.menuContentRoot = this.add.container(0, 0);
         const screenCenterX = this.scale.width / 2;
@@ -47,7 +56,7 @@ export class MainMenuScene extends Phaser.Scene {
         );
         this.menuContentRoot.add(
             this.add
-                .text(screenCenterX, 212, "A Century of Global Conflict, 1900-1945", {
+                .text(screenCenterX, 212, "Global Conflict, c. 1900 to the Present", {
                     fontFamily: FontFamilies.BODY_SERIF,
                     fontSize: "26px",
                     fontStyle: "italic",
