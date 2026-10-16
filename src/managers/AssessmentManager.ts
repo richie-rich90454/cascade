@@ -59,15 +59,80 @@ export class ScenarioAssessmentSummary {
     }
 }
 
+export class CriterionPracticeFeedback {
+    public readonly criterionText: string;
+    public readonly wasSignalDetected: boolean;
+    public readonly reviewPrompt: string;
+
+    constructor(criterionText: string, wasSignalDetected: boolean, reviewPrompt: string) {
+        this.criterionText = criterionText;
+        this.wasSignalDetected = wasSignalDetected;
+        this.reviewPrompt = reviewPrompt;
+    }
+}
+
+export class ShortAnswerPracticeFeedback {
+    public readonly detectedSignalCount: number;
+    public readonly maximumSignalCount: number;
+    public readonly criteria: CriterionPracticeFeedback[];
+
+    constructor(detectedSignalCount: number, maximumSignalCount: number, criteria: CriterionPracticeFeedback[]) {
+        this.detectedSignalCount = detectedSignalCount;
+        this.maximumSignalCount = maximumSignalCount;
+        this.criteria = criteria;
+    }
+}
+
+export class TopicPracticeSignal {
+    public readonly correctAnswerCount: number;
+    public readonly attemptedQuestionCount: number;
+
+    constructor(correctAnswerCount: number, attemptedQuestionCount: number) {
+        this.correctAnswerCount = correctAnswerCount;
+        this.attemptedQuestionCount = attemptedQuestionCount;
+    }
+
+    public getAccuracyPercentage(): number | null {
+        if (this.attemptedQuestionCount === 0) {
+            return null;
+        }
+        return Math.round((this.correctAnswerCount / this.attemptedQuestionCount) * 100);
+    }
+}
+
+interface PersistedAssessmentRecord {
+    journalEntries: Array<{
+        entryIdentifier: string;
+        scenarioNumber: number;
+        turnNumber: number;
+        entryCategory: string;
+        promptText: string;
+        responseText: string;
+        recordedAtIsoTimestamp: string;
+    }>;
+    latestVictoryFlagsByScenarioNumber: Array<[number, boolean]>;
+    topicAttemptsByCedTopicCode: Record<string, { correct: number; attempted: number }>;
+}
+
 export class AssessmentManager {
     private static readonly SINGLETON_INSTANCE = new AssessmentManager();
+    private static readonly STORAGE_KEY = "cascade.assessment.v2";
 
     private readonly journalEntries: JournalEntry[];
     private readonly latestVictoryFlagsByScenarioNumber: Map<number, boolean>;
+    private readonly topicAttemptsByCedTopicCode: Map<string, { correct: number; attempted: number }>;
+    private readonly storage: Storage | null;
 
     private constructor() {
         this.journalEntries = [];
         this.latestVictoryFlagsByScenarioNumber = new Map<number, boolean>();
+        this.topicAttemptsByCedTopicCode = new Map<string, { correct: number; attempted: number }>();
+        try {
+            this.storage = typeof localStorage === "undefined" ? null : localStorage;
+        } catch {
+            this.storage = null;
+        }
+        this.loadFromStorage();
     }
 
     public static getInstance(): AssessmentManager {
@@ -91,6 +156,7 @@ export class AssessmentManager {
             new Date().toISOString(),
         );
         this.journalEntries.push(journalEntry);
+        this.saveToStorage();
         EventBus.getInstance().publish(GameEventTypes.JOURNAL_UPDATED, { scenarioNumber, entryCategory });
         return journalEntry;
     }
@@ -105,6 +171,21 @@ export class AssessmentManager {
 
     public recordScenarioVictory(scenarioNumber: number, wasVictory: boolean): void {
         this.latestVictoryFlagsByScenarioNumber.set(scenarioNumber, wasVictory);
+        this.saveToStorage();
+    }
+
+    public recordTopicPracticeAttempt(cedTopicCode: string, wasCorrect: boolean): void {
+        const currentSignal = this.topicAttemptsByCedTopicCode.get(cedTopicCode) ?? { correct: 0, attempted: 0 };
+        this.topicAttemptsByCedTopicCode.set(cedTopicCode, {
+            correct: currentSignal.correct + (wasCorrect ? 1 : 0),
+            attempted: currentSignal.attempted + 1,
+        });
+        this.saveToStorage();
+    }
+
+    public getTopicPracticeSignal(cedTopicCode: string): TopicPracticeSignal {
+        const signal = this.topicAttemptsByCedTopicCode.get(cedTopicCode) ?? { correct: 0, attempted: 0 };
+        return new TopicPracticeSignal(signal.correct, signal.attempted);
     }
 
     public wasScenarioCompletedWithVictory(scenarioNumber: number): boolean {
@@ -130,17 +211,32 @@ export class AssessmentManager {
     }
 
     public scoreShortAnswerResponse(rubricItem: ShortAnswerRubricItem, responseText: string): number {
+        return this.getShortAnswerPracticeFeedback(rubricItem, responseText).detectedSignalCount;
+    }
+
+    public getShortAnswerPracticeFeedback(
+        rubricItem: ShortAnswerRubricItem,
+        responseText: string,
+    ): ShortAnswerPracticeFeedback {
         const normalizedResponseText = responseText.toLowerCase();
-        let earnedPoints = 0;
-        for (const conceptGroup of rubricItem.requiredConceptGroups) {
-            const wasConceptGroupMatched = conceptGroup.some((conceptKeyword) =>
+        const criteria = rubricItem.scoringCriteria.map((criterionText, criterionIndex) => {
+            const conceptGroup = rubricItem.requiredConceptGroups[criterionIndex] ?? [];
+            const wasSignalDetected = conceptGroup.some((conceptKeyword) =>
                 normalizedResponseText.includes(conceptKeyword.toLowerCase()),
             );
-            if (wasConceptGroupMatched) {
-                earnedPoints += 1;
-            }
-        }
-        return Math.min(rubricItem.maximumPointValue, earnedPoints);
+            return new CriterionPracticeFeedback(
+                criterionText,
+                wasSignalDetected,
+                wasSignalDetected
+                    ? "Review that this idea is explained and supported with specific historical evidence."
+                    : "Review this criterion and add a relevant example or explanation if it supports your argument.",
+            );
+        });
+        const detectedSignalCount = Math.min(
+            rubricItem.maximumPointValue,
+            criteria.filter((criterion) => criterion.wasSignalDetected).length,
+        );
+        return new ShortAnswerPracticeFeedback(detectedSignalCount, rubricItem.maximumPointValue, criteria);
     }
 
     public scoreContextualizationParagraph(responseText: string): number {
@@ -200,7 +296,7 @@ export class AssessmentManager {
     public exportJournalAsPlainText(): string {
         const exportLines: string[] = [];
         exportLines.push("CASCADE");
-        exportLines.push("A Century of Global Conflict, 1900-1945");
+        exportLines.push("Global Conflict, c. 1900 to the Present");
         exportLines.push("Student journal export");
         exportLines.push(`Exported: ${new Date().toISOString()}`);
         exportLines.push("");
@@ -245,5 +341,110 @@ export class AssessmentManager {
 
     public clearAllJournalEntries(): void {
         this.journalEntries.length = 0;
+        this.saveToStorage();
+    }
+
+    public clearSavedAssessmentData(): void {
+        this.journalEntries.length = 0;
+        this.latestVictoryFlagsByScenarioNumber.clear();
+        this.topicAttemptsByCedTopicCode.clear();
+        if (this.storage !== null) {
+            this.storage.removeItem(AssessmentManager.STORAGE_KEY);
+        }
+    }
+
+    private loadFromStorage(): void {
+        if (this.storage === null) {
+            return;
+        }
+        try {
+            const storedValue = this.storage.getItem(AssessmentManager.STORAGE_KEY);
+            if (storedValue === null) {
+                return;
+            }
+            const parsedRecord = JSON.parse(storedValue) as Partial<PersistedAssessmentRecord>;
+            if (Array.isArray(parsedRecord.journalEntries)) {
+                for (const entry of parsedRecord.journalEntries) {
+                    if (
+                        typeof entry.entryIdentifier !== "string" ||
+                        typeof entry.scenarioNumber !== "number" ||
+                        typeof entry.turnNumber !== "number" ||
+                        typeof entry.entryCategory !== "string" ||
+                        typeof entry.promptText !== "string" ||
+                        typeof entry.responseText !== "string" ||
+                        typeof entry.recordedAtIsoTimestamp !== "string"
+                    ) {
+                        continue;
+                    }
+                    this.journalEntries.push(
+                        new JournalEntry(
+                            entry.entryIdentifier,
+                            entry.scenarioNumber,
+                            entry.turnNumber,
+                            entry.entryCategory,
+                            entry.promptText,
+                            entry.responseText,
+                            entry.recordedAtIsoTimestamp,
+                        ),
+                    );
+                }
+            }
+            if (Array.isArray(parsedRecord.latestVictoryFlagsByScenarioNumber)) {
+                for (const entry of parsedRecord.latestVictoryFlagsByScenarioNumber) {
+                    if (Array.isArray(entry) && typeof entry[0] === "number" && typeof entry[1] === "boolean") {
+                        this.latestVictoryFlagsByScenarioNumber.set(entry[0], entry[1]);
+                    }
+                }
+            }
+            if (
+                parsedRecord.topicAttemptsByCedTopicCode !== null &&
+                typeof parsedRecord.topicAttemptsByCedTopicCode === "object" &&
+                !Array.isArray(parsedRecord.topicAttemptsByCedTopicCode)
+            ) {
+                for (const [topicCode, signal] of Object.entries(parsedRecord.topicAttemptsByCedTopicCode)) {
+                    if (
+                        signal !== null &&
+                        typeof signal === "object" &&
+                        typeof signal.correct === "number" &&
+                        typeof signal.attempted === "number" &&
+                        signal.correct >= 0 &&
+                        signal.attempted >= signal.correct
+                    ) {
+                        this.topicAttemptsByCedTopicCode.set(topicCode, {
+                            correct: signal.correct,
+                            attempted: signal.attempted,
+                        });
+                    }
+                }
+            }
+        } catch {
+            this.journalEntries.length = 0;
+            this.latestVictoryFlagsByScenarioNumber.clear();
+            this.topicAttemptsByCedTopicCode.clear();
+        }
+    }
+
+    private saveToStorage(): void {
+        if (this.storage === null) {
+            return;
+        }
+        const persistedRecord: PersistedAssessmentRecord = {
+            journalEntries: this.journalEntries.map((entry) => ({
+                entryIdentifier: entry.entryIdentifier,
+                scenarioNumber: entry.scenarioNumber,
+                turnNumber: entry.turnNumber,
+                entryCategory: entry.entryCategory,
+                promptText: entry.promptText,
+                responseText: entry.responseText,
+                recordedAtIsoTimestamp: entry.recordedAtIsoTimestamp,
+            })),
+            latestVictoryFlagsByScenarioNumber: Array.from(this.latestVictoryFlagsByScenarioNumber.entries()),
+            topicAttemptsByCedTopicCode: Object.fromEntries(this.topicAttemptsByCedTopicCode.entries()),
+        };
+        try {
+            this.storage.setItem(AssessmentManager.STORAGE_KEY, JSON.stringify(persistedRecord));
+        } catch {
+            // Keep current-session work available if browser storage is disabled or full.
+        }
     }
 }
