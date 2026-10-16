@@ -217,6 +217,34 @@ function getFeaturePath(feature: GeoJsonFeature): string {
     return polygons.map(getPolygonPath).join(" ");
 }
 
+function getSharedBoundaryOverlay(firstFeature: GeoJsonFeature, secondFeature: GeoJsonFeature, color: string): string {
+    const formatCoordinate = (coordinate: number[]): string => {
+        const [x, y] = projectCoordinate(coordinate[0], coordinate[1]);
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+    };
+    const getSegments = (feature: GeoJsonFeature): Map<string, [string, string]> => {
+        const segments = new Map<string, [string, string]>();
+        for (const ring of getPolygonRings(feature)) {
+            for (let index = 1; index < ring.length; index += 1) {
+                const start = formatCoordinate(ring[index - 1]);
+                const end = formatCoordinate(ring[index]);
+                const key = [start, end].sort().join("|");
+                segments.set(key, [start, end]);
+            }
+        }
+        return segments;
+    };
+    const firstSegments = getSegments(firstFeature);
+    const secondSegments = getSegments(secondFeature);
+    const sharedSegments = [...firstSegments.entries()]
+        .filter(([key]) => secondSegments.has(key))
+        .map(([, [start, end]]) => `M${start} L${end}`);
+    if (sharedSegments.length === 0) {
+        throw new Error("The 1960 Tibet-China shared boundary could not be found.");
+    }
+    return `<path d="${sharedSegments.join(" ")}" fill="none" stroke="${color}" stroke-width="3.2" stroke-linecap="round" pointer-events="none"><title>Internal Tibet-China boundary omitted in the 1960 map.</title></path>`;
+}
+
 function escapeXml(text: string): string {
     return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 }
@@ -265,6 +293,18 @@ function renderWorldMapSvg(
         })
         .join("\n");
 
+    const tibetChinaBoundaryOverlay =
+        year === 1960
+            ? (() => {
+                  const tibet = source.features.find((feature) => feature.properties.NAME === "Tibet");
+                  const china = source.features.find((feature) => feature.properties.NAME === "China");
+                  if (tibet === undefined || china === undefined) {
+                      throw new Error("The 1960 map is missing Tibet or China geometry.");
+                  }
+                  return getSharedBoundaryOverlay(tibet, china, colorBySubject.get("China") ?? "#9b7187");
+              })()
+            : "";
+
     const [disputedMarkerX, disputedMarkerY] = projectCoordinate(94.4, 28.2);
     const disputedAreaOverlay =
         `<defs><pattern id="disputed-area-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">` +
@@ -280,6 +320,7 @@ function renderWorldMapSvg(
         `<rect width="${MAP_WIDTH}" height="${MAP_HEIGHT}" fill="#294047"/>\n` +
         `<g fill="none" stroke="#aeb8ac" stroke-opacity=".16" stroke-width="1">${graticuleLines.join("")}</g>\n` +
         `<g stroke="#e5d5b5" stroke-width="1.15" stroke-linejoin="round" stroke-linecap="round">${featurePaths}</g>\n` +
+        `${tibetChinaBoundaryOverlay ? `${tibetChinaBoundaryOverlay}\n` : ""}` +
         `${disputedAreaOverlay}\n` +
         `</svg>`
     );
