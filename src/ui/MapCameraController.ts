@@ -144,6 +144,10 @@ export class MapCameraController {
         this.update();
     }
 
+    public getCurrentScale(): number {
+        return this.mapScaleValue;
+    }
+
     private zoomByFactor(factor: number, anchorX?: number, anchorY?: number): void {
         if (this.targetContainer === null || !Number.isFinite(factor) || factor <= 0) {
             return;
