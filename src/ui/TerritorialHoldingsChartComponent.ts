@@ -152,7 +152,7 @@ export class TerritorialHoldingsChartComponent extends Phaser.GameObjects.Contai
         const chipTextObject = this.scene.add.text(65, 13, "", {
             fontFamily: FontFamilies.SMALL_CAPS,
             fontSize: "12px",
-            color: UiPalette.FIELD_GRAY_CSS,
+            color: UiPalette.NEAR_BLACK_LEATHER_CSS,
         });
         chipTextObject.setOrigin(0.5, 0.5);
         const chipContainer = this.scene.add.container(classificationX, rowY + 14);
@@ -185,7 +185,7 @@ export class TerritorialHoldingsChartComponent extends Phaser.GameObjects.Contai
         chipGraphics.clear();
         if (chosenClassification === "") {
             chipGraphics.fillStyle(UiPalette.PARCHMENT, 1);
-            chipTextObject.setColor(UiPalette.FIELD_GRAY_CSS);
+            chipTextObject.setColor(UiPalette.NEAR_BLACK_LEATHER_CSS);
             chipTextObject.setText("Unclassified");
         } else {
             chipGraphics.fillStyle(UiPalette.BRASS_TAN, 1);
