@@ -2,7 +2,7 @@
     "name": "cascade",
     "version": "4.0.0",
     "private": true,
-    "description": "Cascade: A Century of Global Conflict, 1900-1945. An AP World History: Modern Unit 7 review game in the grand strategy tradition.",
+    "description": "Cascade: Global Conflict, c. 1900 to the present. An AP World History: Modern Unit 7 review game in the grand strategy tradition.",
     "license": "UNLICENSED",
     "type": "module",
     "scripts": {
@@ -13,6 +13,7 @@
         "format": "oxfmt",
         "format:check": "oxfmt --check",
         "generate:svg": "tsx .opencode/tools/GenerateSvg.ts",
+        "generate:maps": "tsx .opencode/tools/GenerateHistoricalMaps.ts",
         "generate:midi": "tsx .opencode/tools/GenerateMidi.ts",
         "assets:placeholders": "tsx .opencode/tools/WritePlaceholder.ts",
         "assets:prompts": "tsx .opencode/tools/WriteAssetPrompt.ts",
