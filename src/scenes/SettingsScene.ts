@@ -152,5 +152,54 @@ export class SettingsScene extends Phaser.Scene {
                 "Built with Phaser 4 and TypeScript.\n" +
                 "Original atlas artwork with source-attributed historical map data.",
         );
+        UiPanelFactory.createBrassButton(this, 40, 625, 300, 44, "CREDITS & LICENSES", () => {
+            this.showCreditsOverlay();
+        });
+    }
+
+    private showCreditsOverlay(): void {
+        const screenWidth = this.scale.width;
+        const screenHeight = this.scale.height;
+        const overlayContainer = this.add.container(0, 0).setDepth(UiPalette.UI_DEPTH_POPUP);
+        const overlayRectangle = this.add.rectangle(0, 0, screenWidth, screenHeight, 0x000000, 0.8).setOrigin(0, 0);
+        overlayRectangle.setInteractive();
+        overlayContainer.add(overlayRectangle);
+
+        const panelWidth = Math.min(1040, screenWidth - 48);
+        const panelHeight = Math.min(700, screenHeight - 48);
+        const overlayPanel = UiPanelFactory.createPanelContainer(
+            this,
+            (screenWidth - panelWidth) / 2,
+            (screenHeight - panelHeight) / 2,
+            panelWidth,
+            panelHeight,
+            PanelVariant.LEATHER,
+        );
+        overlayPanel.add(UiPanelFactory.createSectionHeader(this, 28, 20, "CREDITS & LICENSES", 26));
+        overlayPanel.add(
+            UiPanelFactory.createBodyText(
+                this,
+                28,
+                68,
+                panelWidth - 56,
+                [
+                    "HISTORICAL MAPS  Historical Basemaps by Alexander Ourednik and contributors. Adapted country-boundary data and the generated SVG maps are licensed under GNU GPL v3.0; the full license is included with the map data.",
+                    "ATLAS ART  Original title-screen illustration generated for Cascade with OpenAI image generation. It is not a sourced historical map or photograph.",
+                    "CURRICULUM  Unit alignment references the College Board AP World History: Modern Course and Exam Description (effective Fall 2026). Cascade is independent and is not endorsed by College Board.",
+                    "SOFTWARE  Phaser 4.2.1 (MIT License); TypeScript 5.9.3 (Apache License 2.0); Vite 8.3.4 (MIT License).",
+                    "HISTORICAL TEXTS  Source cards identify the named author, work, and date. Short edited extracts and contextual summaries may have translation or edition rights held by their respective publishers; Cascade does not claim a blanket license for those works.",
+                    "Open the project credits document for source links, license references, and the local GPL text.",
+                    "AP® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, this website.",
+                ].join("\n\n"),
+                15,
+                UiPalette.PARCHMENT_CSS,
+            ),
+        );
+        overlayPanel.add(
+            UiPanelFactory.createBrassButton(this, panelWidth - 150, 18, 120, 40, "CLOSE", () => {
+                overlayContainer.destroy(true);
+            }),
+        );
+        overlayContainer.add(overlayPanel);
     }
 }
