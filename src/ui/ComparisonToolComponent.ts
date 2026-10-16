@@ -134,7 +134,7 @@ export class ComparisonToolComponent extends Phaser.GameObjects.Container {
         const chipTextObject = this.scene.add.text(75, 13, "", {
             fontFamily: FontFamilies.SMALL_CAPS,
             fontSize: "12px",
-            color: UiPalette.FIELD_GRAY_CSS,
+            color: UiPalette.NEAR_BLACK_LEATHER_CSS,
         });
         chipTextObject.setOrigin(0.5, 0.5);
         const chipContainer = this.scene.add.container(100, rowY + 90);
@@ -194,7 +194,7 @@ export class ComparisonToolComponent extends Phaser.GameObjects.Container {
         chipGraphics.clear();
         if (chosenClassification === "") {
             chipGraphics.fillStyle(UiPalette.PARCHMENT, 1);
-            chipTextObject.setColor(UiPalette.FIELD_GRAY_CSS);
+            chipTextObject.setColor(UiPalette.NEAR_BLACK_LEATHER_CSS);
             chipTextObject.setText("Unclassified");
         } else {
             chipGraphics.fillStyle(UiPalette.BRASS_TAN, 1);
