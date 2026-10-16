@@ -13,6 +13,7 @@ import {
     TelegramRequestPayload,
 } from "../core/EventBus";
 import { GameSession } from "../core/GameSession";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { SceneKeys } from "../core/SceneKeys";
 import { PrimarySources } from "../data/PrimarySources";
 import { Rubrics } from "../data/Rubrics";
@@ -102,17 +103,25 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private taiwanHistoryNoteText: Phaser.GameObjects.Text | null;
     private provinceIdentifiersInMapOrder: string[];
     private selectedProvinceMapIndex: number;
+    private lastMarkerDisplayScale: number;
+    private lastHighlightedProvinceIdentifier: string | null;
     private phaseCardContainer: Phaser.GameObjects.Container | null;
     private mechanicOverlayContainer: Phaser.GameObjects.Container | null;
     private toastContainer: Phaser.GameObjects.Container | null;
     private questTrackerComponent: QuestTrackerComponent | null;
     private rightSidebarComponent: RightSidebarComponent | null;
+    private leftSidebarComponent: LeftSidebarComponent | null;
+    private mapModesToggleButton: Phaser.GameObjects.Container | null;
+    private objectivesToggleButton: Phaser.GameObjects.Container | null;
     private bottomBarComponent: BottomBarComponent | null;
     private topBarComponent: TopBarComponent | null;
     private mapCameraController: MapCameraController | null;
     private activeMapModeCode: string;
     private registeredPointerRegions: ScrollRegion[];
     private phaseCardPointerRegion: ScrollRegion | null;
+    private isMapModesPanelOpen: boolean;
+    private areInformationPanelsOpen: boolean;
+    private isPhaseDetailsExpanded: boolean;
     private boundNewspaperHandler: (payload: unknown) => void;
     private boundTelegramHandler: (payload: unknown) => void;
     private boundNavigationHandler: (payload: unknown) => void;
@@ -123,6 +132,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private readonly boundMapLeftKeyHandler: () => void;
     private readonly boundMapRightKeyHandler: () => void;
     private readonly boundMapEnterKeyHandler: () => void;
+    private mapPointerDownPosition: { x: number; y: number } | null;
 
     constructor() {
         super({ key: SceneKeys.SCENARIO_PLAY });
@@ -138,17 +148,25 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.taiwanHistoryNoteText = null;
         this.provinceIdentifiersInMapOrder = [];
         this.selectedProvinceMapIndex = -1;
+        this.lastMarkerDisplayScale = -1;
+        this.lastHighlightedProvinceIdentifier = null;
         this.phaseCardContainer = null;
         this.mechanicOverlayContainer = null;
         this.toastContainer = null;
         this.questTrackerComponent = null;
         this.rightSidebarComponent = null;
+        this.leftSidebarComponent = null;
+        this.mapModesToggleButton = null;
+        this.objectivesToggleButton = null;
         this.bottomBarComponent = null;
         this.topBarComponent = null;
         this.mapCameraController = null;
         this.activeMapModeCode = MapModeOption.POLITICAL.getMapModeCode();
         this.registeredPointerRegions = [];
         this.phaseCardPointerRegion = null;
+        this.isMapModesPanelOpen = false;
+        this.areInformationPanelsOpen = false;
+        this.isPhaseDetailsExpanded = false;
         this.boundNewspaperHandler = () => undefined;
         this.boundTelegramHandler = () => undefined;
         this.boundNavigationHandler = () => undefined;
@@ -167,6 +185,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 this.onProvinceSelected(identifier);
             }
         };
+        this.mapPointerDownPosition = null;
     }
 
     public init(data: unknown): void {
@@ -186,9 +205,15 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.disputedMapLegendText = null;
         this.provinceIdentifiersInMapOrder = [];
         this.selectedProvinceMapIndex = -1;
+        this.lastMarkerDisplayScale = -1;
+        this.lastHighlightedProvinceIdentifier = null;
         this.mechanicOverlayContainer = null;
         this.phaseCardContainer = null;
         this.phaseCardPointerRegion = null;
+        this.mapPointerDownPosition = null;
+        this.isMapModesPanelOpen = false;
+        this.areInformationPanelsOpen = false;
+        this.isPhaseDetailsExpanded = false;
     }
 
     public create(): void {
@@ -216,7 +241,45 @@ export class ScenarioPlayScene extends Phaser.Scene {
     public override update(): void {
         if (this.mapCameraController !== null) {
             this.mapCameraController.update();
+            this.updateProvinceMarkerDisplaySizes();
         }
+    }
+
+    private updateProvinceMarkerDisplaySizes(): void {
+        const scale = this.mapCameraController?.getCurrentScale() ?? 1;
+        const selectedIdentifier = this.provinceIdentifiersInMapOrder[this.selectedProvinceMapIndex] ?? null;
+        if (scale === this.lastMarkerDisplayScale && selectedIdentifier === this.lastHighlightedProvinceIdentifier) {
+            return;
+        }
+        for (const [identifier, marker] of this.provinceTilesByProvinceIdentifier) {
+            const province = GameSession.getInstance().getGameState().getProvince(identifier);
+            const isCapital = province?.isCapital() ?? false;
+            const baseRadius = isCapital ? 4.3 : 3.4;
+            marker.setRadius(baseRadius / scale);
+            const isSelected = identifier === selectedIdentifier;
+            marker.setStrokeStyle(
+                (isSelected ? 2.2 : isCapital ? 1.4 : 1) / scale,
+                isSelected ? UiPalette.HIGHLIGHT_BRASS : UiPalette.PARCHMENT,
+                0.98,
+            );
+        }
+        this.lastMarkerDisplayScale = scale;
+        this.lastHighlightedProvinceIdentifier = selectedIdentifier;
+    }
+
+    private getNearestProvinceIdentifier(screenX: number, screenY: number, maximumDistancePx: number): string | null {
+        let nearestIdentifier: string | null = null;
+        let nearestDistancePx = maximumDistancePx;
+        const screenPoint = new Phaser.Math.Vector2();
+        for (const [identifier, marker] of this.provinceTilesByProvinceIdentifier) {
+            marker.getWorldTransformMatrix().transformPoint(marker.displayOriginX, marker.displayOriginY, screenPoint);
+            const distancePx = Phaser.Math.Distance.Between(screenX, screenY, screenPoint.x, screenPoint.y);
+            if (distancePx < nearestDistancePx) {
+                nearestIdentifier = identifier;
+                nearestDistancePx = distancePx;
+            }
+        }
+        return nearestIdentifier;
     }
 
     private getLayoutRects(): {
@@ -230,7 +293,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const contentLeftX = 140;
         const contentRightX = screenWidth - 344;
         const contentWidth = Math.max(360, contentRightX - contentLeftX);
-        const phaseCardHeight = 216;
+        const phaseCardHeight = this.isPhaseDetailsExpanded ? 216 : 84;
         const phaseCardTopY = screenHeight - 64 - phaseCardHeight - 4;
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
@@ -305,6 +368,32 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 .setDisplaySize(mapPixelWidth, mapPixelHeight);
             mapContainer.add(this.historicalMapImage);
         }
+        const provinceSelectionZone = this.add
+            .zone(mapLeftX + mapPixelWidth / 2, mapTopY + mapPixelHeight / 2, mapPixelWidth, mapPixelHeight)
+            .setInteractive({ useHandCursor: true });
+        provinceSelectionZone.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+            this.mapPointerDownPosition = { x: pointer.x, y: pointer.y };
+        });
+        provinceSelectionZone.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+            const pointerDownPosition = this.mapPointerDownPosition;
+            this.mapPointerDownPosition = null;
+            const devicePixelRatioValue = HighDpiConfigurator.getInstance().getDevicePixelRatio();
+            const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
+            const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
+            if (
+                pointerDownPosition === null ||
+                Phaser.Math.Distance.Between(pointer.x, pointer.y, pointerDownPosition.x, pointerDownPosition.y) /
+                    devicePixelRatioValue >
+                    7
+            ) {
+                return;
+            }
+            const nearestProvinceIdentifier = this.getNearestProvinceIdentifier(pointerCssX, pointerCssY, 24);
+            if (nearestProvinceIdentifier !== null) {
+                this.onProvinceSelected(nearestProvinceIdentifier);
+            }
+        });
+        mapContainer.add(provinceSelectionZone);
         const mapHudContainer = this.add
             .container(layoutRects.map.leftX, layoutRects.map.topY)
             .setDepth(UiPalette.UI_DEPTH_SIDEBAR);
@@ -360,8 +449,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
             18,
             48,
             mapPixelWidth < 620
-                ? "TIBET · PRC CONTROL BY 1960"
-                : "TIBET · SHOWN WITHIN PRC ADMINISTRATION BY 1960 · ACCOUNTS OF THE 1951 AGREEMENT DIFFER",
+                ? "TIBET · CHINESE ADMINISTRATION BY 1960"
+                : "TIBET · ADMINISTERED BY THE PEOPLE'S REPUBLIC OF CHINA BY 1960 · 1951 ACCOUNTS DIFFER",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -374,7 +463,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.tibetHistoryNoteText.setInteractive({ useHandCursor: true });
         this.tibetHistoryNoteText.on("pointerup", () => {
             this.showToast(
-                "By 1960 the PRC administered Tibet. PRC sources describe the 1951 agreement as peaceful liberation; Tibetan sources describe it as signed under duress.",
+                "By 1960 the People's Republic of China administered Tibet. Sources from the People's Republic of China describe the 1951 agreement as peaceful liberation; Tibetan sources describe it as signed under duress.",
             );
         });
         mapHudContainer.add(this.tibetHistoryNoteText);
@@ -382,8 +471,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
             18,
             82,
             mapPixelWidth < 620
-                ? "TAIWAN · CHINA COLOR GROUP · ROC ADMIN."
-                : "TAIWAN · CHINA COLOR GROUP FROM 1945 · GOVERNED BY ROC · CLAIMED BY PRC FROM 1949",
+                ? "TAIWAN · SAME COLOR GROUP SINCE 1945 · REPUBLIC OF CHINA GOVERNMENT"
+                : "TAIWAN · SAME COLOR GROUP FROM 1945 · GOVERNED BY REPUBLIC OF CHINA · CLAIMED BY PEOPLE'S REPUBLIC OF CHINA",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -396,7 +485,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.taiwanHistoryNoteText.setInteractive({ useHandCursor: true });
         this.taiwanHistoryNoteText.on("pointerup", () => {
             this.showToast(
-                "Taiwan uses the China color group from 1945. The Republic of China has governed Taiwan since 1945; the PRC claims Taiwan.",
+                "Taiwan uses the China color group from 1945. The Republic of China has governed Taiwan since 1945; the People's Republic of China claims Taiwan.",
             );
         });
         mapHudContainer.add(this.taiwanHistoryNoteText);
@@ -429,18 +518,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
             const markerX = mapLeftX + ((coordinate.longitude + 180) / 360) * mapPixelWidth;
             const markerY = mapTopY + ((90 - coordinate.latitude) / 180) * mapPixelHeight;
             const provinceMarker = this.add
-                .circle(markerX, markerY, province.isCapital() ? 8 : 6, ownerColor, 0.95)
-                .setStrokeStyle(province.isCapital() ? 3 : 2, UiPalette.PARCHMENT, 0.95);
-            provinceMarker.setInteractive({ useHandCursor: true });
-            provinceMarker.on("pointerover", () => {
-                provinceMarker.setStrokeStyle(3, UiPalette.HIGHLIGHT_BRASS, 1);
-            });
-            provinceMarker.on("pointerout", () => {
-                provinceMarker.setStrokeStyle(province.isCapital() ? 3 : 2, UiPalette.PARCHMENT, 0.95);
-            });
-            provinceMarker.on("pointerup", () => {
-                this.onProvinceSelected(province.getIdentifier());
-            });
+                .circle(markerX, markerY, province.isCapital() ? 4.3 : 3.4, ownerColor, 0.98)
+                .setStrokeStyle(province.isCapital() ? 1.4 : 1, UiPalette.PARCHMENT, 0.95);
             this.provinceTilesByProvinceIdentifier.set(province.getIdentifier(), provinceMarker);
             this.provinceIdentifiersInMapOrder.push(province.getIdentifier());
             mapContainer.add(provinceMarker);
@@ -461,7 +540,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             const selectedMapYear = this.getHistoricalMapYearForCurrentTurn();
             this.showToast(
                 selectedMapYear >= 1960
-                    ? "Taiwan is shown in the China color group. The Republic of China has governed Taiwan since 1945; the PRC claims Taiwan and has not administered the island."
+                    ? "Taiwan is shown in the China color group. The Republic of China has governed Taiwan since 1945; the People's Republic of China claims Taiwan and has not administered the island."
                     : selectedMapYear >= 1945
                       ? "Taiwan is shown in the China color group. The Republic of China took control of Taiwan in 1945."
                       : "This historical snapshot shows Taiwan under Japanese rule, which began in 1895.",
@@ -511,6 +590,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     : this.provinceIdentifiersInMapOrder.length - 1
                 : (this.selectedProvinceMapIndex + direction + this.provinceIdentifiersInMapOrder.length) %
                   this.provinceIdentifiersInMapOrder.length;
+        this.updateProvinceMarkerDisplaySizes();
         const identifier = this.provinceIdentifiersInMapOrder[this.selectedProvinceMapIndex];
         const marker = this.provinceTilesByProvinceIdentifier.get(identifier);
         marker?.setStrokeStyle(4, UiPalette.HIGHLIGHT_BRASS, 1);
@@ -531,7 +611,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (this.scenario !== null) {
             scenarioHeaderComponent.setScenario(this.scenario);
         }
-        new LeftSidebarComponent(this, 0, 196, screenHeight - 260, this.activeMapModeCode);
+        this.leftSidebarComponent = new LeftSidebarComponent(this, 0, 196, screenHeight - 260, this.activeMapModeCode);
+        this.leftSidebarComponent.setVisible(this.isMapModesPanelOpen);
         this.questTrackerComponent = new QuestTrackerComponent(
             this,
             layoutRects.questTracker.leftX,
@@ -542,6 +623,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 this.openMechanicByKey(mechanicKey);
             },
         );
+        this.questTrackerComponent.setVisible(this.areInformationPanelsOpen);
         this.rightSidebarComponent = new RightSidebarComponent(
             this,
             layoutRects.contextPanel.leftX,
@@ -550,6 +632,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             layoutRects.contextPanel.height,
         );
         this.rightSidebarComponent.setContentToEmptyPrompt();
+        this.rightSidebarComponent.setVisible(this.areInformationPanelsOpen);
         this.registerPointerRegion(
             new ScrollRegion(
                 layoutRects.contextPanel.leftX,
@@ -567,10 +650,47 @@ export class ScenarioPlayScene extends Phaser.Scene {
         contextPanelBlockingZone.setOrigin(0, 0);
         contextPanelBlockingZone.setInteractive();
         contextPanelBlockingZone.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
+        this.mapModesToggleButton = UiPanelFactory.createBrassButton(this, 8, 144, 128, 38, "SHOW MAP MODES", () =>
+            this.setMapModesPanelOpen(!this.isMapModesPanelOpen),
+        );
+        this.mapModesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
+        this.objectivesToggleButton = UiPanelFactory.createBrassButton(
+            this,
+            screenWidth - 166,
+            100,
+            158,
+            38,
+            "SHOW OBJECTIVES",
+            () => this.setInformationPanelsOpen(!this.areInformationPanelsOpen),
+        );
+        this.objectivesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
         this.bottomBarComponent = new BottomBarComponent(this, 0, screenHeight - 56, screenWidth, 56);
         this.bottomBarComponent.setTurnDisplay(gameSession.getCurrentTurnNumber(), gameSession.getTotalTurnCount());
         this.bottomBarComponent.setPhaseDisplay(TurnPhaseLabel.PHASE_LABELS[this.phaseIndex]);
         this.refreshQuestTracker();
+    }
+
+    private setMapModesPanelOpen(isOpen: boolean): void {
+        this.isMapModesPanelOpen = isOpen;
+        this.leftSidebarComponent?.setVisible(isOpen);
+        const buttonLabel = isOpen ? "HIDE MAP MODES" : "SHOW MAP MODES";
+        this.mapModesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
+            if (child instanceof Phaser.GameObjects.Text) {
+                child.setText(buttonLabel);
+            }
+        });
+    }
+
+    private setInformationPanelsOpen(isOpen: boolean): void {
+        this.areInformationPanelsOpen = isOpen;
+        this.questTrackerComponent?.setVisible(isOpen);
+        this.rightSidebarComponent?.setVisible(isOpen);
+        const buttonLabel = isOpen ? "HIDE OBJECTIVES" : "SHOW OBJECTIVES";
+        this.objectivesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
+            if (child instanceof Phaser.GameObjects.Text) {
+                child.setText(buttonLabel);
+            }
+        });
     }
 
     private registerPointerRegion(scrollRegion: ScrollRegion): void {
@@ -632,6 +752,45 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 20,
             ),
         );
+        if (!this.isPhaseDetailsExpanded) {
+            phasePanel.add(
+                UiPanelFactory.createBodyText(
+                    this,
+                    20,
+                    46,
+                    layoutRects.phaseCard.width - 380,
+                    TurnPhaseLabel.PHASE_GUIDANCE[this.phaseIndex],
+                    14,
+                    UiPalette.PARCHMENT_CSS,
+                ),
+            );
+            this.phaseCardContainer.add(
+                UiPanelFactory.createBrassButton(
+                    this,
+                    layoutRects.phaseCard.width - 366,
+                    20,
+                    164,
+                    44,
+                    "OPEN DETAILS",
+                    () => {
+                        this.isPhaseDetailsExpanded = true;
+                        this.renderPhaseCard();
+                    },
+                ),
+            );
+            this.phaseCardContainer.add(
+                UiPanelFactory.createBrassButton(
+                    this,
+                    layoutRects.phaseCard.width - 190,
+                    20,
+                    170,
+                    44,
+                    this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1 ? "END TURN" : "CONTINUE",
+                    () => this.advancePhase(),
+                ),
+            );
+            return;
+        }
         phasePanel.add(
             UiPanelFactory.createBodyText(
                 this,
@@ -671,6 +830,20 @@ export class ScenarioPlayScene extends Phaser.Scene {
             default:
                 break;
         }
+        this.phaseCardContainer.add(
+            UiPanelFactory.createBrassButton(
+                this,
+                layoutRects.phaseCard.width - 366,
+                layoutRects.phaseCard.height - 58,
+                164,
+                44,
+                "HIDE DETAILS",
+                () => {
+                    this.isPhaseDetailsExpanded = false;
+                    this.renderPhaseCard();
+                },
+            ),
+        );
         this.phaseCardContainer.add(
             UiPanelFactory.createBrassButton(
                 this,
@@ -999,11 +1172,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (province === null) {
             return;
         }
+        this.selectedProvinceMapIndex = this.provinceIdentifiersInMapOrder.indexOf(provinceIdentifier);
+        this.updateProvinceMarkerDisplaySizes();
         const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
         this.rightSidebarComponent.clearContextContent();
         const provincePanelComponent = new ProvincePanelComponent(this, 0, 0, 300);
         provincePanelComponent.setProvince(province, ownerNation);
         this.rightSidebarComponent.addContextContent(provincePanelComponent);
+        this.setInformationPanelsOpen(true);
     }
 
     private applyMapMode(mapModeCode: string): void {
