@@ -191,7 +191,7 @@ export class DiplomaticPlayComponent extends Phaser.GameObjects.Container {
             chipGraphics.lineStyle(2, UiPalette.FIELD_GRAY, 0.9);
             chipGraphics.strokeRect(1, 1, chipWidthPx - 2, chipHeightPx - 2);
             chipLabelTextObject.setText("Swayed");
-            chipLabelTextObject.setColor(UiPalette.FIELD_GRAY_CSS);
+            chipLabelTextObject.setColor(UiPalette.PARCHMENT_CSS);
         });
         chipContainer.add(chipGraphics);
         chipContainer.add(chipLabelTextObject);
