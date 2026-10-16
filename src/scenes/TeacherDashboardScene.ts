@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { TeacherSettings } from "../core/TeacherSettings";
+import { CED_UNIT_SEVEN_TOPICS } from "../data/CedUnitSevenCoverage";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { AssessmentManager } from "../managers/AssessmentManager";
 import { UiPalette } from "../ui/UiPalette";
@@ -78,6 +79,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
         this.contentContainer = contentContainer;
         let cursorY = 0;
         cursorY = this.buildStudentProgressSection(contentContainer, cursorY);
+        cursorY = this.buildLearningProgressSection(contentContainer, cursorY);
         cursorY = this.buildExportSection(contentContainer, cursorY);
         cursorY = this.buildContentControlsSection(contentContainer, cursorY);
         cursorY = this.buildCedResourcesSection(contentContainer, cursorY);
@@ -169,7 +171,93 @@ export class TeacherDashboardScene extends Phaser.Scene {
                 void this.handleCopyAllWorkPackets();
             }),
         );
+        contentContainer.add(
+            UiPanelFactory.createBrassButton(this, 660, cursorY, 320, 44, "DOWNLOAD TOPIC / SKILL CSV", () => {
+                this.downloadTopicSkillSummary();
+            }),
+        );
         return cursorY + 76;
+    }
+
+    private downloadTopicSkillSummary(): void {
+        const manager = AssessmentManager.getInstance();
+        const csvRows = [
+            "CED topic,topic title,learning objective,skill,scenarios,correct attempts,total attempts,accuracy percent",
+        ];
+        for (const topic of CED_UNIT_SEVEN_TOPICS) {
+            const signal = manager.getTopicPracticeSignal(topic.topicCode);
+            const values = [
+                topic.topicCode,
+                topic.topicTitle,
+                topic.learningObjectiveCode,
+                topic.suggestedSkillCode,
+                topic.scenarioNumbers.join("; "),
+                String(signal.correctAnswerCount),
+                String(signal.attemptedQuestionCount),
+                signal.getAccuracyPercentage() === null ? "" : String(signal.getAccuracyPercentage()),
+            ];
+            csvRows.push(values.map((value) => `"${value.replaceAll('"', '""')}"`).join(","));
+        }
+        const csvBlob = new Blob([`\uFEFF${csvRows.join("\n")}`], { type: "text/csv;charset=utf-8" });
+        const downloadUrl = URL.createObjectURL(csvBlob);
+        const downloadLink = document.createElement("a");
+        downloadLink.href = downloadUrl;
+        downloadLink.download = "cascade-unit-7-topic-skill-progress.csv";
+        downloadLink.click();
+        window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+        this.setFeedbackText("Topic and skill summary downloaded as CSV.");
+    }
+
+    private buildLearningProgressSection(contentContainer: Phaser.GameObjects.Container, startY: number): number {
+        contentContainer.add(UiPanelFactory.createSectionHeader(this, 40, startY, "UNIT 7 LEARNING PROGRESS", 22));
+        const manager = GameSession.getInstance().getAssessmentManager();
+        let cursorY = startY + 36;
+        const helperText = UiPanelFactory.createBodyText(
+            this,
+            40,
+            cursorY,
+            1100,
+            "Use these practice signals to choose review topics. A correct-answer rate is formative evidence, not a prediction of AP exam performance.",
+            14,
+            UiPalette.AGED_PARCHMENT_CSS,
+        );
+        contentContainer.add(helperText);
+        cursorY += helperText.displayHeight + 14;
+
+        contentContainer.add(
+            UiPanelFactory.createTypewriterText(
+                this,
+                40,
+                cursorY,
+                1100,
+                "TOPIC / LEARNING OBJECTIVE                                      SCENARIO(S)      PRACTICE SIGNAL",
+                13,
+                UiPalette.HIGHLIGHT_BRASS_CSS,
+            ),
+        );
+        cursorY += 28;
+        for (const topic of CED_UNIT_SEVEN_TOPICS) {
+            const signal = manager.getTopicPracticeSignal(topic.topicCode);
+            const accuracy = signal.getAccuracyPercentage();
+            const accuracyText =
+                accuracy === null
+                    ? "No attempts yet"
+                    : `${signal.correctAnswerCount}/${signal.attemptedQuestionCount} correct (${accuracy}%)`;
+            const scenarioText = topic.scenarioNumbers.map((number) => `S${number}`).join(", ");
+            contentContainer.add(
+                UiPanelFactory.createTypewriterText(
+                    this,
+                    40,
+                    cursorY,
+                    1100,
+                    `${topic.topicCode} ${topic.topicTitle} · LO ${topic.learningObjectiveCode} · Skill ${topic.suggestedSkillCode}     ${scenarioText}     ${accuracyText}`,
+                    14,
+                    accuracy !== null && accuracy < 60 ? UiPalette.BRIGHT_BLOOD_CSS : UiPalette.PARCHMENT_CSS,
+                ),
+            );
+            cursorY += 27;
+        }
+        return cursorY + 28;
     }
 
     private async handleCopyFullJournal(): Promise<void> {
