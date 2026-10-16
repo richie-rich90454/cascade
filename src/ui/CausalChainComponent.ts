@@ -14,7 +14,7 @@ export class CausalChainComponent extends Phaser.GameObjects.Container {
     private readonly causeIdentifierByCardContainer: Map<Phaser.GameObjects.Container, string> = new Map();
     private readonly assignedCauseIdentifiersByColumn: string[][] = [[], [], []];
     private readonly columnLeftPositions: number[] = [0, 0, 0];
-    private readonly cardHeightPx: number = 62;
+    private readonly cardHeightPx: number = 72;
 
     private columnTopY: number = 0;
     private columnHeightPx: number = 0;
@@ -138,7 +138,7 @@ export class CausalChainComponent extends Phaser.GameObjects.Container {
         cardGraphics.strokeRect(1, 1, this.cardWidthPx - 2, this.cardHeightPx - 2);
         const cardTextObject = this.scene.add.text(6, 4, cause.causeText, {
             fontFamily: FontFamilies.BODY_SERIF,
-            fontSize: "10px",
+            fontSize: "12px",
             color: UiPalette.NEAR_BLACK_LEATHER_CSS,
             wordWrap: { width: this.cardWidthPx - 12, useAdvancedWrap: true },
             lineSpacing: 2,
@@ -276,7 +276,7 @@ export class CausalChainComponent extends Phaser.GameObjects.Container {
                     const tagText = cause.isInternalFactor ? "Internal factor" : "External factor";
                     const tagTextObject = this.scene.add.text(this.cardWidthPx - 6, this.cardHeightPx - 15, tagText, {
                         fontFamily: FontFamilies.SMALL_CAPS,
-                        fontSize: "10px",
+                        fontSize: "12px",
                         color: cause.isInternalFactor ? UiPalette.BLOOD_RED_CSS : UiPalette.DEEP_BRASS_CSS,
                     });
                     tagTextObject.setOrigin(1, 0);
