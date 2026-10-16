@@ -64,7 +64,7 @@ export class DivisionDesignerComponent extends Phaser.GameObjects.Container {
                 "",
                 {
                     fontFamily: FontFamilies.DISPLAY_SERIF,
-                    fontSize: "10px",
+                    fontSize: "12px",
                     color: UiPalette.PARCHMENT_CSS,
                     align: "center",
                     wordWrap: { width: DivisionDesignerComponent.REGIMENT_SLOT_WIDTH_PX - 4, useAdvancedWrap: true },
@@ -108,7 +108,7 @@ export class DivisionDesignerComponent extends Phaser.GameObjects.Container {
                 paletteCategory.getDisplayName(),
                 {
                     fontFamily: FontFamilies.DISPLAY_SERIF,
-                    fontSize: "12px",
+                    fontSize: "14px",
                     color: UiPalette.PARCHMENT_CSS,
                 },
             );
