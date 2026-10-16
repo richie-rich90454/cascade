@@ -1,8 +1,8 @@
 :root {
-    --color-near-black-leather: #1a1410;
-    --color-dark-olive: #2b2520;
-    --color-mid-olive: #3d3a31;
-    --color-field-gray: #6e6a5c;
+    --color-near-black-leather: #171b20;
+    --color-dark-olive: #252c32;
+    --color-mid-olive: #374148;
+    --color-field-gray: #68737a;
     --color-brass-tan: #b6a472;
     --color-bright-brass: #c9a961;
     --color-highlight-brass: #e5cc8a;
@@ -13,12 +13,12 @@
     --color-aged-parchment: #d4c29a;
     --color-deep-parchment: #8b7355;
 
-    --font-gothic: "UnifrakturMaguntia", serif;
-    --font-display-serif: "Cinzel", serif;
-    --font-body-serif: "EB Garamond", serif;
-    --font-typewriter-header: "Special Elite", monospace;
-    --font-typewriter-body: "Courier Prime", monospace;
-    --font-small-caps: "Spectral SC", serif;
+    --font-gothic: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --font-display-serif: "Segoe UI", Arial, sans-serif;
+    --font-body-serif: "Segoe UI", Arial, sans-serif;
+    --font-typewriter-header: "Segoe UI", Arial, sans-serif;
+    --font-typewriter-body: Consolas, "Courier New", monospace;
+    --font-small-caps: "Segoe UI", Arial, sans-serif;
 }
 
 * {
@@ -100,4 +100,15 @@ body {
     inset: 0;
     pointer-events: none;
     background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.15) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
