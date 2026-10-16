@@ -420,7 +420,10 @@ export class DebriefScene extends Phaser.Scene {
         );
         resultPanel.add(
             UiPanelFactory.createBrassButton(this, buttonRowLeftX + 480, buttonRowTopY, 220, 48, "JOURNAL", () => {
-                this.scene.start(SceneKeys.JOURNAL);
+                this.scene.start(
+                    SceneKeys.JOURNAL,
+                    new ScenarioSelectionPayload(this.scenarioNumber, SceneKeys.DEBRIEF),
+                );
             }),
         );
         this.resultOverlayContainer.add(resultPanel);
