@@ -34,7 +34,7 @@ export class MapModeSelectorComponent extends Phaser.GameObjects.Container {
                 mapModeOption.getDisplayName(),
                 {
                     fontFamily: FontFamilies.SMALL_CAPS,
-                    fontSize: "13px",
+                    fontSize: "14px",
                     color: UiPalette.PARCHMENT_CSS,
                 },
             );
