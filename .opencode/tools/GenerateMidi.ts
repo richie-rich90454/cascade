@@ -1,8 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { SeedRandom } from "../../src/core/SeedRandom";
-
 class MidiCatalogEntry {
     public readonly assetId: string;
     public readonly category: string;
@@ -140,7 +138,6 @@ class MidiSequenceComposer {
     };
 
     public static composeSequenceForCatalogEntry(catalogEntry: MidiCatalogEntry): MidiNoteEvent[] {
-        const seedRandom = new SeedRandom(catalogEntry.seedKey);
         const isMinorMood = MidiSequenceComposer.isMinorMood(catalogEntry.moodCode);
         const scaleIntervals = isMinorMood
             ? MidiSequenceComposer.MINOR_SCALE_INTERVALS
@@ -167,79 +164,99 @@ class MidiSequenceComposer {
                 continue;
             }
 
-            const sustainedVelocity = catalogEntry.category === "ambient" ? 44 : 62;
+            const isCombatTrack = catalogEntry.category === "combat";
+            const isQuietTrack = catalogEntry.category === "ambient" || catalogEntry.category === "menu";
+            const barVelocity = isCombatTrack ? 66 : isQuietTrack ? 38 : 76;
+            const bassRootMidiNote = catalogEntry.keyRootMidiNote + chordRootOffset - 12;
+            noteEvents.push(new MidiNoteEvent(barStartTick, ticksPerBar - 40, bassRootMidiNote, barVelocity, 0));
+            const bassFifthStartTick = barStartTick + (isCombatTrack ? 960 : 1440);
             noteEvents.push(
                 new MidiNoteEvent(
-                    barStartTick,
-                    ticksPerBar - 20,
-                    catalogEntry.keyRootMidiNote + chordRootOffset - 12,
-                    sustainedVelocity,
+                    bassFifthStartTick,
+                    420,
+                    catalogEntry.keyRootMidiNote + chordFifthOffset - 12,
+                    barVelocity - 8,
                     0,
                 ),
             );
-            noteEvents.push(
-                new MidiNoteEvent(
-                    barStartTick,
-                    ticksPerBar - 20,
-                    catalogEntry.keyRootMidiNote + chordFifthOffset - 12,
-                    sustainedVelocity,
-                    1,
-                ),
-            );
 
-            const arpeggioNoteCount = catalogEntry.category === "combat" ? 8 : 4;
-            const arpeggioStepTicks = Math.floor(ticksPerBar / arpeggioNoteCount);
-            for (let arpeggioIndex = 0; arpeggioIndex < arpeggioNoteCount; arpeggioIndex++) {
-                const arpeggioDegreeOffsets = [
-                    chordRootOffset,
-                    chordThirdOffset,
-                    chordFifthOffset,
-                    chordRootOffset + 12,
-                ];
-                const arpeggioOffset = arpeggioDegreeOffsets[arpeggioIndex % arpeggioDegreeOffsets.length];
-                const jitter = seedRandom.nextBoolean(0.25) ? 1 : 0;
+            const chordSeventhOffset = MidiSequenceComposer.scaleDegreeToSemitoneOffset(
+                scaleIntervals,
+                chordDegree + 6,
+            );
+            const chordToneOffsets = [chordRootOffset, chordThirdOffset, chordFifthOffset];
+            if (catalogEntry.moodCode === "jazzy" || catalogEntry.moodCode === "reflective") {
+                chordToneOffsets.push(chordSeventhOffset);
+            }
+            const padDurationTicks = isCombatTrack ? 900 : ticksPerBar - 60;
+            for (const chordToneOffset of chordToneOffsets) {
                 noteEvents.push(
                     new MidiNoteEvent(
-                        barStartTick + arpeggioIndex * arpeggioStepTicks,
-                        arpeggioStepTicks - 10,
-                        catalogEntry.keyRootMidiNote + arpeggioOffset + jitter,
-                        catalogEntry.category === "combat" ? 88 : 58,
+                        barStartTick,
+                        padDurationTicks,
+                        catalogEntry.keyRootMidiNote + chordToneOffset + 12,
+                        barVelocity - 10,
+                        1,
+                    ),
+                );
+            }
+
+            const accompanimentPattern = isCombatTrack ? [0, 2, 1, 2, 0, 2, 1, 2] : [0, 2, 1, 2];
+            const accompanimentStepTicks = isCombatTrack ? 240 : 480;
+            for (let accompanimentIndex = 0; accompanimentIndex < accompanimentPattern.length; accompanimentIndex++) {
+                if (isQuietTrack && barIndex % 2 === 1 && accompanimentIndex > 1) {
+                    continue;
+                }
+                const chordToneOffset =
+                    chordToneOffsets[accompanimentPattern[accompanimentIndex] % chordToneOffsets.length];
+                noteEvents.push(
+                    new MidiNoteEvent(
+                        barStartTick + accompanimentIndex * accompanimentStepTicks,
+                        accompanimentStepTicks - (isCombatTrack ? 18 : 36),
+                        catalogEntry.keyRootMidiNote + chordToneOffset + 24,
+                        isCombatTrack ? 72 : isQuietTrack ? 38 : 84,
                         2,
                     ),
                 );
             }
 
-            if (catalogEntry.category === "combat") {
-                const percussionStepTicks = Math.floor(ticksPerBar / 8);
+            if (isCombatTrack) {
                 for (let percussionIndex = 0; percussionIndex < 8; percussionIndex++) {
-                    const isAccentBeat = percussionIndex % 4 === 0;
+                    const isDownbeat = percussionIndex % 4 === 0;
+                    const isBackbeat = percussionIndex % 4 === 2;
                     noteEvents.push(
                         new MidiNoteEvent(
-                            barStartTick + percussionIndex * percussionStepTicks,
-                            30,
-                            isAccentBeat ? 49 : 42,
-                            isAccentBeat ? 110 : 70,
+                            barStartTick + percussionIndex * 240,
+                            70,
+                            isDownbeat ? 36 : isBackbeat ? 38 : 42,
+                            isDownbeat ? 90 : isBackbeat ? 76 : 42,
                             9,
                         ),
                     );
                 }
             }
 
-            if (catalogEntry.category === "jingle" || catalogEntry.category === "menu") {
-                const melodyDegreeSequence = [
-                    chordRootOffset,
-                    chordThirdOffset,
-                    chordFifthOffset,
-                    chordRootOffset + 12,
-                ];
-                const melodyStepTicks = Math.floor(ticksPerBar / melodyDegreeSequence.length);
+            if (
+                !isCombatTrack &&
+                (catalogEntry.category === "jingle" || catalogEntry.category === "menu" || barIndex % 2 === 0)
+            ) {
+                const motifVariation = Math.floor(barIndex / 4) % 2;
+                const melodyDegreeSequence =
+                    motifVariation === 0
+                        ? [chordFifthOffset + 12, chordThirdOffset + 12, chordRootOffset + 12, chordThirdOffset + 12]
+                        : [chordRootOffset + 12, chordFifthOffset + 12, chordThirdOffset + 12, chordFifthOffset + 12];
+                const melodyDurations = [420, 360, 660, 360];
                 for (let melodyIndex = 0; melodyIndex < melodyDegreeSequence.length; melodyIndex++) {
+                    if (catalogEntry.category === "ambient" && melodyIndex === 3) {
+                        continue;
+                    }
+                    const melodyStartOffset = melodyIndex * 480;
                     noteEvents.push(
                         new MidiNoteEvent(
-                            barStartTick + melodyIndex * melodyStepTicks,
-                            melodyStepTicks - 20,
-                            catalogEntry.keyRootMidiNote + melodyDegreeSequence[melodyIndex] + 12,
-                            catalogEntry.category === "jingle" ? 104 : 64,
+                            barStartTick + melodyStartOffset,
+                            melodyDurations[melodyIndex],
+                            catalogEntry.keyRootMidiNote + melodyDegreeSequence[melodyIndex],
+                            catalogEntry.category === "jingle" ? 88 : catalogEntry.category === "menu" ? 56 : 42,
                             3,
                         ),
                     );
@@ -275,9 +292,15 @@ class StandardMidiFileWriter {
             microsecondsPerQuarter & 0xff,
         );
 
+        const instrumentProgramsByChannel = new Map<number, number>([
+            [0, 42],
+            [1, 48],
+            [2, 4],
+            [3, 73],
+        ]);
         for (const usedChannelIndex of [0, 1, 2, 3, 9]) {
             StandardMidiFileWriter.appendVariableLengthQuantity(trackEventBytes, 0);
-            trackEventBytes.push(0xc0 | usedChannelIndex, 0);
+            trackEventBytes.push(0xc0 | usedChannelIndex, instrumentProgramsByChannel.get(usedChannelIndex) ?? 0);
         }
 
         const orderedEvents: Array<{ tick: number; statusByte: number; dataBytes: number[] }> = [];
