@@ -18,22 +18,27 @@ export class CampaignSelectorScene extends Phaser.Scene {
     private static readonly CARD_INNER_MARGIN_PX = 14;
     private static readonly HEADER_HEIGHT_PX = 76;
 
-    private campaignContentCamera: Phaser.Cameras.Scene2D.Camera | null;
+    private campaignContentContainer: Phaser.GameObjects.Container | null;
     private campaignContentHeightPx: number;
 
     public constructor() {
         super({ key: SceneKeys.CAMPAIGN_SELECTOR });
-        this.campaignContentCamera = null;
+        this.campaignContentContainer = null;
         this.campaignContentHeightPx = 0;
     }
 
     public create(): void {
-        this.add.rectangle(0, 0, this.scale.width, this.scale.height, UiPalette.NEAR_BLACK_LEATHER).setOrigin(0, 0);
-        this.add.rectangle(0, 0, this.scale.width, 76, UiPalette.DARK_OLIVE).setOrigin(0, 0).setAlpha(0.85);
+        const background = this.add
+            .rectangle(0, 0, this.scale.width, this.scale.height, UiPalette.NEAR_BLACK_LEATHER)
+            .setOrigin(0, 0);
+        const headerBackground = this.add
+            .rectangle(0, 0, this.scale.width, 76, UiPalette.DARK_OLIVE)
+            .setOrigin(0, 0)
+            .setAlpha(0.85);
         const screenCenterX = this.scale.width / 2;
         const headerText = UiPanelFactory.createSectionHeader(this, screenCenterX, 20, "SELECT A CAMPAIGN", 34);
         headerText.setOrigin(0.5, 0);
-        UiPanelFactory.createBrassButton(this, 24, 18, 200, 44, "BACK TO MENU", () => {
+        const backButton = UiPanelFactory.createBrassButton(this, 24, 18, 200, 44, "BACK TO MENU", () => {
             this.scene.start(SceneKeys.MAIN_MENU);
         });
         const scrollHint = this.add.text(
@@ -47,31 +52,20 @@ export class CampaignSelectorScene extends Phaser.Scene {
             },
         );
         scrollHint.setOrigin(1, 0.5);
-        const fixedHeaderObjects = [...this.children.list];
+        background.setDepth(-100);
+        headerBackground.setDepth(1001);
+        headerText.setDepth(1002);
+        backButton.setDepth(1002);
+        scrollHint.setDepth(1002);
         GameSession.getInstance().getAudioManager().playMusicTrack("menu_campaign");
-        const firstContentChildIndex = this.children.list.length;
+        const contentContainer = this.add.container(0, 0);
+        contentContainer.setDepth(UiPalette.UI_DEPTH_BASE + 1);
+        this.campaignContentContainer = contentContainer;
         let layoutCursorY = 96;
         for (const campaignDefinition of ScenarioRegistry.getInstance().getCampaigns()) {
-            layoutCursorY = this.renderCampaignSection(campaignDefinition, layoutCursorY);
+            layoutCursorY = this.renderCampaignSection(contentContainer, campaignDefinition, layoutCursorY);
         }
         this.campaignContentHeightPx = layoutCursorY;
-        const campaignContentObjects = this.children.list.slice(firstContentChildIndex);
-        const mainCamera = this.cameras.main;
-        mainCamera.ignore(campaignContentObjects);
-        this.campaignContentCamera = this.cameras.add(
-            0,
-            CampaignSelectorScene.HEADER_HEIGHT_PX,
-            this.scale.width,
-            Math.max(1, this.scale.height - CampaignSelectorScene.HEADER_HEIGHT_PX),
-        );
-        this.campaignContentCamera.ignore(fixedHeaderObjects);
-        this.campaignContentCamera.setBounds(
-            0,
-            CampaignSelectorScene.HEADER_HEIGHT_PX,
-            this.scale.width,
-            Math.max(this.scale.height, this.campaignContentHeightPx),
-        );
-        this.campaignContentCamera.scrollY = CampaignSelectorScene.HEADER_HEIGHT_PX;
         this.input.on("wheel", this.handleCampaignWheel, this);
         this.input.keyboard?.on("keydown-PAGEDOWN", this.scrollCampaignDown, this);
         this.input.keyboard?.on("keydown-PAGEUP", this.scrollCampaignUp, this);
@@ -83,12 +77,15 @@ export class CampaignSelectorScene extends Phaser.Scene {
             this.input.keyboard?.off("keydown-PAGEUP", this.scrollCampaignUp, this);
             this.input.keyboard?.off("keydown-HOME", this.scrollCampaignToTop, this);
             this.input.keyboard?.off("keydown-END", this.scrollCampaignToBottom, this);
-            this.campaignContentCamera?.destroy();
-            this.campaignContentCamera = null;
+            this.campaignContentContainer = null;
         });
     }
 
-    private renderCampaignSection(campaignDefinition: CampaignDefinition, startY: number): number {
+    private renderCampaignSection(
+        contentContainer: Phaser.GameObjects.Container,
+        campaignDefinition: CampaignDefinition,
+        startY: number,
+    ): number {
         const screenCenterX = this.scale.width / 2;
         const sectionHeaderPanel = UiPanelFactory.createPanelContainer(
             this,
@@ -100,6 +97,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             UiPalette.UI_DEPTH_BASE + 1,
         );
         sectionHeaderPanel.setAlpha(0.7);
+        contentContainer.add(sectionHeaderPanel);
         const campaignHeaderText = UiPanelFactory.createSectionHeader(
             this,
             screenCenterX,
@@ -108,6 +106,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             24,
         );
         campaignHeaderText.setOrigin(0.5, 0);
+        contentContainer.add(campaignHeaderText);
         const campaignSubtitleText = UiPanelFactory.createBodyText(
             this,
             screenCenterX,
@@ -118,6 +117,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             UiPalette.PARCHMENT_CSS,
         );
         campaignSubtitleText.setOrigin(0.5, 0);
+        contentContainer.add(campaignSubtitleText);
         const cardsPerRow = this.getCardsPerRow();
         let cardTopY = startY + 72;
         const scenarioNumbers = campaignDefinition.scenarioNumbers;
@@ -130,7 +130,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             for (const scenarioNumber of rowScenarioNumbers) {
                 const scenario = ScenarioRegistry.getInstance().getScenarioByNumber(scenarioNumber);
                 if (scenario !== null) {
-                    this.createScenarioCard(scenario, cardLeftX, cardTopY);
+                    this.createScenarioCard(contentContainer, scenario, cardLeftX, cardTopY);
                 }
                 cardLeftX += CampaignSelectorScene.CARD_WIDTH_PX + CampaignSelectorScene.CARD_HORIZONTAL_GAP_PX;
             }
@@ -139,7 +139,12 @@ export class CampaignSelectorScene extends Phaser.Scene {
         return cardTopY + 16;
     }
 
-    private createScenarioCard(scenario: Scenario, cardLeftX: number, cardTopY: number): void {
+    private createScenarioCard(
+        contentContainer: Phaser.GameObjects.Container,
+        scenario: Scenario,
+        cardLeftX: number,
+        cardTopY: number,
+    ): void {
         const panelContainer = UiPanelFactory.createPanelContainer(
             this,
             cardLeftX,
@@ -148,6 +153,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             CampaignSelectorScene.CARD_HEIGHT_PX,
             PanelVariant.LEATHER,
         );
+        contentContainer.add(panelContainer);
         const hoverTintRectangle = this.add.rectangle(
             0,
             0,
@@ -210,8 +216,8 @@ export class CampaignSelectorScene extends Phaser.Scene {
                 CampaignSelectorScene.CARD_INNER_MARGIN_PX,
                 footerLineY,
                 cardInnerWidthPx,
-                "LOCKED · COMPLETE THE PREVIOUS SCENARIO TO UNLOCK",
-                13,
+                "LOCKED · PREVIOUS SCENARIO REQUIRED",
+                11,
                 UiPalette.FIELD_GRAY_CSS,
             );
             panelContainer.add(unlockRequirementText);
@@ -228,8 +234,9 @@ export class CampaignSelectorScene extends Phaser.Scene {
         );
         panelContainer.add(topicLineText);
         const cardInteractionZone = this.add
-            .zone(cardLeftX, cardTopY, CampaignSelectorScene.CARD_WIDTH_PX, CampaignSelectorScene.CARD_HEIGHT_PX)
+            .zone(0, 0, CampaignSelectorScene.CARD_WIDTH_PX, CampaignSelectorScene.CARD_HEIGHT_PX)
             .setOrigin(0, 0);
+        panelContainer.add(cardInteractionZone);
         cardInteractionZone.setInteractive({ useHandCursor: true });
         cardInteractionZone.on("pointerover", () => {
             hoverTintRectangle.setVisible(true);
@@ -264,19 +271,12 @@ export class CampaignSelectorScene extends Phaser.Scene {
     }
 
     private scrollCampaignBy(distancePx: number): void {
-        const camera = this.campaignContentCamera;
-        if (camera === null) {
+        const contentContainer = this.campaignContentContainer;
+        if (contentContainer === null) {
             return;
         }
-        const maximumScrollY = Math.max(
-            CampaignSelectorScene.HEADER_HEIGHT_PX,
-            this.campaignContentHeightPx - camera.height,
-        );
-        camera.scrollY = Phaser.Math.Clamp(
-            camera.scrollY + distancePx,
-            CampaignSelectorScene.HEADER_HEIGHT_PX,
-            maximumScrollY,
-        );
+        const maximumScrollY = Math.max(0, this.campaignContentHeightPx - this.scale.height);
+        contentContainer.y = -Phaser.Math.Clamp(-contentContainer.y + distancePx, 0, maximumScrollY);
     }
 
     private scrollCampaignDown(): void {
