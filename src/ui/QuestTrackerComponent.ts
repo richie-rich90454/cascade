@@ -43,6 +43,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         width: number,
         height: number,
         onMechanicRequested: (mechanicKey: string) => void,
+        onHideRequested: () => void,
     ) {
         super(scene, x, y);
         this.panelWidth = width;
@@ -58,8 +59,9 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         blockingZone.setInteractive();
         this.add(blockingZone);
 
-        const headerText = UiPanelFactory.createSectionHeader(scene, 16, 12, "SCENARIO PROGRESS", 17);
+        const headerText = UiPanelFactory.createSectionHeader(scene, 16, 12, "OBJECTIVES", 17);
         this.add(headerText);
+        this.add(UiPanelFactory.createBrassButton(scene, width - 156, 8, 140, 34, "HIDE OBJECTIVES", onHideRequested));
         this.progressLabelText = scene.add.text(width - 16, 60, "", {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: "12px",
