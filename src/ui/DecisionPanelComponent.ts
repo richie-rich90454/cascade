@@ -31,7 +31,18 @@ export class DecisionPanelComponent extends Phaser.GameObjects.Container {
         const contextSection = new ContextSectionComponent(this.scene, 16, 52, this.panelWidth - 32);
         contextSection.setContextText(decision.contextParagraph);
         this.add(contextSection);
-        const skillsTopY = 52 + contextSection.displayHeight + 18;
+        const historyBaselineLabel = this.scene.add.text(
+            16,
+            52 + contextSection.displayHeight + 2,
+            "DOCUMENTED CONTEXT · YOUR CHOICE CREATES AN ALTERNATE-HISTORY PATH",
+            {
+                fontFamily: FontFamilies.SMALL_CAPS,
+                fontSize: "11px",
+                color: UiPalette.HIGHLIGHT_BRASS_CSS,
+            },
+        );
+        this.add(historyBaselineLabel);
+        const skillsTopY = 52 + contextSection.displayHeight + 28;
         const skillColumnWidth = (this.panelWidth - 40) / 2;
         const skillRowHeight = 104;
         this.addSkillSection("Causation", decision.causationSummary, 16, skillsTopY, skillColumnWidth);
@@ -119,7 +130,9 @@ export class DecisionPanelComponent extends Phaser.GameObjects.Container {
             gameState.addToResource(resultingResourceType, option.resultingResourceDelta);
         }
         if (this.confirmationTextObject !== null) {
-            this.confirmationTextObject.setText(option.consequenceText);
+            this.confirmationTextObject.setText(
+                `ALTERNATE-HISTORY CONSEQUENCE\n${option.consequenceText}\nCompare this outcome with the documented record and sources.`,
+            );
         }
         EventBus.getInstance().publish(
             GameEventTypes.DECISION_MADE,
