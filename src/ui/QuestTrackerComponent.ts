@@ -380,7 +380,19 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         this.contentContainer.removeAll(true);
         const listWidth = this.panelWidth - 32;
         const listHeightPx = this.panelHeight - 84 - 120;
-        let rowOffsetY = 0;
+        const guidanceText = this.scene.add.text(
+            16,
+            0,
+            "Select a task to open it, or start the next objective for a guided route.",
+            {
+                fontFamily: FontFamilies.BODY_SERIF,
+                fontSize: "14px",
+                color: UiPalette.AGED_PARCHMENT_CSS,
+                wordWrap: { width: listWidth, useAdvancedWrap: true },
+            },
+        );
+        this.contentContainer.add(guidanceText);
+        let rowOffsetY = guidanceText.displayHeight + 12;
         let hasOverflowedList = false;
         this.contentContainer.add(
             this.createObjectiveSectionLabel("VICTORY CHECKLIST", rowOffsetY, UiPalette.HIGHLIGHT_BRASS_CSS),
@@ -492,7 +504,8 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         const nextIncompleteObjective =
             this.requiredObjectives.find((requiredObjective) => !requiredObjective.isCompleted) ??
             this.requiredObjectives[this.requiredObjectives.length - 1];
-        const buttonLabelText = nextIncompleteObjective === undefined ? "COMPLETE DEBRIEF" : "NEXT OBJECTIVE";
+        const buttonLabelText =
+            nextIncompleteObjective === undefined ? "OPEN FINAL DEBRIEF" : "START NEXT OBJECTIVE";
         const nextStepButton = UiPanelFactory.createBrassButton(
             this.scene,
             0,
