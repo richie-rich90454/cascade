@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
+import { CED_UNIT_SEVEN_TOPICS } from "../data/CedUnitSevenCoverage";
 import type { PrimarySource } from "../data/PrimarySource";
 import { PrimarySources } from "../data/PrimarySources";
 import { ProgressCheckBank } from "../data/ProgressCheckBank";
@@ -212,13 +213,21 @@ export class ProgressCheckScene extends Phaser.Scene {
         const question = ProgressCheckBank.getAllMultipleChoiceQuestions()[this.currentMultipleChoiceQuestionIndex];
         this.hasCurrentQuestionBeenAnswered = true;
         this.selectedAnswerIndexesByQuestionIdentifier.set(question.questionIdentifier, selectedAnswerIndex);
+        const wasAnswerCorrect = question.isAnswerCorrect(selectedAnswerIndex);
+        GameSession.getInstance()
+            .getAssessmentManager()
+            .recordTopicPracticeAttempt(question.cedTopicCode, wasAnswerCorrect);
         let cursorY = this.currentQuestionBottomY + 4;
+        const topic = CED_UNIT_SEVEN_TOPICS.find((topicRecord) => topicRecord.topicCode === question.cedTopicCode);
+        const correctionText = wasAnswerCorrect
+            ? ""
+            : `\nCorrect choice: ${question.answerOptions[question.correctAnswerIndex]}\nNext step: revisit ${topic?.topicTitle ?? question.cedTopicCode} in Scenario ${topic?.scenarioNumbers[0] ?? "linked"}, then explain which source evidence supports this interpretation.`;
         const rationaleTextObject = UiPanelFactory.createBodyText(
             this,
             20,
             20,
             850,
-            question.rationaleText,
+            `${wasAnswerCorrect ? "Correct." : "Not quite."} ${question.rationaleText}${correctionText}`,
             15,
             UiPalette.NEAR_BLACK_LEATHER_CSS,
         );
@@ -275,6 +284,17 @@ export class ProgressCheckScene extends Phaser.Scene {
         );
         contentContainer.add(scoreTextObject);
         cursorY += scoreTextObject.displayHeight + 30;
+        const practiceNote = UiPanelFactory.createBodyText(
+            this,
+            40,
+            cursorY,
+            this.getProgressCheckContentWidth(),
+            "Use the topic breakdown in the teacher dashboard to decide what to review next. This practice score is not an AP exam prediction.",
+            15,
+            UiPalette.AGED_PARCHMENT_CSS,
+        );
+        contentContainer.add(practiceNote);
+        cursorY += practiceNote.displayHeight + 18;
         contentContainer.add(
             UiPanelFactory.createBrassButton(this, 40, cursorY, 220, 44, "RETRY", () => {
                 this.restartMultipleChoiceMode();
