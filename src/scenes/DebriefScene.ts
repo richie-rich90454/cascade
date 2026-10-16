@@ -223,7 +223,7 @@ export class DebriefScene extends Phaser.Scene {
         const responseText = responseField.getEnteredText().trim();
         if (responseText.length === 0) {
             scoreLabel.setText("Write a response before saving.");
-            scoreLabel.setColor(UiPalette.BRIGHT_BLOOD_CSS);
+            scoreLabel.setColor(UiPalette.ALERT_TEXT_ON_DARK_CSS);
             return;
         }
         const gameSession = GameSession.getInstance();
@@ -259,7 +259,7 @@ export class DebriefScene extends Phaser.Scene {
         const responseText = this.contextualizationField.getEnteredText().trim();
         if (responseText.length === 0) {
             scoreLabel.setText("Write a paragraph before saving.");
-            scoreLabel.setColor(UiPalette.BRIGHT_BLOOD_CSS);
+            scoreLabel.setColor(UiPalette.ALERT_TEXT_ON_DARK_CSS);
             return;
         }
         const gameSession = GameSession.getInstance();
@@ -339,6 +339,7 @@ export class DebriefScene extends Phaser.Scene {
                     ? `SCENARIO ${scenarioEvaluationResult.scenarioNumber} COMPLETE - VICTORY`
                     : `SCENARIO ${scenarioEvaluationResult.scenarioNumber} INCOMPLETE`,
                 24,
+                resultBodyColorCss,
             ),
         );
         resultPanel.add(
@@ -356,7 +357,11 @@ export class DebriefScene extends Phaser.Scene {
         const criteriaContainer = this.add.container(resultPanelLeftX, resultPanelTopY);
         criteriaContainer.setDepth(UiPalette.UI_DEPTH_POPUP + 1);
         const criteriaCursor = new FlowCursor(32, 104);
-        criteriaCursor.placeText(criteriaContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "MET", 16), 8);
+        criteriaCursor.placeText(
+            criteriaContainer,
+            UiPanelFactory.createSectionHeader(this, 0, 0, "MET", 16, resultBodyColorCss),
+            8,
+        );
         for (const satisfiedCriterion of scenarioEvaluationResult.satisfiedCriteria) {
             criteriaCursor.placeText(
                 criteriaContainer,
@@ -376,7 +381,7 @@ export class DebriefScene extends Phaser.Scene {
             criteriaCursor.addGap(10);
             criteriaCursor.placeText(
                 criteriaContainer,
-                UiPanelFactory.createSectionHeader(this, 0, 0, "NOT YET MET", 16),
+                UiPanelFactory.createSectionHeader(this, 0, 0, "NOT YET MET", 16, resultBodyColorCss),
                 8,
             );
             for (const unmetCriterion of scenarioEvaluationResult.unmetCriteria) {
