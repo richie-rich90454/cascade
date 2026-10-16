@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { prefersReducedMotion } from "../core/AccessibilityPreferences";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
@@ -144,6 +145,10 @@ export class TelegramPopupComponent extends Phaser.GameObjects.Container {
         this.contentContainer = contentContainer;
         this.add(contentContainer);
         this.setVisible(true);
+        if (prefersReducedMotion()) {
+            contentContainer.setPosition(contentCenterX, contentCenterY);
+            return;
+        }
         this.slideTween = scene.tweens.add({
             targets: contentContainer,
             x: contentCenterX,
