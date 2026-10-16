@@ -13,9 +13,11 @@ import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
 export class ScenarioSelectionPayload {
     public readonly scenarioNumber: number;
+    public readonly returnSceneKey: string | null;
 
-    constructor(scenarioNumber: number) {
+    constructor(scenarioNumber: number, returnSceneKey: string | null = null) {
         this.scenarioNumber = scenarioNumber;
+        this.returnSceneKey = returnSceneKey;
     }
 }
 
