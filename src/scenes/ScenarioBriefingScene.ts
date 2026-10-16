@@ -21,14 +21,16 @@ export class ScenarioSelectionPayload {
 
 export class ScenarioBriefingScene extends Phaser.Scene {
     private scenarioNumber: number;
-    private briefingContentCamera: Phaser.Cameras.Scene2D.Camera | null;
+    private briefingContentContainer: Phaser.GameObjects.Container | null;
     private briefingContentHeightPx: number;
+    private briefingContentScrollPx: number;
 
     constructor() {
         super({ key: SceneKeys.SCENARIO_BRIEFING });
         this.scenarioNumber = 1;
-        this.briefingContentCamera = null;
+        this.briefingContentContainer = null;
         this.briefingContentHeightPx = 0;
+        this.briefingContentScrollPx = 0;
     }
 
     public init(data: unknown): void {
@@ -73,6 +75,7 @@ export class ScenarioBriefingScene extends Phaser.Scene {
 
         const contentContainer = this.add.container(panelLeftX, panelTopY);
         contentContainer.setDepth(UiPalette.UI_DEPTH_PANEL + 1);
+        this.briefingContentContainer = contentContainer;
         const contentWrapWidth = panelWidth - 64;
         const flowCursor = new FlowCursor(32, 24);
 
@@ -201,7 +204,16 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         const totalContentHeightPx = flowCursor.getCurrentY() + 32;
         this.briefingContentHeightPx = totalContentHeightPx;
 
-        UiPanelFactory.createBrassButton(
+        const footerCover = this.add.rectangle(
+            0,
+            panelTopY + panelHeight - 4,
+            screenWidth,
+            Math.max(1, screenHeight - panelTopY - panelHeight + 4),
+            UiPalette.NEAR_BLACK_LEATHER,
+        );
+        footerCover.setOrigin(0, 0);
+        footerCover.setDepth(UiPalette.UI_DEPTH_PANEL + 5);
+        const beginScenarioButton = UiPanelFactory.createBrassButton(
             this,
             screenWidth / 2 - 170,
             screenHeight - 84,
@@ -216,6 +228,7 @@ export class ScenarioBriefingScene extends Phaser.Scene {
                 this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(scenario.getScenarioNumber()));
             },
         );
+        beginScenarioButton.setDepth(UiPalette.UI_DEPTH_PANEL + 6);
 
         const scrollHint = this.add.text(
             panelLeftX + panelWidth - 28,
@@ -230,18 +243,8 @@ export class ScenarioBriefingScene extends Phaser.Scene {
             },
         );
         scrollHint.setOrigin(1, 1);
+        scrollHint.setDepth(UiPalette.UI_DEPTH_PANEL + 6);
 
-        const fixedObjects = this.children.list.filter((gameObject) => gameObject !== contentContainer);
-        this.cameras.main.ignore(contentContainer);
-        this.briefingContentCamera = this.cameras.add(panelLeftX, panelTopY, panelWidth, panelHeight);
-        this.briefingContentCamera.ignore(fixedObjects);
-        this.briefingContentCamera.setBounds(
-            0,
-            0,
-            screenWidth,
-            panelTopY + Math.max(panelHeight, totalContentHeightPx),
-        );
-        this.briefingContentCamera.scrollY = panelTopY;
         this.input.on("wheel", this.handleBriefingWheel, this);
         this.input.keyboard?.on("keydown-PAGEDOWN", this.scrollBriefingDown, this);
         this.input.keyboard?.on("keydown-PAGEUP", this.scrollBriefingUp, this);
@@ -249,32 +252,29 @@ export class ScenarioBriefingScene extends Phaser.Scene {
             this.input.off("wheel", this.handleBriefingWheel, this);
             this.input.keyboard?.off("keydown-PAGEDOWN", this.scrollBriefingDown, this);
             this.input.keyboard?.off("keydown-PAGEUP", this.scrollBriefingUp, this);
-            this.briefingContentCamera?.destroy();
-            this.briefingContentCamera = null;
+            this.briefingContentContainer = null;
+            this.briefingContentScrollPx = 0;
         });
     }
 
     private handleBriefingWheel(
-        pointer: Phaser.Input.Pointer,
+        _pointer: Phaser.Input.Pointer,
         _currentlyOver: Phaser.GameObjects.GameObject[],
         _deltaX: number,
         deltaY: number,
     ): void {
-        const panelTopY = 96;
-        const panelBottomY = this.scale.height - 104;
-        if (pointer.y >= panelTopY && pointer.y <= panelBottomY) {
-            this.scrollBriefingBy(deltaY);
-        }
+        this.scrollBriefingBy(deltaY);
     }
 
     private scrollBriefingBy(distancePx: number): void {
-        const camera = this.briefingContentCamera;
-        if (camera === null) {
+        const contentContainer = this.briefingContentContainer;
+        if (contentContainer === null) {
             return;
         }
         const minimumScrollY = 96;
-        const maximumScrollY = Math.max(minimumScrollY, minimumScrollY + this.briefingContentHeightPx - camera.height);
-        camera.scrollY = Phaser.Math.Clamp(camera.scrollY + distancePx, minimumScrollY, maximumScrollY);
+        const maximumScrollY = Math.max(0, this.briefingContentHeightPx - (this.scale.height - 200));
+        this.briefingContentScrollPx = Phaser.Math.Clamp(this.briefingContentScrollPx + distancePx, 0, maximumScrollY);
+        contentContainer.y = minimumScrollY - this.briefingContentScrollPx;
     }
 
     private scrollBriefingDown(): void {
