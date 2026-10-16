@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { prefersReducedMotion } from "../core/AccessibilityPreferences";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 
@@ -79,6 +80,14 @@ export class TitleCardComponent extends Phaser.GameObjects.Container {
         this.scene.tweens.killTweensOf(this);
         this.setAlpha(0);
         this.setVisible(true);
+        if (prefersReducedMotion()) {
+            this.setAlpha(1);
+            this.dismissTimerEvent = this.scene.time.delayedCall(TitleCardComponent.AUTO_DISMISS_DELAY_MS, () => {
+                this.dismissTimerEvent = null;
+                this.setVisible(false);
+            });
+            return;
+        }
         this.scene.tweens.add({
             targets: this,
             alpha: 1,
