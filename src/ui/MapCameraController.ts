@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { prefersReducedMotion } from "../core/AccessibilityPreferences";
 import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { UiPointerRouting } from "./UiPointerRouting";
 
@@ -12,6 +13,10 @@ export class MapCameraController {
     private readonly scene: Phaser.Scene;
     private readonly mapPixelWidth: number;
     private readonly mapPixelHeight: number;
+    private viewportLeftX: number;
+    private viewportTopY: number;
+    private viewportWidth: number;
+    private viewportHeight: number;
 
     private targetContainer: Phaser.GameObjects.Container | null;
     private mapScaleValue: number;
@@ -33,6 +38,10 @@ export class MapCameraController {
         this.scene = scene;
         this.mapPixelWidth = mapPixelWidth;
         this.mapPixelHeight = mapPixelHeight;
+        this.viewportLeftX = 0;
+        this.viewportTopY = 64;
+        this.viewportWidth = scene.scale.width;
+        this.viewportHeight = scene.scale.height - 64;
         this.targetContainer = null;
         this.mapScaleValue = 1;
         this.hasPanningEnabled = false;
@@ -44,6 +53,13 @@ export class MapCameraController {
 
     public setTargetContainer(targetContainer: Phaser.GameObjects.Container): void {
         this.targetContainer = targetContainer;
+    }
+
+    public setViewport(leftX: number, topY: number, width: number, height: number): void {
+        this.viewportLeftX = leftX;
+        this.viewportTopY = topY;
+        this.viewportWidth = width;
+        this.viewportHeight = height;
     }
 
     public enablePanning(): void {
@@ -131,8 +147,8 @@ export class MapCameraController {
             MapCameraController.RELATIVE_MINIMUM_SCALE,
             MapCameraController.RELATIVE_MAXIMUM_SCALE,
         );
-        const viewportCenterX = this.scene.scale.width / 2;
-        const viewportCenterY = this.scene.scale.height / 2;
+        const viewportCenterX = this.viewportLeftX + this.viewportWidth / 2;
+        const viewportCenterY = this.viewportTopY + this.viewportHeight / 2;
         const tweenState = {
             scaleValue: this.mapScaleValue,
             containerX: this.targetContainer.x,
@@ -143,7 +159,7 @@ export class MapCameraController {
             scaleValue: targetScaleValue,
             containerX: viewportCenterX - mapPointX * targetScaleValue,
             containerY: viewportCenterY - mapPointY * targetScaleValue,
-            duration: MapCameraController.FOCUS_TWEEN_DURATION_MS,
+            duration: prefersReducedMotion() ? 0 : MapCameraController.FOCUS_TWEEN_DURATION_MS,
             ease: "Sine.easeInOut",
             onUpdate: () => {
                 if (this.targetContainer === null) {
@@ -163,19 +179,27 @@ export class MapCameraController {
         if (this.targetContainer === null) {
             return;
         }
-        const viewportWidth = this.scene.scale.width;
-        const viewportHeight = this.scene.scale.height;
+        const viewportWidth = this.viewportWidth;
+        const viewportHeight = this.viewportHeight;
         const scaledMapWidth = this.mapPixelWidth * this.mapScaleValue;
         const scaledMapHeight = this.mapPixelHeight * this.mapScaleValue;
         if (scaledMapWidth <= viewportWidth) {
-            this.targetContainer.x = (viewportWidth - scaledMapWidth) / 2;
+            this.targetContainer.x = this.viewportLeftX + (viewportWidth - scaledMapWidth) / 2;
         } else {
-            this.targetContainer.x = Phaser.Math.Clamp(this.targetContainer.x, viewportWidth - scaledMapWidth, 0);
+            this.targetContainer.x = Phaser.Math.Clamp(
+                this.targetContainer.x,
+                this.viewportLeftX + viewportWidth - scaledMapWidth,
+                this.viewportLeftX,
+            );
         }
         if (scaledMapHeight <= viewportHeight) {
-            this.targetContainer.y = Math.max(64, (viewportHeight - scaledMapHeight) / 2);
+            this.targetContainer.y = this.viewportTopY + (viewportHeight - scaledMapHeight) / 2;
         } else {
-            this.targetContainer.y = Phaser.Math.Clamp(this.targetContainer.y, viewportHeight - scaledMapHeight, 64);
+            this.targetContainer.y = Phaser.Math.Clamp(
+                this.targetContainer.y,
+                this.viewportTopY + viewportHeight - scaledMapHeight,
+                this.viewportTopY,
+            );
         }
     }
 
