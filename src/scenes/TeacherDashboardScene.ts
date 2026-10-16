@@ -230,7 +230,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
                 40,
                 cursorY,
                 1100,
-                "TOPIC / LEARNING OBJECTIVE                                      SCENARIO(S)      PRACTICE SIGNAL",
+                "COURSE TOPIC AND SCENARIO                                      PRACTICE SIGNAL",
                 13,
                 UiPalette.HIGHLIGHT_BRASS_CSS,
             ),
@@ -243,14 +243,14 @@ export class TeacherDashboardScene extends Phaser.Scene {
                 accuracy === null
                     ? "No attempts yet"
                     : `${signal.correctAnswerCount}/${signal.attemptedQuestionCount} correct (${accuracy}%)`;
-            const scenarioText = topic.scenarioNumbers.map((number) => `S${number}`).join(", ");
+            const scenarioText = topic.scenarioNumbers.map((number) => `Scenario ${number}`).join(", ");
             contentContainer.add(
                 UiPanelFactory.createTypewriterText(
                     this,
                     40,
                     cursorY,
                     1100,
-                    `${topic.topicCode} ${topic.topicTitle} · LO ${topic.learningObjectiveCode} · Skill ${topic.suggestedSkillCode}     ${scenarioText}     ${accuracyText}`,
+                    `Course topic ${topic.topicCode}: ${topic.topicTitle} · ${scenarioText} · ${accuracyText}`,
                     14,
                     accuracy !== null && accuracy < 60 ? UiPalette.ALERT_TEXT_ON_DARK_CSS : UiPalette.PARCHMENT_CSS,
                 ),
