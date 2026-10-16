@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { prefersReducedMotion } from "../core/AccessibilityPreferences";
 import {
     CausalChainPayload,
     DecisionMadePayload,
@@ -15,9 +16,11 @@ import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { PrimarySources } from "../data/PrimarySources";
 import { Rubrics } from "../data/Rubrics";
+import { getWorldProvinceCoordinate } from "../data/WorldProvinceGeography";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import type { DecisionRecord, Scenario } from "../domain/scenarios/Scenario";
 import { WorldStatePresent } from "../domain/WorldStatePresent";
+import { AssetManager } from "../managers/AssetManager";
 import { FontFamilies } from "../managers/FontManager";
 import { ResourceType } from "../types/ResourceType";
 import { BottomBarComponent } from "../ui/BottomBarComponent";
@@ -62,9 +65,9 @@ class TurnPhaseLabel {
     public static readonly PHASE_GUIDANCE: string[] = [
         "Read the situation. The map shows the world you are about to change.",
         "Analyze at least one primary source. A source read correctly becomes reliable intelligence.",
-        "Choose one option for the open decision. Each choice is a piece of the history.",
+        "Choose an option to create a scenario path, then compare its consequences with the documented history.",
         "See what your decision set in motion, then continue.",
-        "A dispatch has arrived from the capitals of the world. Read the newspaper.",
+        "DOCUMENTED HISTORY: a dispatch from the capitals has arrived. Compare it with the path your decisions are creating.",
         "Answer the short-answer questions in the debrief to record what you learned.",
         "Write a short reflection in the journal, then end the turn.",
     ];
@@ -91,7 +94,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private scenario: Scenario | null;
     private phaseIndex: number;
     private lastConsequenceText: string;
-    private provinceTilesByProvinceIdentifier: Map<string, Phaser.GameObjects.Rectangle>;
+    private provinceTilesByProvinceIdentifier: Map<string, Phaser.GameObjects.Arc>;
+    private historicalMapImage: Phaser.GameObjects.Image | null;
+    private historicalMapYearLabel: Phaser.GameObjects.Text | null;
+    private provinceIdentifiersInMapOrder: string[];
+    private selectedProvinceMapIndex: number;
     private phaseCardContainer: Phaser.GameObjects.Container | null;
     private mechanicOverlayContainer: Phaser.GameObjects.Container | null;
     private toastContainer: Phaser.GameObjects.Container | null;
@@ -110,6 +117,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private boundDecisionHandler: (payload: unknown) => void;
     private boundMechanicHandler: (payload: unknown) => void;
     private boundSourceHandler: (payload: unknown) => void;
+    private readonly boundMapLeftKeyHandler: () => void;
+    private readonly boundMapRightKeyHandler: () => void;
+    private readonly boundMapEnterKeyHandler: () => void;
 
     constructor() {
         super({ key: SceneKeys.SCENARIO_PLAY });
@@ -117,7 +127,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.scenario = null;
         this.phaseIndex = 0;
         this.lastConsequenceText = "";
-        this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Rectangle>();
+        this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Arc>();
+        this.historicalMapImage = null;
+        this.historicalMapYearLabel = null;
+        this.provinceIdentifiersInMapOrder = [];
+        this.selectedProvinceMapIndex = -1;
         this.phaseCardContainer = null;
         this.mechanicOverlayContainer = null;
         this.toastContainer = null;
@@ -136,6 +150,17 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.boundDecisionHandler = () => undefined;
         this.boundMechanicHandler = () => undefined;
         this.boundSourceHandler = () => undefined;
+        this.boundMapLeftKeyHandler = () => this.moveProvinceMapSelection(-1);
+        this.boundMapRightKeyHandler = () => this.moveProvinceMapSelection(1);
+        this.boundMapEnterKeyHandler = () => {
+            if (this.mechanicOverlayContainer !== null) {
+                return;
+            }
+            const identifier = this.provinceIdentifiersInMapOrder[this.selectedProvinceMapIndex];
+            if (identifier !== undefined) {
+                this.onProvinceSelected(identifier);
+            }
+        };
     }
 
     public init(data: unknown): void {
@@ -149,7 +174,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
                   : sessionScenario.getScenarioNumber();
         this.phaseIndex = 0;
         this.lastConsequenceText = "";
-        this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Rectangle>();
+        this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Arc>();
+        this.historicalMapImage = null;
+        this.historicalMapYearLabel = null;
+        this.provinceIdentifiersInMapOrder = [];
+        this.selectedProvinceMapIndex = -1;
         this.mechanicOverlayContainer = null;
         this.phaseCardContainer = null;
         this.phaseCardPointerRegion = null;
@@ -195,12 +224,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const contentRightX = screenWidth - 344;
         const contentWidth = Math.max(360, contentRightX - contentLeftX);
         const phaseCardHeight = 216;
+        const phaseCardTopY = screenHeight - 64 - phaseCardHeight - 4;
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
         const rightColumnHeight = rightColumnBottomY - rightColumnTopY;
         const questTrackerHeight = Math.max(220, Math.round(rightColumnHeight * 0.58));
         return {
-            map: new LayoutRect(contentLeftX, 96, contentWidth, screenHeight - 96 - phaseCardHeight - 16),
+            map: new LayoutRect(contentLeftX, 96, contentWidth, Math.max(280, phaseCardTopY - 96 - 8)),
             questTracker: new LayoutRect(screenWidth - 340, rightColumnTopY, 324, questTrackerHeight),
             contextPanel: new LayoutRect(
                 screenWidth - 340,
@@ -253,53 +283,128 @@ export class ScenarioPlayScene extends Phaser.Scene {
             );
             return;
         }
-        const tilePixelSize = 56;
-        const mapContainer = this.add.container(0, 64);
+        const mapPixelWidth = Math.min(layoutRects.map.width, layoutRects.map.height * 2);
+        const mapPixelHeight = mapPixelWidth / 2;
+        const mapLeftX = 0;
+        const mapTopY = 0;
+        const mapContainer = this.add.container(layoutRects.map.leftX, layoutRects.map.topY);
+        const historicalMapYear = this.getHistoricalMapYearForCurrentTurn();
+        const historicalMapTextureKey = AssetManager.getInstance().getTextureKey(`world_map_${historicalMapYear}`);
+        if (this.textures.exists(historicalMapTextureKey)) {
+            this.historicalMapImage = this.add
+                .image(mapLeftX, mapTopY, historicalMapTextureKey)
+                .setOrigin(0, 0)
+                .setDisplaySize(mapPixelWidth, mapPixelHeight);
+            mapContainer.add(this.historicalMapImage);
+        }
+        this.historicalMapYearLabel = this.add
+            .text(
+                mapPixelWidth - 18,
+                mapTopY + 16,
+                `DOCUMENTED BORDERS · ${historicalMapYear} · PRECISION VARIES BY REGION`,
+                {
+                    fontFamily: FontFamilies.TYPEWRITER_BODY,
+                    fontSize: "12px",
+                    color: UiPalette.PARCHMENT_CSS,
+                    backgroundColor: "#1a1410cc",
+                    padding: { x: 8, y: 5 },
+                },
+            )
+            .setOrigin(1, 0);
+        mapContainer.add(this.historicalMapYearLabel);
+        const mapInstructions = this.add.text(
+            mapLeftX + 18,
+            mapTopY + mapPixelHeight - 34,
+            "LOCATION MARKERS · LARGER RING = CAPITAL · SELECT TO READ OWNER · ARROW KEYS + ENTER WORK",
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: "11px",
+                color: UiPalette.PARCHMENT_CSS,
+                backgroundColor: "#1a1410cc",
+                padding: { x: 8, y: 5 },
+            },
+        );
+        mapContainer.add(mapInstructions);
         for (const province of allProvinces) {
             const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
             const ownerColor =
                 ownerNation === null
                     ? UiPalette.FIELD_GRAY
                     : UiPalette.getFactionColorForNationCode(ownerNation.getNationCode());
-            const tileRectangle = this.add.rectangle(
-                province.getColumnIndex() * tilePixelSize,
-                province.getRowIndex() * tilePixelSize,
-                tilePixelSize - 2,
-                tilePixelSize - 2,
-                ownerColor,
-            );
-            tileRectangle.setOrigin(0, 0);
-            tileRectangle.setInteractive({ useHandCursor: true });
-            tileRectangle.on("pointerover", () => {
-                tileRectangle.setStrokeStyle(2, UiPalette.HIGHLIGHT_BRASS);
+            const coordinate = getWorldProvinceCoordinate(province.getIdentifier());
+            if (coordinate === null) {
+                continue;
+            }
+            const markerX = mapLeftX + ((coordinate.longitude + 180) / 360) * mapPixelWidth;
+            const markerY = mapTopY + ((90 - coordinate.latitude) / 180) * mapPixelHeight;
+            const provinceMarker = this.add
+                .circle(markerX, markerY, province.isCapital() ? 8 : 6, ownerColor, 0.95)
+                .setStrokeStyle(province.isCapital() ? 3 : 2, UiPalette.PARCHMENT, 0.95);
+            provinceMarker.setInteractive({ useHandCursor: true });
+            provinceMarker.on("pointerover", () => {
+                provinceMarker.setStrokeStyle(3, UiPalette.HIGHLIGHT_BRASS, 1);
             });
-            tileRectangle.on("pointerout", () => {
-                tileRectangle.setStrokeStyle(0);
+            provinceMarker.on("pointerout", () => {
+                provinceMarker.setStrokeStyle(province.isCapital() ? 3 : 2, UiPalette.PARCHMENT, 0.95);
             });
-            tileRectangle.on("pointerup", () => {
+            provinceMarker.on("pointerup", () => {
                 this.onProvinceSelected(province.getIdentifier());
             });
-            this.provinceTilesByProvinceIdentifier.set(province.getIdentifier(), tileRectangle);
-            mapContainer.add(tileRectangle);
-            if (province.isCapital()) {
-                const capitalMarker = this.add.text(
-                    province.getColumnIndex() * tilePixelSize + tilePixelSize / 2,
-                    province.getRowIndex() * tilePixelSize + tilePixelSize / 2,
-                    "*",
-                    { fontFamily: FontFamilies.DISPLAY_SERIF, fontSize: "20px", color: UiPalette.HIGHLIGHT_BRASS_CSS },
-                );
-                capitalMarker.setOrigin(0.5, 0.5);
-                mapContainer.add(capitalMarker);
-            }
+            this.provinceTilesByProvinceIdentifier.set(province.getIdentifier(), provinceMarker);
+            this.provinceIdentifiersInMapOrder.push(province.getIdentifier());
+            mapContainer.add(provinceMarker);
         }
-        const mapPixelWidth = 24 * tilePixelSize;
-        const mapPixelHeight = 15 * tilePixelSize;
         this.mapCameraController = new MapCameraController(this, mapPixelWidth, mapPixelHeight);
+        this.mapCameraController.setViewport(
+            layoutRects.map.leftX,
+            layoutRects.map.topY,
+            layoutRects.map.width,
+            layoutRects.map.height,
+        );
         this.mapCameraController.setTargetContainer(mapContainer);
         this.mapCameraController.enablePanning();
         this.mapCameraController.enableZoom();
         this.mapCameraController.update();
         this.applyMapMode(this.activeMapModeCode);
+        this.input.keyboard?.on("keydown-LEFT", this.boundMapLeftKeyHandler);
+        this.input.keyboard?.on("keydown-RIGHT", this.boundMapRightKeyHandler);
+        this.input.keyboard?.on("keydown-ENTER", this.boundMapEnterKeyHandler);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.input.keyboard?.off("keydown-LEFT", this.boundMapLeftKeyHandler);
+            this.input.keyboard?.off("keydown-RIGHT", this.boundMapRightKeyHandler);
+            this.input.keyboard?.off("keydown-ENTER", this.boundMapEnterKeyHandler);
+        });
+    }
+
+    private moveProvinceMapSelection(direction: number): void {
+        if (this.provinceIdentifiersInMapOrder.length === 0 || this.mechanicOverlayContainer !== null) {
+            return;
+        }
+        const previousIdentifier = this.provinceIdentifiersInMapOrder[this.selectedProvinceMapIndex];
+        const previousMarker =
+            previousIdentifier === undefined
+                ? undefined
+                : this.provinceTilesByProvinceIdentifier.get(previousIdentifier);
+        const previousProvince =
+            previousIdentifier === undefined
+                ? null
+                : GameSession.getInstance().getGameState().getProvince(previousIdentifier);
+        previousMarker?.setStrokeStyle(previousProvince?.isCapital() ? 3 : 2, UiPalette.PARCHMENT, 0.95);
+        this.selectedProvinceMapIndex =
+            this.selectedProvinceMapIndex === -1
+                ? direction > 0
+                    ? 0
+                    : this.provinceIdentifiersInMapOrder.length - 1
+                : (this.selectedProvinceMapIndex + direction + this.provinceIdentifiersInMapOrder.length) %
+                  this.provinceIdentifiersInMapOrder.length;
+        const identifier = this.provinceIdentifiersInMapOrder[this.selectedProvinceMapIndex];
+        const marker = this.provinceTilesByProvinceIdentifier.get(identifier);
+        marker?.setStrokeStyle(4, UiPalette.HIGHLIGHT_BRASS, 1);
+        if (marker !== undefined) {
+            this.showToast(
+                `Map focus: ${GameSession.getInstance().getGameState().getProvince(identifier)?.getDisplayName() ?? identifier}. Press Enter for details.`,
+            );
+        }
     }
 
     private renderPersistentChrome(): void {
@@ -702,6 +807,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             }
             gameSession.advanceScenarioTurn();
             this.phaseIndex = 0;
+            this.refreshHistoricalMapSnapshot();
             this.showToast("A new turn begins. The world has moved.");
         } else {
             this.phaseIndex += 1;
@@ -715,6 +821,34 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
         this.renderPhaseCard();
         this.refreshQuestTracker();
+    }
+
+    private getHistoricalMapYearForCurrentTurn(): number {
+        const mapYears = [1900, 1914, 1920, 1930, 1938, 1945, 1960, 1994, 2000, 2010];
+        const gameSession = GameSession.getInstance();
+        const scenario = this.scenario;
+        if (scenario === null) {
+            return mapYears[0];
+        }
+        const turnProgress =
+            Math.max(0, gameSession.getCurrentTurnNumber() - 1) / Math.max(1, scenario.getTurnCount() - 1);
+        const scenarioYear = scenario.getStartYear() + (scenario.getEndYear() - scenario.getStartYear()) * turnProgress;
+        return mapYears.reduce((closestYear, candidateYear) =>
+            Math.abs(candidateYear - scenarioYear) < Math.abs(closestYear - scenarioYear) ? candidateYear : closestYear,
+        );
+    }
+
+    private refreshHistoricalMapSnapshot(): void {
+        if (this.historicalMapImage === null || this.historicalMapYearLabel === null) {
+            return;
+        }
+        const year = this.getHistoricalMapYearForCurrentTurn();
+        const textureKey = AssetManager.getInstance().getTextureKey(`world_map_${year}`);
+        if (this.textures.exists(textureKey)) {
+            this.historicalMapImage.setTexture(textureKey);
+        }
+        this.historicalMapYearLabel.setText(`DOCUMENTED BORDERS · ${year} · PRECISION VARIES BY REGION`);
+        this.applyMapMode(this.activeMapModeCode);
     }
 
     private buildResourceSummaryLine(): string {
@@ -756,29 +890,29 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const gameState = GameSession.getInstance().getGameState();
         const playerNation = gameState.getNation(gameState.getPlayerNationIdentifier());
         for (const province of gameState.getAllProvinces()) {
-            const tileRectangle = this.provinceTilesByProvinceIdentifier.get(province.getIdentifier());
-            if (tileRectangle === undefined) {
+            const provinceMarker = this.provinceTilesByProvinceIdentifier.get(province.getIdentifier());
+            if (provinceMarker === undefined) {
                 continue;
             }
             const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
             switch (mapModeCode) {
                 case "terrain":
-                    tileRectangle.setFillStyle(this.getTerrainColorForCode(province.getTerrainTypeCode()));
+                    provinceMarker.setFillStyle(this.getTerrainColorForCode(province.getTerrainTypeCode()));
                     break;
                 case "resource":
-                    tileRectangle.setFillStyle(
+                    provinceMarker.setFillStyle(
                         province.getVictoryPointValue() >= 20 ? UiPalette.BRIGHT_BRASS : UiPalette.DEEP_BRASS,
                     );
                     break;
                 case "diplomatic": {
                     if (playerNation === null || ownerNation === null || ownerNation === playerNation) {
-                        tileRectangle.setFillStyle(UiPalette.MID_OLIVE);
+                        provinceMarker.setFillStyle(UiPalette.MID_OLIVE);
                         break;
                     }
                     const relationScore = GameSession.getInstance()
                         .getDiplomacyManager()
                         .getRelationScore(playerNation, ownerNation);
-                    tileRectangle.setFillStyle(
+                    provinceMarker.setFillStyle(
                         relationScore >= 50
                             ? 0x2d4a8b
                             : relationScore >= 0
@@ -790,7 +924,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 case "war": {
                     const isAtWar =
                         playerNation !== null && ownerNation !== null && playerNation.isAtWarWith(ownerNation);
-                    tileRectangle.setFillStyle(isAtWar ? UiPalette.BRIGHT_BLOOD : UiPalette.FIELD_GRAY);
+                    provinceMarker.setFillStyle(isAtWar ? UiPalette.BRIGHT_BLOOD : UiPalette.FIELD_GRAY);
                     break;
                 }
                 case "casualties": {
@@ -800,11 +934,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
                             : GameSession.getInstance()
                                   .getMilitaryManager()
                                   .getTotalCasualtiesForNation(ownerNation.getIdentifier());
-                    tileRectangle.setFillStyle(casualtiesForNation > 100 ? UiPalette.BLOOD_RED : UiPalette.MID_OLIVE);
+                    provinceMarker.setFillStyle(casualtiesForNation > 100 ? UiPalette.BLOOD_RED : UiPalette.MID_OLIVE);
                     break;
                 }
                 case "supply":
-                    tileRectangle.setFillStyle(
+                    provinceMarker.setFillStyle(
                         province.getSupplyValue() >= 10 ? UiPalette.DEEP_BRASS : UiPalette.DARK_OLIVE,
                     );
                     break;
@@ -812,7 +946,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     const intelligenceValue = GameSession.getInstance()
                         .getIntelligenceManager()
                         .getCorrectlyAnalyzedSourceCount();
-                    tileRectangle.setFillStyle(
+                    provinceMarker.setFillStyle(
                         province.isCapital() && intelligenceValue >= 2
                             ? UiPalette.BRIGHT_BRASS
                             : UiPalette.NEAR_BLACK_LEATHER,
@@ -826,7 +960,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                         ownerNation === null
                             ? UiPalette.FIELD_GRAY
                             : UiPalette.getFactionColorForNationCode(ownerNation.getNationCode());
-                    tileRectangle.setFillStyle(ownerColor);
+                    provinceMarker.setFillStyle(ownerColor);
                     break;
                 }
             }
@@ -1412,16 +1546,25 @@ export class ScenarioPlayScene extends Phaser.Scene {
         });
         toastText.setOrigin(0.5, 0.5);
         this.toastContainer.add(toastText);
-        this.toastContainer.setAlpha(0);
-        this.tweens.add({
-            targets: this.toastContainer,
-            alpha: 1,
-            y: 72,
-            duration: 220,
-            ease: "Sine.easeOut",
-        });
+        if (prefersReducedMotion()) {
+            this.toastContainer.setAlpha(1);
+        } else {
+            this.toastContainer.setAlpha(0);
+            this.tweens.add({
+                targets: this.toastContainer,
+                alpha: 1,
+                y: 72,
+                duration: 220,
+                ease: "Sine.easeOut",
+            });
+        }
         this.time.delayedCall(2400, () => {
             if (this.toastContainer !== null) {
+                if (prefersReducedMotion()) {
+                    this.toastContainer.destroy(true);
+                    this.toastContainer = null;
+                    return;
+                }
                 this.tweens.add({
                     targets: this.toastContainer,
                     alpha: 0,
