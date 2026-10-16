@@ -61,7 +61,7 @@ export class UiPanelFactory {
             buttonGraphics.clear();
             buttonGraphics.fillStyle(fillColor, 1);
             buttonGraphics.fillRect(0, 0, pixelWidth, pixelHeight);
-            const isHovered = fillColor === UiPalette.FIELD_GRAY;
+            const isHovered = fillColor === UiPalette.BUTTON_HOVER;
             buttonGraphics.lineStyle(
                 isHovered ? 2 : 1,
                 isHovered ? UiPalette.HIGHLIGHT_BRASS : UiPalette.FIELD_GRAY,
@@ -80,7 +80,7 @@ export class UiPanelFactory {
         const buttonZone = scene.add.zone(0, 0, pixelWidth, pixelHeight).setOrigin(0, 0);
         buttonZone.setInteractive({ useHandCursor: true });
         buttonZone.on("pointerover", () => {
-            redrawButton(UiPalette.FIELD_GRAY);
+            redrawButton(UiPalette.BUTTON_HOVER);
         });
         buttonZone.on("pointerout", () => {
             redrawButton(UiPalette.MID_OLIVE);
@@ -89,7 +89,7 @@ export class UiPanelFactory {
             redrawButton(UiPalette.NEAR_BLACK_LEATHER);
         });
         buttonZone.on("pointerup", () => {
-            redrawButton(UiPalette.FIELD_GRAY);
+            redrawButton(UiPalette.BUTTON_HOVER);
             onButtonClicked();
         });
         buttonContainer.add(buttonGraphics);
@@ -104,11 +104,12 @@ export class UiPanelFactory {
         y: number,
         headerText: string,
         fontSizePx: number = 20,
+        textColorCss: string = UiPalette.HIGHLIGHT_BRASS_CSS,
     ): Phaser.GameObjects.Text {
         return scene.add.text(x, y, headerText, {
             fontFamily: FontFamilies.DISPLAY_SERIF,
             fontSize: `${fontSizePx}px`,
-            color: UiPalette.HIGHLIGHT_BRASS_CSS,
+            color: textColorCss,
         });
     }
 
@@ -165,7 +166,7 @@ export class UiPanelFactory {
         badgeGraphics.strokeRect(0.5, 0.5, estimatedWidthPx - 1, 23);
         const badgeLabel = scene.add.text(estimatedWidthPx / 2, 12, badgeLabelText, {
             fontFamily: FontFamilies.SMALL_CAPS,
-            fontSize: "13px",
+            fontSize: "14px",
             color: textColorCss,
         });
         badgeLabel.setOrigin(0.5, 0.5);
