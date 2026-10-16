@@ -124,8 +124,8 @@ export class ContinuityChangeChartComponent extends Phaser.GameObjects.Container
         const chipGraphics = this.scene.add.graphics();
         const chipTextObject = this.scene.add.text(85, 15, "", {
             fontFamily: FontFamilies.SMALL_CAPS,
-            fontSize: "12px",
-            color: UiPalette.FIELD_GRAY_CSS,
+            fontSize: "14px",
+            color: UiPalette.NEAR_BLACK_LEATHER_CSS,
         });
         chipTextObject.setOrigin(0.5, 0.5);
         const chipContainer = this.scene.add.container(chipX, chipY);
@@ -135,7 +135,7 @@ export class ContinuityChangeChartComponent extends Phaser.GameObjects.Container
         this.add(chipContainer);
         const markerLabelTextObject = this.scene.add.text(chipX + 4, chipY + 32, markerLabel, {
             fontFamily: FontFamilies.BODY_SERIF,
-            fontSize: "10px",
+            fontSize: "13px",
             color: UiPalette.AGED_PARCHMENT_CSS,
             wordWrap: { width: 170, useAdvancedWrap: true },
         });
@@ -168,7 +168,7 @@ export class ContinuityChangeChartComponent extends Phaser.GameObjects.Container
         chipGraphics.clear();
         if (chosenClassification === "") {
             chipGraphics.fillStyle(UiPalette.PARCHMENT, 1);
-            chipTextObject.setColor(UiPalette.FIELD_GRAY_CSS);
+            chipTextObject.setColor(UiPalette.NEAR_BLACK_LEATHER_CSS);
             chipTextObject.setText("Unclassified");
         } else {
             chipGraphics.fillStyle(UiPalette.BRASS_TAN, 1);
