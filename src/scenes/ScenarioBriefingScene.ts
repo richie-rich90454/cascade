@@ -7,7 +7,7 @@ import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { FontFamilies } from "../managers/FontManager";
 import { ResourceType } from "../types/ResourceType";
 import { TitleCardComponent } from "../ui/TitleCardComponent";
-import { FlowCursor, FlowLayout } from "../ui/UiFlowLayout";
+import { FlowCursor } from "../ui/UiFlowLayout";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
@@ -21,10 +21,14 @@ export class ScenarioSelectionPayload {
 
 export class ScenarioBriefingScene extends Phaser.Scene {
     private scenarioNumber: number;
+    private briefingContentCamera: Phaser.Cameras.Scene2D.Camera | null;
+    private briefingContentHeightPx: number;
 
     constructor() {
         super({ key: SceneKeys.SCENARIO_BRIEFING });
         this.scenarioNumber = 1;
+        this.briefingContentCamera = null;
+        this.briefingContentHeightPx = 0;
     }
 
     public init(data: unknown): void {
@@ -74,30 +78,41 @@ export class ScenarioBriefingScene extends Phaser.Scene {
 
         flowCursor.placeText(contentContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "BRIEFING", 24), 12);
 
-        const badgeRowContainer = this.add.container(0, 0);
-        badgeRowContainer.setSize(contentWrapWidth, 28);
-        const badgeEntries: Array<{ labelText: string; backgroundColorHex: number }> = [
-            { labelText: `FOCUS ${scenario.getThematicFocus().getCode()}`, backgroundColorHex: UiPalette.DEEP_BRASS },
-            { labelText: `SKILL ${scenario.getSuggestedSkill().getCode()}`, backgroundColorHex: UiPalette.MID_OLIVE },
-            {
-                labelText: `TOPIC ${scenario.getLearningObjective().getCedTopicCode()}`,
-                backgroundColorHex: UiPalette.MID_OLIVE,
-            },
-            { labelText: `LO ${scenario.getLearningObjective().getCode()}`, backgroundColorHex: UiPalette.BLOOD_RED },
-        ];
-        let badgeOffsetX = 0;
-        for (const badgeEntry of badgeEntries) {
-            const badgeChip = UiPanelFactory.createBadgeChip(
+        flowCursor.placeText(contentContainer, UiPanelFactory.createSectionHeader(this, 0, 0, "KEY CONCEPT", 22), 12);
+        const contextParagraph = [
+            `Thematic focus: ${scenario.getThematicFocus().getDisplayName()}.`,
+            `Learning objective: ${scenario.getLearningObjective().getText()}`,
+        ].join("\n\n");
+        flowCursor.placeText(
+            contentContainer,
+            UiPanelFactory.createBodyText(this, 0, 0, contentWrapWidth, contextParagraph, 19, UiPalette.PARCHMENT_CSS),
+            18,
+        );
+
+        flowCursor.placeText(
+            contentContainer,
+            UiPanelFactory.createSectionHeader(this, 0, 0, "SKILL PRACTICE", 22),
+            12,
+        );
+        flowCursor.placeText(
+            contentContainer,
+            UiPanelFactory.createBodyText(
                 this,
-                badgeOffsetX,
-                2,
-                badgeEntry.labelText,
-                badgeEntry.backgroundColorHex,
-            );
-            badgeRowContainer.add(badgeChip);
-            badgeOffsetX += Math.max(56, badgeEntry.labelText.length * 10 + 20) + 8;
-        }
-        flowCursor.placeContainer(contentContainer, badgeRowContainer, 18);
+                0,
+                0,
+                contentWrapWidth,
+                scenario.getSuggestedSkill().getDescription(),
+                19,
+                UiPalette.PARCHMENT_CSS,
+            ),
+            18,
+        );
+
+        flowCursor.placeText(
+            contentContainer,
+            UiPanelFactory.createSectionHeader(this, 0, 0, "HISTORICAL BRIEFING", 22),
+            12,
+        );
 
         for (const briefingParagraph of scenario.getBriefingParagraphs()) {
             flowCursor.placeText(
@@ -108,7 +123,7 @@ export class ScenarioBriefingScene extends Phaser.Scene {
                     0,
                     contentWrapWidth,
                     briefingParagraph,
-                    18,
+                    19,
                     UiPalette.PARCHMENT_CSS,
                 ),
                 16,
@@ -141,10 +156,10 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         flowCursor.placeGraphics(contentContainer, objectivesDivider, 22);
 
         const metadataLineText = [
-            `Topic ${scenario.getLearningObjective().getCedTopicCode()} | Learning Objective ${scenario.getLearningObjective().getCode()} | Thematic Focus ${scenario.getThematicFocus().getCode()} | Skill ${scenario.getSuggestedSkill().getCode()}`,
-            `Reasoning process: ${scenario.getReasoningProcess().getDisplayName()}`,
-            `Perspectives: ${scenario.getPerspectiveLabels().join(", ")}`,
-            `Duration: about ${scenario.getDurationInMinutes()} minutes across ${scenario.getTurnCount()} turns`,
+            `World History course topic ${scenario.getLearningObjective().getCedTopicCode()}`,
+            `Historical reasoning: ${scenario.getReasoningProcess().getDisplayName()}`,
+            `Perspectives represented: ${scenario.getPerspectiveLabels().join(", ")}`,
+            `Estimated time: about ${scenario.getDurationInMinutes()} minutes across ${scenario.getTurnCount()} turns`,
             `Resources: ${scenario
                 .getScenarioResourceCodes()
                 .map(
@@ -155,7 +170,7 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         ].join("\n");
         flowCursor.placeText(
             contentContainer,
-            UiPanelFactory.createTypewriterText(this, 0, 0, contentWrapWidth, metadataLineText, 15),
+            UiPanelFactory.createBodyText(this, 0, 0, contentWrapWidth, metadataLineText, 17, UiPalette.PARCHMENT_CSS),
             18,
         );
 
@@ -183,8 +198,8 @@ export class ScenarioBriefingScene extends Phaser.Scene {
             flowCursor.placeContainer(contentContainer, advisoryContainer, 16);
         }
 
-        const totalContentHeightPx = flowCursor.getCurrentY() + 24;
-        FlowLayout.fitContentIntoViewport(contentContainer, totalContentHeightPx, panelHeight - 24);
+        const totalContentHeightPx = flowCursor.getCurrentY() + 32;
+        this.briefingContentHeightPx = totalContentHeightPx;
 
         UiPanelFactory.createBrassButton(
             this,
@@ -201,5 +216,72 @@ export class ScenarioBriefingScene extends Phaser.Scene {
                 this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(scenario.getScenarioNumber()));
             },
         );
+
+        const scrollHint = this.add.text(
+            panelLeftX + panelWidth - 28,
+            panelTopY + panelHeight - 14,
+            "SCROLL TO READ · MOUSE WHEEL OR PAGE UP AND PAGE DOWN",
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: "13px",
+                color: UiPalette.PARCHMENT_CSS,
+                backgroundColor: UiPalette.NEAR_BLACK_LEATHER_CSS,
+                padding: { x: 7, y: 4 },
+            },
+        );
+        scrollHint.setOrigin(1, 1);
+
+        const fixedObjects = this.children.list.filter((gameObject) => gameObject !== contentContainer);
+        this.cameras.main.ignore(contentContainer);
+        this.briefingContentCamera = this.cameras.add(panelLeftX, panelTopY, panelWidth, panelHeight);
+        this.briefingContentCamera.ignore(fixedObjects);
+        this.briefingContentCamera.setBounds(
+            0,
+            0,
+            screenWidth,
+            panelTopY + Math.max(panelHeight, totalContentHeightPx),
+        );
+        this.briefingContentCamera.scrollY = panelTopY;
+        this.input.on("wheel", this.handleBriefingWheel, this);
+        this.input.keyboard?.on("keydown-PAGEDOWN", this.scrollBriefingDown, this);
+        this.input.keyboard?.on("keydown-PAGEUP", this.scrollBriefingUp, this);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.input.off("wheel", this.handleBriefingWheel, this);
+            this.input.keyboard?.off("keydown-PAGEDOWN", this.scrollBriefingDown, this);
+            this.input.keyboard?.off("keydown-PAGEUP", this.scrollBriefingUp, this);
+            this.briefingContentCamera?.destroy();
+            this.briefingContentCamera = null;
+        });
+    }
+
+    private handleBriefingWheel(
+        pointer: Phaser.Input.Pointer,
+        _currentlyOver: Phaser.GameObjects.GameObject[],
+        _deltaX: number,
+        deltaY: number,
+    ): void {
+        const panelTopY = 96;
+        const panelBottomY = this.scale.height - 104;
+        if (pointer.y >= panelTopY && pointer.y <= panelBottomY) {
+            this.scrollBriefingBy(deltaY);
+        }
+    }
+
+    private scrollBriefingBy(distancePx: number): void {
+        const camera = this.briefingContentCamera;
+        if (camera === null) {
+            return;
+        }
+        const minimumScrollY = 96;
+        const maximumScrollY = Math.max(minimumScrollY, minimumScrollY + this.briefingContentHeightPx - camera.height);
+        camera.scrollY = Phaser.Math.Clamp(camera.scrollY + distancePx, minimumScrollY, maximumScrollY);
+    }
+
+    private scrollBriefingDown(): void {
+        this.scrollBriefingBy(this.scale.height * 0.72);
+    }
+
+    private scrollBriefingUp(): void {
+        this.scrollBriefingBy(-this.scale.height * 0.72);
     }
 }
