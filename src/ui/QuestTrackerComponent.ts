@@ -491,10 +491,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         const nextIncompleteObjective =
             this.requiredObjectives.find((requiredObjective) => !requiredObjective.isCompleted) ??
             this.requiredObjectives[this.requiredObjectives.length - 1];
-        const buttonLabelText =
-            nextIncompleteObjective === undefined
-                ? "COMPLETE DEBRIEF"
-                : `NEXT: ${this.buildShortButtonLabel(nextIncompleteObjective.objectiveTitle)}`;
+        const buttonLabelText = nextIncompleteObjective === undefined ? "COMPLETE DEBRIEF" : "NEXT OBJECTIVE";
         const nextStepButton = UiPanelFactory.createBrassButton(
             this.scene,
             0,
@@ -509,13 +506,5 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
             },
         );
         this.nextStepButtonHolder.add(nextStepButton);
-    }
-
-    private buildShortButtonLabel(objectiveTitle: string): string {
-        const maximumLabelLength = 20;
-        if (objectiveTitle.length <= maximumLabelLength) {
-            return objectiveTitle.toUpperCase();
-        }
-        return `${objectiveTitle.substring(0, maximumLabelLength - 3).toUpperCase()}...`;
     }
 }
