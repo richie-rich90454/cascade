@@ -131,6 +131,9 @@ export class MainMenuScene extends Phaser.Scene {
             UiPalette.FIELD_GRAY_CSS,
         );
         creditText.setOrigin(0.5, 0.5);
+        creditText.setStroke(UiPalette.NEAR_BLACK_LEATHER_CSS, 3);
+        creditText.setBackgroundColor(UiPalette.NEAR_BLACK_LEATHER_CSS);
+        creditText.setPadding(10, 5, 10, 5);
         this.menuContentRoot.add(creditText);
 
         this.applyContentScaling();
@@ -241,7 +244,16 @@ export class MainMenuScene extends Phaser.Scene {
                 144,
                 PanelVariant.PARCHMENT,
             );
-            stepCard.add(UiPanelFactory.createSectionHeader(this, 16, 14, tutorialStep.stepTitle, 16));
+            stepCard.add(
+                UiPanelFactory.createSectionHeader(
+                    this,
+                    16,
+                    14,
+                    tutorialStep.stepTitle,
+                    16,
+                    UiPalette.NEAR_BLACK_LEATHER_CSS,
+                ),
+            );
             stepCard.add(
                 UiPanelFactory.createBodyText(
                     this,
