@@ -1,5 +1,8 @@
 import { GameState } from "../core/GameState";
+import { CED_UNIT_SEVEN_TOPICS, getCedUnitSevenCoverageIssues } from "../data/CedUnitSevenCoverage";
+import { ProgressCheckBank } from "../data/ProgressCheckBank";
 import { Rubrics } from "../data/Rubrics";
+import { getWorldProvinceCoordinate } from "../data/WorldProvinceGeography";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { ScenarioOne } from "../domain/scenarios/ScenarioOne";
 import { AssessmentManager } from "../managers/AssessmentManager";
@@ -34,6 +37,20 @@ function runGameLogicSelfCheck(): void {
     scenarioOne.registerInitialState(gameState);
     assertCondition(gameState.getNation("ottoman_empire") !== null, "scenario one must register the Ottoman Empire");
     assertCondition(gameState.getAllProvinces().length > 40, "scenario one must register the world province map");
+    assertCondition(getCedUnitSevenCoverageIssues().length === 0, "CED topics 7.1-7.9 must all map to scenarios");
+    assertCondition(CED_UNIT_SEVEN_TOPICS.length === 9, "the Fall 2026 Unit 7 crosswalk must contain nine topics");
+    assertCondition(
+        CED_UNIT_SEVEN_TOPICS.every((topic) =>
+            ProgressCheckBank.getAllMultipleChoiceQuestions().some(
+                (question) => question.cedTopicCode === topic.topicCode,
+            ),
+        ),
+        "each CED topic must have at least one tagged multiple-choice knowledge check",
+    );
+    assertCondition(
+        gameState.getAllProvinces().every((province) => getWorldProvinceCoordinate(province.getIdentifier()) !== null),
+        "every playable location must have a geographic map anchor",
+    );
     assertCondition(
         gameState.getResourceQuantity(ResourceType.LEGITIMACY) === 45,
         "scenario one must seed legitimacy at 45",
