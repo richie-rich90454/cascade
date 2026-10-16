@@ -124,14 +124,86 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
 
         await switchToSingleScene("campaign_selector");
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 2000));
+        await browserPage.mouse.move(720, 450);
+        await browserPage.mouse.wheel({ deltaY: 700 });
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
+        const campaignScrolledDown = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: { getScene: (key: string) => { campaignContentContainer?: { y: number } | null } };
+                    };
+                }
+            ).cascadeGame;
+            return (gameInstance?.scene.getScene("campaign_selector").campaignContentContainer?.y ?? 0) < 0;
+        });
+        if (!campaignScrolledDown) {
+            throw new Error("Mouse wheel did not scroll the campaign list.");
+        }
+        await browserPage.mouse.wheel({ deltaY: -900 });
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
         await captureScreenshot("02-campaign-selector.png");
 
-        await switchToSingleScene("scenario_briefing", { scenarioNumber: 1 });
+        await browserPage.mouse.click(270, 230);
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 1800));
+        const briefingSceneIsActive = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScenes: (isActive: boolean) => Array<{ scene: { key: string } }> } };
+                }
+            ).cascadeGame;
+            return (
+                gameInstance?.scene
+                    .getScenes(true)
+                    .some((activeScene) => activeScene.scene.key === "scenario_briefing") ?? false
+            );
+        });
+        if (!briefingSceneIsActive) {
+            throw new Error("Clicking the unlocked campaign card did not open its scenario briefing.");
+        }
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 5600));
         await captureScreenshot("03-scenario-briefing.png");
+        await browserPage.mouse.move(720, 450);
+        await browserPage.mouse.wheel({ deltaY: 700 });
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
+        const briefingScrolledDown = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: {
+                            getScene: (key: string) => {
+                                briefingContentContainer?: { y: number } | null;
+                                briefingContentHeightPx?: number;
+                            };
+                        };
+                    };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("scenario_briefing");
+            return (scene?.briefingContentContainer?.y ?? 96) < 96;
+        });
+        if (!briefingScrolledDown) {
+            throw new Error("Mouse wheel did not scroll the scenario briefing.");
+        }
+        await browserPage.mouse.wheel({ deltaY: -900 });
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
 
         await browserPage.mouse.click(720, 844);
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 3500));
+        const playSceneIsActive = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScenes: (isActive: boolean) => Array<{ scene: { key: string } }> } };
+                }
+            ).cascadeGame;
+            return (
+                gameInstance?.scene.getScenes(true).some((activeScene) => activeScene.scene.key === "scenario_play") ??
+                false
+            );
+        });
+        if (!playSceneIsActive) {
+            throw new Error("Clicking Begin Scenario did not open the scenario play scene.");
+        }
         await captureScreenshot("04-scenario-play.png");
 
         await browserPage.mouse.click(1262, 439);
