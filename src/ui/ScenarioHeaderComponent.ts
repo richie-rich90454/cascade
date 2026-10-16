@@ -16,8 +16,9 @@ export class ScenarioHeaderComponent extends Phaser.GameObjects.Container {
         this.setDepth(UiPalette.UI_DEPTH_PANEL);
 
         this.titleTextObject = scene.add.text(0, 0, "", {
-            fontFamily: FontFamilies.GOTHIC,
-            fontSize: "28px",
+            fontFamily: FontFamilies.DISPLAY_SERIF,
+            fontSize: "24px",
+            fontStyle: "bold",
             color: UiPalette.HIGHLIGHT_BRASS_CSS,
             wordWrap: { width: width - 24, useAdvancedWrap: true },
         });
