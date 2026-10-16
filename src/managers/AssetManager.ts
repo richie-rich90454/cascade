@@ -123,6 +123,13 @@ export class AssetManager {
         return this.getAllEntries().filter((manifestEntry) => manifestEntry.relativeFilePath.endsWith(".svg"));
     }
 
+    public getRasterEntries(): AssetManifestEntry[] {
+        const rasterExtensions = [".png", ".jpg", ".jpeg", ".webp"];
+        return this.getAllEntries().filter((manifestEntry) =>
+            rasterExtensions.some((extension) => manifestEntry.relativeFilePath.toLowerCase().endsWith(extension)),
+        );
+    }
+
     public getMidiEntries(): AssetManifestEntry[] {
         return this.getAllEntries().filter((manifestEntry) => manifestEntry.relativeFilePath.endsWith(".mid"));
     }
