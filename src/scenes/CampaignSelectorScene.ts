@@ -114,7 +114,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             scenario.getScenarioSubtitle(),
             {
                 fontFamily: FontFamilies.BODY_SERIF,
-                fontSize: "13px",
+                fontSize: "14px",
                 fontStyle: "italic",
                 color: UiPalette.AGED_PARCHMENT_CSS,
             },
@@ -147,12 +147,11 @@ export class CampaignSelectorScene extends Phaser.Scene {
                 CampaignSelectorScene.CARD_INNER_MARGIN_PX,
                 footerLineY,
                 cardInnerWidthPx,
-                "Complete the previous scenario to unlock.",
-                12,
+                "LOCKED · COMPLETE THE PREVIOUS SCENARIO TO UNLOCK",
+                14,
                 UiPalette.FIELD_GRAY_CSS,
             );
             panelContainer.add(unlockRequirementText);
-            panelContainer.setAlpha(0.45);
             return;
         }
         const topicLineText = UiPanelFactory.createTypewriterText(
