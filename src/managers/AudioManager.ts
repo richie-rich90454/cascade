@@ -66,6 +66,16 @@ export class AudioManager {
         await this.midiManager.ensureAudioContextReady();
     }
 
+    public activateAudioFromUserGesture(): void {
+        const trackToResume = this.currentMusicAssetIdentifier;
+        void this.initializeAudio().then(() => {
+            if (trackToResume.length > 0 && this.isMusicPlaybackEnabled) {
+                this.currentMusicAssetIdentifier = "";
+                this.playMusicTrack(trackToResume);
+            }
+        });
+    }
+
     public registerParsedSequence(assetIdentifier: string, parsedSequence: ParsedMidiSequence): void {
         this.parsedSequencesByAssetIdentifier.set(assetIdentifier, parsedSequence);
     }
