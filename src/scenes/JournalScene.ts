@@ -7,6 +7,7 @@ import { JournalEntryComponent } from "../ui/JournalEntryComponent";
 import { StudentTextEntryField } from "../ui/QuickwriteComponent";
 import { UiPalette } from "../ui/UiPalette";
 import { UiPanelFactory } from "../ui/UiPanelFactory";
+import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class JournalScene extends Phaser.Scene {
     private getJournalListWidth(): number {
@@ -35,6 +36,8 @@ export class JournalScene extends Phaser.Scene {
     private reflectionPrompts: string[];
     private listScrollOffsetY: number;
     private listContentHeightPx: number;
+    private returnSceneKey: string;
+    private scenarioNumber: number;
 
     constructor() {
         super({ key: SceneKeys.JOURNAL });
@@ -45,6 +48,20 @@ export class JournalScene extends Phaser.Scene {
         this.reflectionPrompts = [];
         this.listScrollOffsetY = 0;
         this.listContentHeightPx = 0;
+        this.returnSceneKey = SceneKeys.MAIN_MENU;
+        this.scenarioNumber = 1;
+    }
+
+    public init(data: unknown): void {
+        const returnPayload = (data ?? {}) as Partial<ScenarioSelectionPayload>;
+        const activeScenario = GameSession.getInstance().getCurrentScenario();
+        this.scenarioNumber =
+            typeof returnPayload.scenarioNumber === "number"
+                ? returnPayload.scenarioNumber
+                : (activeScenario?.getScenarioNumber() ?? 1);
+        this.returnSceneKey =
+            returnPayload.returnSceneKey ??
+            (GameSession.getInstance().isScenarioActive() ? SceneKeys.SCENARIO_PLAY : SceneKeys.MAIN_MENU);
     }
 
     public create(): void {
@@ -59,9 +76,15 @@ export class JournalScene extends Phaser.Scene {
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, UiPalette.NEAR_BLACK_LEATHER).setOrigin(0, 0);
         const headerTextObject = UiPanelFactory.createSectionHeader(this, this.scale.width / 2, 20, "JOURNAL", 28);
         headerTextObject.setOrigin(0.5, 0);
-        UiPanelFactory.createBrassButton(this, 24, 24, 200, 40, "BACK TO MENU", () => {
-            this.scene.start(SceneKeys.MAIN_MENU);
-        });
+        UiPanelFactory.createBrassButton(
+            this,
+            24,
+            24,
+            200,
+            40,
+            this.returnSceneKey === SceneKeys.SCENARIO_PLAY ? "BACK TO MAP" : "BACK",
+            () => this.returnToPreviousScreen(),
+        );
         GameSession.getInstance().getAudioManager().playMusicTrack("menu_journal");
 
         this.buildJournalList();
@@ -297,5 +320,13 @@ export class JournalScene extends Phaser.Scene {
         if (this.exportFeedbackTextObject !== null) {
             this.exportFeedbackTextObject.setText(feedbackText);
         }
+    }
+
+    private returnToPreviousScreen(): void {
+        if (this.returnSceneKey === SceneKeys.MAIN_MENU) {
+            this.scene.start(SceneKeys.MAIN_MENU);
+            return;
+        }
+        this.scene.start(this.returnSceneKey, new ScenarioSelectionPayload(this.scenarioNumber));
     }
 }
