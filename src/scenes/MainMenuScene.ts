@@ -9,11 +9,10 @@ import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
 export class MainMenuScene extends Phaser.Scene {
     private static readonly BUTTON_WIDTH_PX = 320;
-    private static readonly BUTTON_HEIGHT_PX = 56;
-    private static readonly BUTTON_VERTICAL_GAP_PX = 10;
-    private static readonly BUTTON_STACK_TOP_Y = 424;
+    private static readonly BUTTON_HEIGHT_PX = 48;
+    private static readonly BUTTON_VERTICAL_GAP_PX = 8;
+    private static readonly BUTTON_STACK_TOP_Y = 416;
     private static readonly CONTENT_HEIGHT_FOR_SCALING_PX = 812;
-    private static readonly TUTORIAL_STORAGE_KEY = "cascade.tutorial.seen";
 
     private menuContentRoot: Phaser.GameObjects.Container | null;
 
@@ -102,11 +101,21 @@ export class MainMenuScene extends Phaser.Scene {
         const buttonLeftX = screenCenterX - MainMenuScene.BUTTON_WIDTH_PX / 2;
         const buttonEntries: Array<{ labelText: string; onActivated: () => void }> = [
             { labelText: "HOW TO PLAY", onActivated: () => this.showHowToPlayOverlay() },
-            { labelText: "CAMPAIGN", onActivated: () => this.scene.start(SceneKeys.CAMPAIGN_SELECTOR) },
+        ];
+        const currentScenario = GameSession.getInstance().getCurrentScenario();
+        if (currentScenario !== null) {
+            buttonEntries.push({
+                labelText: "RESUME CAMPAIGN",
+                onActivated: () =>
+                    this.scene.start(SceneKeys.SCENARIO_PLAY, { scenarioNumber: currentScenario.getScenarioNumber() }),
+            });
+        }
+        buttonEntries.push(
+            { labelText: "CAMPAIGN SELECT", onActivated: () => this.scene.start(SceneKeys.CAMPAIGN_SELECTOR) },
             { labelText: "PROGRESS CHECK", onActivated: () => this.scene.start(SceneKeys.PROGRESS_CHECK) },
             { labelText: "TEACHER DASHBOARD", onActivated: () => this.scene.start(SceneKeys.TEACHER_DASHBOARD) },
             { labelText: "SETTINGS", onActivated: () => this.scene.start(SceneKeys.SETTINGS) },
-        ];
+        );
         buttonEntries.forEach((buttonEntry, buttonIndex) => {
             this.menuContentRoot?.add(
                 UiPanelFactory.createBrassButton(
@@ -124,7 +133,7 @@ export class MainMenuScene extends Phaser.Scene {
         const creditText = UiPanelFactory.createTypewriterText(
             this,
             screenCenterX,
-            this.scale.height - 24,
+            MainMenuScene.CONTENT_HEIGHT_FOR_SCALING_PX - 24,
             this.scale.width,
             "Cascade - an education-centric grand strategy game",
             14,
@@ -138,7 +147,6 @@ export class MainMenuScene extends Phaser.Scene {
 
         this.applyContentScaling();
         GameSession.getInstance().getAudioManager().playMusicTrack("menu_main");
-        this.maybeShowFirstRunTutorial();
     }
 
     private applyContentScaling(): void {
@@ -158,24 +166,6 @@ export class MainMenuScene extends Phaser.Scene {
             MainMenuScene.BUTTON_STACK_TOP_Y +
             buttonIndex * (MainMenuScene.BUTTON_HEIGHT_PX + MainMenuScene.BUTTON_VERTICAL_GAP_PX)
         );
-    }
-
-    private maybeShowFirstRunTutorial(): void {
-        let hasSeenTutorial = false;
-        try {
-            hasSeenTutorial = window.localStorage.getItem(MainMenuScene.TUTORIAL_STORAGE_KEY) === "true";
-        } catch {
-            hasSeenTutorial = true;
-        }
-        if (hasSeenTutorial) {
-            return;
-        }
-        try {
-            window.localStorage.setItem(MainMenuScene.TUTORIAL_STORAGE_KEY, "true");
-        } catch {
-            return;
-        }
-        this.showHowToPlayOverlay();
     }
 
     private showHowToPlayOverlay(): void {
@@ -203,7 +193,7 @@ export class MainMenuScene extends Phaser.Scene {
                 30,
                 62,
                 panelWidth - 60,
-                "Cascade is a history game. You do not need to have played a strategy game before. Follow the checklist, read the sources, and make choices. The game walks you through the rest.",
+                "Cascade is a guided, turn-based history strategy game. Each screen gives you one clear next action; time advances only when you choose to continue.",
                 16,
                 UiPalette.PARCHMENT_CSS,
             ),
@@ -215,19 +205,19 @@ export class MainMenuScene extends Phaser.Scene {
                     "Each scenario is one topic of Unit 7. Scenario 1 is the place to start. Complete it to unlock the next.",
             },
             {
-                stepTitle: "2. FOLLOW THE PROGRESS CHECKLIST",
+                stepTitle: "2. FOLLOW THE GUIDED TURN",
                 stepBody:
-                    "On the right side of the play screen, the checklist lists everything that wins the scenario. Press NEXT STEP and the game opens the right tool for you.",
+                    "The turn card tells you what to do now. Open its activity, follow the prompt, then use the named next-step button when you are ready.",
             },
             {
                 stepTitle: "3. READ, THEN DECIDE",
                 stepBody:
-                    "Every turn: read the briefing, analyze a source, make a decision, read the dispatch, and reflect. Each decision teaches real history.",
+                    "The objective checklist shows the goals. Select a row or START NEXT OBJECTIVE to open its activity. Read evidence before making a choice.",
             },
             {
                 stepTitle: "4. WRITE TO WIN",
                 stepBody:
-                    "Short answers and paragraphs are scored against AP-style criteria. Everything you write is saved to the journal, which your teacher can export.",
+                    "Finish with the debrief and a short journal reflection. Writing feedback is practice guidance; saved journal entries can be exported for review.",
             },
         ];
         const stepCardWidth = (panelWidth - 100) / 2;
@@ -274,7 +264,7 @@ export class MainMenuScene extends Phaser.Scene {
                 panelHeight - 72,
                 300,
                 52,
-                "START SCENARIO 1",
+                "OPEN CAMPAIGNS",
                 () => {
                     overlayContainer.destroy(true);
                     this.scene.start(SceneKeys.CAMPAIGN_SELECTOR);
