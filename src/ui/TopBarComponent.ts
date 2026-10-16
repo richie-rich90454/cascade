@@ -41,7 +41,7 @@ export class TopBarComponent extends Phaser.GameObjects.Container {
             const slotCenterX = slotLeftX + slotWidthPx / 2;
             const slotLabelTextObject = scene.add.text(slotCenterX, 6, TopBarComponent.getSlotLabelText(resourceType), {
                 fontFamily: FontFamilies.SMALL_CAPS,
-                fontSize: "13px",
+                fontSize: "14px",
                 color: UiPalette.HIGHLIGHT_BRASS_CSS,
                 fontStyle: "bold",
             });
