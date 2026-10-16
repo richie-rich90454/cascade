@@ -95,8 +95,12 @@ export class BootScene extends Phaser.Scene {
             const svgEntries = AssetManager.getInstance()
                 .getSvgEntries()
                 .filter((svgEntry) => BootScene.isRuntimePriorityAsset(svgEntry.assetIdentifier));
+            const rasterEntries = AssetManager.getInstance()
+                .getRasterEntries()
+                .filter((rasterEntry) => BootScene.isRuntimePriorityAsset(rasterEntry.assetIdentifier));
             const devicePixelRatioForTextureLoading = HighDpiConfigurator.getInstance().getDevicePixelRatio();
-            loadingStatusText.setText("Queueing artwork... 0 of " + svgEntries.length);
+            const allImageEntryCount = svgEntries.length + rasterEntries.length;
+            loadingStatusText.setText("Queueing artwork... 0 of " + allImageEntryCount);
             let queuedEntryCount = 0;
             for (const svgEntry of svgEntries) {
                 this.load.svg(
@@ -108,9 +112,17 @@ export class BootScene extends Phaser.Scene {
                     },
                 );
                 queuedEntryCount += 1;
-                loadingStatusText.setText("Queueing artwork... " + queuedEntryCount + " of " + svgEntries.length);
+                loadingStatusText.setText("Queueing artwork... " + queuedEntryCount + " of " + allImageEntryCount);
             }
-            if (svgEntries.length > 0) {
+            for (const rasterEntry of rasterEntries) {
+                this.load.image(
+                    AssetManager.getInstance().getTextureKey(rasterEntry.assetIdentifier),
+                    rasterEntry.relativeFilePath,
+                );
+                queuedEntryCount += 1;
+                loadingStatusText.setText("Queueing artwork... " + queuedEntryCount + " of " + allImageEntryCount);
+            }
+            if (allImageEntryCount > 0) {
                 loadingStatusText.setText("Loading artwork...");
                 await new Promise<void>((resolveCompletion) => {
                     this.load.on("progress", (progressValue: number) => {
