@@ -1,5 +1,5 @@
 {
-  "generatedAtIsoTimestamp": "2026-10-13T11:14:55.885Z",
+  "generatedAtIsoTimestamp": "2026-10-16T14:09:15.424Z",
   "assets": [
     {
       "assetId": "tile_plains_01",
@@ -15212,6 +15212,356 @@
       "status": "generated"
     },
     {
+      "assetId": "leader_portrait_wilhelm_ii",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_wilhelm_ii.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_franz_joseph",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_franz_joseph.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_clemenceau",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_clemenceau.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_lloyd_george",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_lloyd_george.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_wilson",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_wilson.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_lenin",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_lenin.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_ataturk",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_ataturk.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_roosevelt",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_roosevelt.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_churchill",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_churchill.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_hitler",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_hitler.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_stalin",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_stalin.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "leader_portrait_hirohito",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/leader_portrait_hirohito.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_sarajevo_1914",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_sarajevo_1914.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_mobilization_1914",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_mobilization_1914.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_trench_1916",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_trench_1916.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_revolution_1917",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_revolution_1917.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_versailles_1919",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_versailles_1919.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_depression_1930",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_depression_1930.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_blitz_1940",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_blitz_1940.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_stalingrad_1943",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_stalingrad_1943.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_dday_1944",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_dday_1944.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "newspaper_photo_hiroshima_1945",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/newspaper_photo_hiroshima_1945.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "loading_screen_art",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/loading_screen_art.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "title_art",
+      "category": "tier3",
+      "tier": 3,
+      "source": "manual",
+      "file": "assets/placeholders/title_art.txt",
+      "width": 0,
+      "height": 0,
+      "status": "placeholder"
+    },
+    {
+      "assetId": "cascade_world_atlas_hero",
+      "category": "scenario",
+      "tier": 1,
+      "source": "generated",
+      "file": "assets/cascade-world-atlas-hero.png",
+      "width": 1536,
+      "height": 1024,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1900",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1900.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1914",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1914.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1920",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1920.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1930",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1930.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1938",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1938.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1945",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1945.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1960",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1960.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_1994",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_1994.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_2000",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_2000.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
+      "assetId": "world_map_2010",
+      "category": "map",
+      "tier": 1,
+      "source": "historical_basemaps",
+      "file": "assets/svg/world_map_2010.svg",
+      "width": 1800,
+      "height": 900,
+      "status": "generated"
+    },
+    {
       "assetId": "ambient_scenario_1",
       "category": "midi_ambient",
       "tier": 1,
@@ -15669,356 +16019,6 @@
       "file": "assets/midi/sfx_success.mid",
       "width": 0,
       "height": 0,
-      "status": "generated"
-    },
-    {
-      "assetId": "leader_portrait_wilhelm_ii",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_wilhelm_ii.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_franz_joseph",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_franz_joseph.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_clemenceau",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_clemenceau.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_lloyd_george",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_lloyd_george.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_wilson",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_wilson.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_lenin",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_lenin.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_ataturk",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_ataturk.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_roosevelt",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_roosevelt.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_churchill",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_churchill.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_hitler",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_hitler.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_stalin",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_stalin.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "leader_portrait_hirohito",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/leader_portrait_hirohito.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_sarajevo_1914",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_sarajevo_1914.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_mobilization_1914",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_mobilization_1914.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_trench_1916",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_trench_1916.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_revolution_1917",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_revolution_1917.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_versailles_1919",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_versailles_1919.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_depression_1930",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_depression_1930.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_blitz_1940",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_blitz_1940.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_stalingrad_1943",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_stalingrad_1943.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_dday_1944",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_dday_1944.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "newspaper_photo_hiroshima_1945",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/newspaper_photo_hiroshima_1945.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "loading_screen_art",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/loading_screen_art.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "title_art",
-      "category": "tier3",
-      "tier": 3,
-      "source": "manual",
-      "file": "assets/placeholders/title_art.txt",
-      "width": 0,
-      "height": 0,
-      "status": "placeholder"
-    },
-    {
-      "assetId": "cascade_world_atlas_hero",
-      "category": "scenario",
-      "tier": 1,
-      "source": "generated",
-      "file": "assets/cascade-world-atlas-hero.png",
-      "width": 1536,
-      "height": 1024,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1900",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1900.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1914",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1914.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1920",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1920.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1930",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1930.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1938",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1938.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1945",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1945.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1960",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1960.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_1994",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_1994.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_2000",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_2000.svg",
-      "width": 1800,
-      "height": 900,
-      "status": "generated"
-    },
-    {
-      "assetId": "world_map_2010",
-      "category": "map",
-      "tier": 1,
-      "source": "historical_basemaps",
-      "file": "assets/svg/world_map_2010.svg",
-      "width": 1800,
-      "height": 900,
       "status": "generated"
     }
   ]
