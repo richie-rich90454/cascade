@@ -421,7 +421,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     private createObjectiveSectionLabel(labelText: string, offsetY: number, colorCss: string): Phaser.GameObjects.Text {
         const sectionLabel = this.scene.add.text(16, offsetY, labelText, {
             fontFamily: FontFamilies.SMALL_CAPS,
-            fontSize: "13px",
+            fontSize: "14px",
             color: colorCss,
         });
         return sectionLabel;
@@ -442,13 +442,12 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         rowContainer.add(checkText);
         const objectiveText = this.scene.add.text(22, 0, objectiveRecord.objectiveTitle, {
             fontFamily: FontFamilies.BODY_SERIF,
-            fontSize: "13px",
+            fontSize: "14px",
             color: objectiveRecord.isCompleted ? UiPalette.AGED_PARCHMENT_CSS : UiPalette.PARCHMENT_CSS,
             wordWrap: { width: rowWidth - 34, useAdvancedWrap: true },
             lineSpacing: 1,
         });
         if (objectiveRecord.isCompleted) {
-            objectiveText.setAlpha(0.65);
         }
         rowContainer.add(objectiveText);
         const rowHeight = Math.max(24, objectiveText.displayHeight + 4);
