@@ -505,7 +505,7 @@ export class ProgressCheckScene extends Phaser.Scene {
             `${primarySource.authorOrOrigin} — ${primarySource.dateText}`,
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: "13px",
+                fontSize: "14px",
                 color: UiPalette.DEEP_PARCHMENT_CSS,
                 wordWrap: { width: 558, useAdvancedWrap: true },
             },
