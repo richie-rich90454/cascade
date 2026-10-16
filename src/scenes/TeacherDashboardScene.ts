@@ -252,7 +252,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
                     1100,
                     `${topic.topicCode} ${topic.topicTitle} · LO ${topic.learningObjectiveCode} · Skill ${topic.suggestedSkillCode}     ${scenarioText}     ${accuracyText}`,
                     14,
-                    accuracy !== null && accuracy < 60 ? UiPalette.BRIGHT_BLOOD_CSS : UiPalette.PARCHMENT_CSS,
+                    accuracy !== null && accuracy < 60 ? UiPalette.ALERT_TEXT_ON_DARK_CSS : UiPalette.PARCHMENT_CSS,
                 ),
             );
             cursorY += 27;
@@ -295,7 +295,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
                 1100,
                 "Scenario 9 documents mass atrocities; review the advisory before enabling.",
                 15,
-                UiPalette.BRIGHT_BLOOD_CSS,
+                UiPalette.ALERT_TEXT_ON_DARK_CSS,
             ),
         );
         cursorY += 32;
