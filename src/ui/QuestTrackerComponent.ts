@@ -25,16 +25,24 @@ export class QuestObjectiveRecord {
 
 export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     private readonly panelWidth: number;
-    private readonly panelHeight: number;
     private readonly onMechanicRequested: (mechanicKey: string) => void;
     private readonly contentContainer: Phaser.GameObjects.Container;
     private readonly progressBarGraphics: Phaser.GameObjects.Graphics;
     private readonly progressLabelText: Phaser.GameObjects.Text;
+    private readonly scrollHintText: Phaser.GameObjects.Text;
+    private readonly scrollBarGraphics: Phaser.GameObjects.Graphics;
+    private readonly maskGraphics: Phaser.GameObjects.Graphics;
     private readonly nextStepButtonHolder: Phaser.GameObjects.Container;
+    private readonly allToolsButton: Phaser.GameObjects.Container;
+    private readonly viewportHeight: number;
 
     private requiredObjectives: QuestObjectiveRecord[];
     private pointerRegion: ScrollRegion | null;
     private recommendedObjectives: QuestObjectiveRecord[];
+    private currentScenarioNumber: number;
+    private contentHeight: number;
+    private scrollOffset: number;
+    private showAllScenarioOneObjectives: boolean;
 
     constructor(
         scene: Phaser.Scene,
@@ -47,11 +55,15 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     ) {
         super(scene, x, y);
         this.panelWidth = width;
-        this.panelHeight = height;
         this.onMechanicRequested = onMechanicRequested;
         this.requiredObjectives = [];
         this.recommendedObjectives = [];
         this.pointerRegion = null;
+        this.currentScenarioNumber = 0;
+        this.contentHeight = 0;
+        this.scrollOffset = 0;
+        this.showAllScenarioOneObjectives = false;
+        this.viewportHeight = Math.max(80, height - 84 - 136);
 
         const panelBackground = UiPanelFactory.createPanelContainer(scene, 0, 0, width, height, PanelVariant.LEATHER);
         this.add(panelBackground);
@@ -59,9 +71,16 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         blockingZone.setInteractive();
         this.add(blockingZone);
 
-        const headerText = UiPanelFactory.createSectionHeader(scene, 16, 12, "OBJECTIVES", 17);
+        const headerText = UiPanelFactory.createSectionHeader(
+            scene,
+            16,
+            12,
+            "CAMPAIGN PROGRESS",
+            13,
+        );
+        headerText.setWordWrapWidth(Math.max(96, width - 176), true);
         this.add(headerText);
-        this.add(UiPanelFactory.createBrassButton(scene, width - 156, 8, 140, 34, "HIDE OBJECTIVES", onHideRequested));
+        this.add(UiPanelFactory.createBrassButton(scene, width - 144, 8, 128, 34, "HIDE OBJECTIVES", onHideRequested));
         this.progressLabelText = scene.add.text(width - 16, 60, "", {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: "12px",
@@ -69,15 +88,29 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         });
         this.progressLabelText.setOrigin(1, 0);
         this.add(this.progressLabelText);
+        this.scrollHintText = scene.add.text(16, 61, "SCROLL FOR MORE", {
+            fontFamily: FontFamilies.TYPEWRITER_BODY,
+            fontSize: "11px",
+            color: UiPalette.AGED_PARCHMENT_CSS,
+        });
+        this.add(this.scrollHintText);
         this.progressBarGraphics = scene.add.graphics();
         this.add(this.progressBarGraphics);
 
+        this.scrollBarGraphics = scene.add.graphics();
+        this.add(this.scrollBarGraphics);
+
         this.contentContainer = scene.add.container(0, 84);
         this.add(this.contentContainer);
+        this.maskGraphics = scene.add.graphics();
+        this.maskGraphics.fillStyle(0xffffff, 1);
+        this.maskGraphics.fillRect(x + 8, y + 84, width - 16, this.viewportHeight);
+        this.maskGraphics.setVisible(false);
+        this.contentContainer.setMask(this.maskGraphics.createGeometryMask());
 
         this.nextStepButtonHolder = scene.add.container(16, height - 108);
         this.add(this.nextStepButtonHolder);
-        const allToolsButton = UiPanelFactory.createBrassButton(
+        this.allToolsButton = UiPanelFactory.createBrassButton(
             scene,
             16,
             height - 56,
@@ -88,15 +121,21 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
                 this.onMechanicRequested("all_tools");
             },
         );
-        this.add(allToolsButton);
+        this.add(this.allToolsButton);
 
         this.pointerRegion = new ScrollRegion(x, y, width, height);
         UiPointerRouting.registerScrollRegion(this.pointerRegion);
+        scene.input.on("wheel", this.handleWheel);
+        scene.input.keyboard?.on("keydown", this.handleKeyDown);
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            scene.input.off("wheel", this.handleWheel);
+            scene.input.keyboard?.off("keydown", this.handleKeyDown);
             if (this.pointerRegion !== null) {
                 UiPointerRouting.unregisterScrollRegion(this.pointerRegion);
                 this.pointerRegion = null;
             }
+            this.contentContainer.clearMask(false);
+            this.maskGraphics.destroy();
         });
         scene.add.existing(this);
         this.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
@@ -108,6 +147,8 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         intelligenceManager: IntelligenceManager,
         scenarioNumber: number,
     ): void {
+        this.currentScenarioNumber = scenarioNumber;
+        this.allToolsButton.setVisible(scenarioNumber !== 1);
         this.requiredObjectives = this.buildRequiredObjectives(
             scenario,
             gameState,
@@ -142,11 +183,42 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
             objectives.push(
                 new QuestObjectiveRecord(
                     "decisions",
-                    `Make your decisions (${completedDecisionCount} of ${decisionRecords.length})`,
+                    scenarioNumber === 1
+                        ? `Make all five chapter choices (${completedDecisionCount} of ${decisionRecords.length})`
+                        : `Make your decisions (${completedDecisionCount} of ${decisionRecords.length})`,
                     completedDecisionCount >= decisionRecords.length,
                     "decision",
                 ),
             );
+        }
+        if (scenarioNumber === 1) {
+            for (const sourceIdentifier of scenario.getPrimarySourceIdentifiers()) {
+                const source = PrimarySources.findBySourceIdentifier(sourceIdentifier);
+                if (source === null) {
+                    continue;
+                }
+                objectives.push(
+                    new QuestObjectiveRecord(
+                        `source_${sourceIdentifier}`,
+                        `Analyze source: ${source.sourceDisplayTitle}`,
+                        intelligenceManager.getSourceAnalysisResult(sourceIdentifier) === true,
+                        "sources",
+                    ),
+                );
+            }
+            const dispatch = scenario.getScenarioEventSchedule().find(
+                (eventRecord) => eventRecord.eventIdentifier === "assassination_at_sarajevo",
+            );
+            if (dispatch !== undefined) {
+                objectives.push(
+                    new QuestObjectiveRecord(
+                        "event_s1_sarajevo_read",
+                        "Read the documented Sarajevo dispatch from 1914",
+                        gameState.isScenarioFlagSet("event_s1_sarajevo_read"),
+                        "chapter_route",
+                    ),
+                );
+            }
         }
         for (const causalChainDefinition of scenario.getCausalChainDefinitions()) {
             objectives.push(
@@ -328,6 +400,9 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         scenarioNumber: number,
     ): QuestObjectiveRecord[] {
         const recommendedObjectives: QuestObjectiveRecord[] = [];
+        if (scenarioNumber === 1) {
+            return recommendedObjectives;
+        }
         const scenarioSourceIdentifiers = scenario.getPrimarySourceIdentifiers();
         if (scenarioSourceIdentifiers.length > 0) {
             let correctlyAnalyzedCount = 0;
@@ -378,12 +453,15 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
 
     private renderObjectivesList(): void {
         this.contentContainer.removeAll(true);
-        const listWidth = this.panelWidth - 32;
-        const listHeightPx = this.panelHeight - 84 - 120;
+        const listWidth = this.panelWidth - 48;
         const guidanceText = this.scene.add.text(
             16,
             0,
-            "Select a task to open it, or start the next objective for a guided route.",
+            this.currentScenarioNumber === 1
+                ? this.showAllScenarioOneObjectives
+                    ? "Required activities. The chapter panel shows the next action."
+                    : "Your next action is the highlighted chapter button below the map."
+                : "Select a task to open it, or start the next objective for a guided route.",
             {
                 fontFamily: FontFamilies.BODY_SERIF,
                 fontSize: "14px",
@@ -393,44 +471,153 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         );
         this.contentContainer.add(guidanceText);
         let rowOffsetY = guidanceText.displayHeight + 12;
-        let hasOverflowedList = false;
-        this.contentContainer.add(
-            this.createObjectiveSectionLabel("VICTORY CHECKLIST", rowOffsetY, UiPalette.HIGHLIGHT_BRASS_CSS),
-        );
-        rowOffsetY += 26;
-        for (const requiredObjective of this.requiredObjectives) {
-            if (rowOffsetY + 30 > listHeightPx) {
-                hasOverflowedList = true;
-                break;
+        if (this.currentScenarioNumber === 1 && !this.showAllScenarioOneObjectives) {
+            rowOffsetY = this.renderCampaignProgressSummary(rowOffsetY, listWidth);
+        } else {
+            this.contentContainer.add(
+                this.createObjectiveSectionLabel("REQUIRED LEARNING GOALS", rowOffsetY, UiPalette.HIGHLIGHT_BRASS_CSS),
+            );
+            rowOffsetY += 26;
+            for (const requiredObjective of this.requiredObjectives) {
+                const rowHeight = this.createObjectiveRow(requiredObjective, rowOffsetY, listWidth);
+                rowOffsetY += rowHeight + 4;
             }
-            const rowHeight = this.createObjectiveRow(requiredObjective, rowOffsetY, listWidth);
-            rowOffsetY += rowHeight + 4;
         }
-        if (!hasOverflowedList && this.recommendedObjectives.length > 0) {
+        if (this.recommendedObjectives.length > 0) {
             rowOffsetY += 8;
             this.contentContainer.add(
                 this.createObjectiveSectionLabel("RECOMMENDED", rowOffsetY, UiPalette.BRASS_TAN_CSS),
             );
             rowOffsetY += 26;
             for (const recommendedObjective of this.recommendedObjectives) {
-                if (rowOffsetY + 30 > listHeightPx) {
-                    hasOverflowedList = true;
-                    break;
-                }
                 const rowHeight = this.createObjectiveRow(recommendedObjective, rowOffsetY, listWidth);
                 rowOffsetY += rowHeight + 4;
             }
         }
-        if (hasOverflowedList) {
-            this.contentContainer.add(
-                this.createObjectiveSectionLabel(
-                    "More objectives appear as you progress.",
-                    rowOffsetY,
-                    UiPalette.FIELD_GRAY_CSS,
-                ),
-            );
-        }
+        this.contentHeight = rowOffsetY + 8;
+        this.scrollOffset = 0;
+        this.contentContainer.y = 84;
+        this.updateScrollControls();
     }
+
+    private renderCampaignProgressSummary(startY: number, rowWidth: number): number {
+        const decisionsObjective = this.requiredObjectives.find((objective) => objective.objectiveIdentifier === "decisions");
+        const decisionsProgress = decisionsObjective?.objectiveTitle.match(/\((\d+) of (\d+)\)/);
+        const sourceObjectives = this.requiredObjectives.filter((objective) => objective.objectiveIdentifier.startsWith("source_"));
+        const causeObjectives = this.requiredObjectives.filter((objective) => objective.objectiveIdentifier.startsWith("causal_chain_"));
+        const synthesisObjectives = this.requiredObjectives.filter((objective) =>
+            objective.objectiveIdentifier.startsWith("event_s1_") ||
+            objective.objectiveIdentifier.startsWith("continuity_chart_") ||
+            objective.objectiveIdentifier.startsWith("contextualization_"),
+        );
+        const groups = [
+            {
+                label: "POLICY DECISIONS",
+                completed: Number(decisionsProgress?.[1] ?? (decisionsObjective?.isCompleted ? 1 : 0)),
+                total: Number(decisionsProgress?.[2] ?? 5),
+            },
+            {
+                label: "PRIMARY SOURCES",
+                completed: sourceObjectives.filter((objective) => objective.isCompleted).length,
+                total: sourceObjectives.length,
+            },
+            {
+                label: "CAUSE AND EFFECT",
+                completed: causeObjectives.filter((objective) => objective.isCompleted).length,
+                total: causeObjectives.length,
+            },
+            {
+                label: "HISTORICAL SYNTHESIS",
+                completed: synthesisObjectives.filter((objective) => objective.isCompleted).length,
+                total: synthesisObjectives.length,
+            },
+        ];
+        let rowOffsetY = startY + 16;
+        for (const group of groups) {
+            const card = this.scene.add.container(12, rowOffsetY);
+            const cardHeight = 57;
+            const cardGraphics = this.scene.add.graphics();
+            cardGraphics.fillStyle(UiPalette.MID_OLIVE, 0.86);
+            cardGraphics.fillRect(0, 0, rowWidth - 12, cardHeight);
+            cardGraphics.lineStyle(1, UiPalette.FIELD_GRAY, 0.7);
+            cardGraphics.strokeRect(0.5, 0.5, rowWidth - 13, cardHeight - 1);
+            card.add(cardGraphics);
+            const label = this.scene.add.text(12, 8, group.label, {
+                fontFamily: FontFamilies.SMALL_CAPS,
+                fontSize: "13px",
+                color: UiPalette.PARCHMENT_CSS,
+            });
+            const count = this.scene.add.text(rowWidth - 36, 8, `${group.completed} / ${group.total}`, {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: "13px",
+                color: UiPalette.HIGHLIGHT_BRASS_CSS,
+            });
+            count.setOrigin(1, 0);
+            card.add([label, count]);
+            const progressTrack = this.scene.add.graphics();
+            progressTrack.fillStyle(UiPalette.NEAR_BLACK_LEATHER, 1);
+            progressTrack.fillRect(12, 34, rowWidth - 38, 8);
+            const progressRatio = group.total > 0 ? group.completed / group.total : 0;
+            progressTrack.fillStyle(UiPalette.BRIGHT_BRASS, 1);
+            progressTrack.fillRect(12, 34, Math.max(0, (rowWidth - 38) * progressRatio), 8);
+            card.add(progressTrack);
+            this.contentContainer.add(card);
+            rowOffsetY += cardHeight + 8;
+        }
+        return rowOffsetY;
+    }
+
+    private handleWheel = (
+        pointer: Phaser.Input.Pointer,
+        _currentlyOver: Phaser.GameObjects.GameObject[],
+        _deltaX: number,
+        deltaY: number,
+    ): void => {
+        if (
+            this.visible &&
+            pointer.x >= this.x + 8 &&
+            pointer.x <= this.x + this.panelWidth - 8 &&
+            pointer.y >= this.y + 84 &&
+            pointer.y <= this.y + 84 + this.viewportHeight
+        ) {
+            this.scrollObjectives(deltaY);
+        }
+    };
+
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        if (this.visible && event.key === "PageDown") {
+            event.preventDefault();
+            this.scrollObjectives(this.viewportHeight * 0.8);
+        } else if (this.visible && event.key === "PageUp") {
+            event.preventDefault();
+            this.scrollObjectives(-this.viewportHeight * 0.8);
+        }
+    };
+
+    private scrollObjectives(distancePx: number): void {
+        this.scrollOffset = Phaser.Math.Clamp(this.scrollOffset + distancePx, 0, Math.max(0, this.contentHeight - this.viewportHeight));
+        this.contentContainer.y = 84 - this.scrollOffset;
+        this.updateScrollControls();
+    }
+
+    private updateScrollControls(): void {
+        const maximumScrollOffset = Math.max(0, this.contentHeight - this.viewportHeight);
+        const canScroll = maximumScrollOffset > 0;
+        this.scrollHintText.setVisible(canScroll);
+        this.scrollBarGraphics.clear();
+        if (!canScroll) {
+            return;
+        }
+        const trackX = this.panelWidth - 10;
+        const trackY = 84;
+        this.scrollBarGraphics.fillStyle(UiPalette.DARK_OLIVE, 1);
+        this.scrollBarGraphics.fillRect(trackX, trackY, 4, this.viewportHeight);
+        const thumbHeight = Math.max(28, this.viewportHeight * (this.viewportHeight / this.contentHeight));
+        const thumbY = trackY + (this.viewportHeight - thumbHeight) * (this.scrollOffset / maximumScrollOffset);
+        this.scrollBarGraphics.fillStyle(UiPalette.HIGHLIGHT_BRASS, 1);
+        this.scrollBarGraphics.fillRect(trackX, thumbY, 4, thumbHeight);
+    }
+
 
     private createObjectiveSectionLabel(labelText: string, offsetY: number, colorCss: string): Phaser.GameObjects.Text {
         const sectionLabel = this.scene.add.text(16, offsetY, labelText, {
@@ -476,7 +663,9 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
             );
         });
         rowZone.on("pointerup", () => {
-            this.onMechanicRequested(objectiveRecord.mechanicKey);
+            this.onMechanicRequested(
+                this.currentScenarioNumber === 1 ? "chapter_route" : objectiveRecord.mechanicKey,
+            );
         });
         rowContainer.add(rowZone);
         this.contentContainer.add(rowContainer);
@@ -504,8 +693,11 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         const nextIncompleteObjective =
             this.requiredObjectives.find((requiredObjective) => !requiredObjective.isCompleted) ??
             this.requiredObjectives[this.requiredObjectives.length - 1];
-        const buttonLabelText =
-            nextIncompleteObjective === undefined ? "OPEN FINAL DEBRIEF" : "START NEXT OBJECTIVE";
+        const buttonLabelText = this.currentScenarioNumber === 1
+            ? this.showAllScenarioOneObjectives ? "SHOW PROGRESS SUMMARY" : "VIEW ALL LEARNING GOALS"
+            : nextIncompleteObjective === undefined
+              ? "OPEN FINAL DEBRIEF"
+              : "START NEXT OBJECTIVE";
         const nextStepButton = UiPanelFactory.createBrassButton(
             this.scene,
             0,
@@ -514,9 +706,13 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
             44,
             buttonLabelText,
             () => {
-                this.onMechanicRequested(
-                    nextIncompleteObjective === undefined ? "debrief" : nextIncompleteObjective.mechanicKey,
-                );
+                if (this.currentScenarioNumber === 1) {
+                    this.showAllScenarioOneObjectives = !this.showAllScenarioOneObjectives;
+                    this.renderObjectivesList();
+                    this.renderNextStepButton();
+                    return;
+                }
+                this.onMechanicRequested(nextIncompleteObjective === undefined ? "debrief" : nextIncompleteObjective.mechanicKey);
             },
         );
         this.nextStepButtonHolder.add(nextStepButton);
