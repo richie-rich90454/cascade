@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+
 import { getTextScale } from "./AccessibilityPreferences";
 
 export class HighDpiConfigurator {
@@ -25,7 +26,42 @@ export class HighDpiConfigurator {
     }
 
     public toCssPixels(devicePixelValue: number): number {
-        return devicePixelValue / this.devicePixelRatioValue;
+        return HighDpiConfigurator.toCssPixelValue(devicePixelValue, this.devicePixelRatioValue);
+    }
+
+    public getCssFontSize(textObject: Phaser.GameObjects.Text): number {
+        const rendererFontSize = Number.parseFloat(String(textObject.style.fontSize));
+        return rendererFontSize / (this.devicePixelRatioValue * getTextScale());
+    }
+
+    public setCssFontSize(textObject: Phaser.GameObjects.Text, cssFontSizePx: number): void {
+        textObject.setFontSize(cssFontSizePx * this.devicePixelRatioValue * getTextScale());
+    }
+
+    public static toCssPixelValue(devicePixelValue: number, devicePixelRatio: number): number {
+        if (!Number.isFinite(devicePixelRatio) || devicePixelRatio <= 0) {
+            return devicePixelValue;
+        }
+        return devicePixelValue / devicePixelRatio;
+    }
+
+    public static fitCssFontSize(
+        baseFontSizePx: number,
+        measuredDisplayWidthPx: number,
+        availableWidthPx: number,
+        minimumFontSizePx: number,
+    ): number {
+        if (
+            !Number.isFinite(baseFontSizePx) ||
+            !Number.isFinite(measuredDisplayWidthPx) ||
+            !Number.isFinite(availableWidthPx) ||
+            measuredDisplayWidthPx <= 0 ||
+            availableWidthPx <= 0
+        ) {
+            return baseFontSizePx;
+        }
+        const widthRatio = Math.min(1, availableWidthPx / measuredDisplayWidthPx);
+        return Math.max(minimumFontSizePx, Math.floor(baseFontSizePx * widthRatio));
     }
 
     // ponytail: one factory patch is the choke point for crisp text; text renders at dpi font size and scales back down.
