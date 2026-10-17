@@ -7,6 +7,7 @@ import { JournalEntryComponent } from "../ui/JournalEntryComponent";
 import { StudentTextEntryField } from "../ui/QuickwriteComponent";
 import { UiPalette } from "../ui/UiPalette";
 import { UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class JournalScene extends Phaser.Scene {
@@ -93,13 +94,22 @@ export class JournalScene extends Phaser.Scene {
         this.input.on(
             "wheel",
             (
-                _pointer: Phaser.Input.Pointer,
+                pointer: Phaser.Input.Pointer,
                 _currentlyOver: Phaser.GameObjects.GameObject[],
                 _deltaX: number,
                 deltaY: number,
                 _deltaZ: number,
             ) => {
-                this.handleListScroll(deltaY);
+                const pointerPosition = UiScrollInput.getCssPointerPosition(pointer);
+                if (
+                    pointerPosition.x <= JournalScene.JOURNAL_LIST_X ||
+                    pointerPosition.x >= this.getJournalListWidth() + JournalScene.JOURNAL_LIST_X ||
+                    pointerPosition.y < JournalScene.JOURNAL_LIST_BASE_Y ||
+                    pointerPosition.y > this.scale.height - 24
+                ) {
+                    return;
+                }
+                this.handleListScroll(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.scale.height));
             },
         );
     }
@@ -158,7 +168,7 @@ export class JournalScene extends Phaser.Scene {
     }
 
     private handleListScroll(deltaY: number): void {
-        this.listScrollOffsetY -= deltaY * 0.5;
+        this.listScrollOffsetY -= deltaY;
         this.applyListScrollClamp();
     }
 
