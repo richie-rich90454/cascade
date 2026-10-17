@@ -11,7 +11,7 @@ export class PoliticalCrisisEvent extends GameSystem {
     }
 
     public getTriggerTurnNumber(): number {
-        return 6;
+        return 4;
     }
 
     protected override onSimulateTurn(turnNumber: number, gameState: GameState): void {
