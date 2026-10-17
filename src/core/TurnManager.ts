@@ -144,6 +144,19 @@ export class TurnManager {
         return [...this.enteredPhases];
     }
 
+    public restoreState(turnNumber: number, phaseCode: string, isActive: boolean): boolean {
+        const restoredPhase = TurnPhase.getAllPhases().find((phase) => phase.getCode() === phaseCode);
+        if (!Number.isInteger(turnNumber) || turnNumber < 1 || restoredPhase === undefined) {
+            return false;
+        }
+        this.currentTurnNumber = turnNumber;
+        this.currentPhase = restoredPhase;
+        this.isScenarioActive = isActive;
+        this.enteredPhases.length = 0;
+        this.enteredPhases.push(restoredPhase);
+        return true;
+    }
+
     private enterPhase(turnPhase: TurnPhase): void {
         const previousPhase = this.currentPhase;
         this.currentPhase = turnPhase;
