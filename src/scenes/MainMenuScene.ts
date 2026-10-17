@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
-import { LocalProfileManager } from "../managers/LocalProfileManager";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { SceneKeys } from "../core/SceneKeys";
 import { AssetManager } from "../managers/AssetManager";
 import { FontFamilies } from "../managers/FontManager";
+import { LocalProfileManager } from "../managers/LocalProfileManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
@@ -55,22 +56,22 @@ export class MainMenuScene extends Phaser.Scene {
         this.fitTextToWidth(globalConflictTitle, this.scale.width - 40, 24);
         this.menuContentRoot.add(globalConflictTitle);
         const menuSubtitle = this.add
-                .text(screenCenterX, 212, "Global Conflict, c. 1900 to the Present", {
-                    fontFamily: FontFamilies.BODY_SERIF,
-                    fontSize: "26px",
-                    fontStyle: "italic",
-                    color: UiPalette.PARCHMENT_CSS,
-                })
-                .setOrigin(0.5, 0.5);
+            .text(screenCenterX, 212, "Global Conflict, c. 1900 to the Present", {
+                fontFamily: FontFamilies.BODY_SERIF,
+                fontSize: "26px",
+                fontStyle: "italic",
+                color: UiPalette.PARCHMENT_CSS,
+            })
+            .setOrigin(0.5, 0.5);
         this.fitTextToWidth(menuSubtitle, this.scale.width - 40, 16);
         this.menuContentRoot.add(menuSubtitle);
         const menuCourseLabel = this.add
-                .text(screenCenterX, 246, "An AP World History: Modern Unit 7 Review Game", {
-                    fontFamily: FontFamilies.BODY_SERIF,
-                    fontSize: "18px",
-                    color: UiPalette.AGED_PARCHMENT_CSS,
-                })
-                .setOrigin(0.5, 0.5);
+            .text(screenCenterX, 246, "An AP World History: Modern Unit 7 Review Game", {
+                fontFamily: FontFamilies.BODY_SERIF,
+                fontSize: "18px",
+                color: UiPalette.AGED_PARCHMENT_CSS,
+            })
+            .setOrigin(0.5, 0.5);
         this.fitTextToWidth(menuCourseLabel, this.scale.width - 40, 12);
         this.menuContentRoot.add(menuCourseLabel);
 
@@ -154,9 +155,10 @@ export class MainMenuScene extends Phaser.Scene {
         const profileManager = LocalProfileManager.getInstance();
         const profileStatus = profileManager.getRecoveryMessage();
         const activeProfile = profileManager.getActiveProfile();
-        const statusText = profileStatus.length > 0
-            ? profileStatus
-            : `LOCAL PROFILE · ${activeProfile.displayName}${profileManager.getActiveCampaign() === null ? "" : " · CAMPAIGN SAVED"}`;
+        const statusText =
+            profileStatus.length > 0
+                ? profileStatus
+                : `LOCAL PROFILE · ${activeProfile.displayName}${profileManager.getActiveCampaign() === null ? "" : " · CAMPAIGN SAVED"}`;
         const saveStatus = this.add.text(screenCenterX, 386, statusText, {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: "14px",
@@ -220,11 +222,11 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     private fitTextToWidth(textObject: Phaser.GameObjects.Text, availableWidth: number, minimumFontSize: number): void {
-        let currentFontSize = Number.parseFloat(String(textObject.style.fontSize));
-        const minimumInternalFontSize = minimumFontSize / Math.max(0.1, textObject.scaleX);
-        while (textObject.displayWidth > availableWidth && currentFontSize > minimumInternalFontSize) {
-            currentFontSize = Math.max(minimumInternalFontSize, currentFontSize - 1);
-            textObject.setFontSize(currentFontSize);
+        const dpiConfigurator = HighDpiConfigurator.getInstance();
+        let currentFontSize = dpiConfigurator.getCssFontSize(textObject);
+        while (textObject.displayWidth > availableWidth && currentFontSize > minimumFontSize) {
+            currentFontSize = Math.max(minimumFontSize, currentFontSize - 1);
+            dpiConfigurator.setCssFontSize(textObject, currentFontSize);
         }
     }
 
