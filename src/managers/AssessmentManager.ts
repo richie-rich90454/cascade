@@ -1,6 +1,7 @@
 import { EventBus, GameEventTypes } from "../core/EventBus";
 import type { ShortAnswerRubricItem } from "../data/Rubrics";
 import { Rubrics } from "../data/Rubrics";
+import { LocalProfileManager, type AssessmentSnapshot } from "./LocalProfileManager";
 
 export class JournalEntry {
     public readonly entryIdentifier: string;
@@ -100,39 +101,17 @@ export class TopicPracticeSignal {
     }
 }
 
-interface PersistedAssessmentRecord {
-    journalEntries: Array<{
-        entryIdentifier: string;
-        scenarioNumber: number;
-        turnNumber: number;
-        entryCategory: string;
-        promptText: string;
-        responseText: string;
-        recordedAtIsoTimestamp: string;
-    }>;
-    latestVictoryFlagsByScenarioNumber: Array<[number, boolean]>;
-    topicAttemptsByCedTopicCode: Record<string, { correct: number; attempted: number }>;
-}
-
 export class AssessmentManager {
     private static readonly SINGLETON_INSTANCE = new AssessmentManager();
-    private static readonly STORAGE_KEY = "cascade.assessment.v2";
 
     private readonly journalEntries: JournalEntry[];
     private readonly latestVictoryFlagsByScenarioNumber: Map<number, boolean>;
     private readonly topicAttemptsByCedTopicCode: Map<string, { correct: number; attempted: number }>;
-    private readonly storage: Storage | null;
-
     private constructor() {
         this.journalEntries = [];
         this.latestVictoryFlagsByScenarioNumber = new Map<number, boolean>();
         this.topicAttemptsByCedTopicCode = new Map<string, { correct: number; attempted: number }>();
-        try {
-            this.storage = typeof localStorage === "undefined" ? null : localStorage;
-        } catch {
-            this.storage = null;
-        }
-        this.loadFromStorage();
+        this.restoreSnapshot(LocalProfileManager.getInstance().getActiveAssessment());
     }
 
     public static getInstance(): AssessmentManager {
@@ -163,6 +142,68 @@ export class AssessmentManager {
 
     public getJournalEntries(): JournalEntry[] {
         return [...this.journalEntries];
+    }
+
+    public createSnapshot(): AssessmentSnapshot {
+        return {
+            journalEntries: this.journalEntries.map((entry) => ({
+                entryIdentifier: entry.entryIdentifier,
+                scenarioNumber: entry.scenarioNumber,
+                turnNumber: entry.turnNumber,
+                entryCategory: entry.entryCategory,
+                promptText: entry.promptText,
+                responseText: entry.responseText,
+                recordedAtIsoTimestamp: entry.recordedAtIsoTimestamp,
+            })),
+            latestVictoryFlagsByScenarioNumber: Array.from(this.latestVictoryFlagsByScenarioNumber.entries()),
+            topicAttemptsByCedTopicCode: Object.fromEntries(this.topicAttemptsByCedTopicCode.entries()),
+        };
+    }
+
+    public restoreSnapshot(snapshot: AssessmentSnapshot): void {
+        this.journalEntries.length = 0;
+        this.latestVictoryFlagsByScenarioNumber.clear();
+        this.topicAttemptsByCedTopicCode.clear();
+        for (const entry of snapshot.journalEntries) {
+            if (
+                typeof entry.entryIdentifier === "string" &&
+                Number.isInteger(entry.scenarioNumber) &&
+                Number.isInteger(entry.turnNumber) &&
+                typeof entry.entryCategory === "string" &&
+                typeof entry.promptText === "string" &&
+                typeof entry.responseText === "string" &&
+                typeof entry.recordedAtIsoTimestamp === "string"
+            ) {
+                this.journalEntries.push(
+                    new JournalEntry(
+                        entry.entryIdentifier,
+                        entry.scenarioNumber,
+                        entry.turnNumber,
+                        entry.entryCategory,
+                        entry.promptText,
+                        entry.responseText,
+                        entry.recordedAtIsoTimestamp,
+                    ),
+                );
+            }
+        }
+        for (const entry of snapshot.latestVictoryFlagsByScenarioNumber) {
+            if (Number.isInteger(entry[0]) && typeof entry[1] === "boolean") {
+                this.latestVictoryFlagsByScenarioNumber.set(entry[0], entry[1]);
+            }
+        }
+        for (const [topicCode, signal] of Object.entries(snapshot.topicAttemptsByCedTopicCode)) {
+            if (
+                typeof signal.correct === "number" &&
+                typeof signal.attempted === "number" &&
+                Number.isInteger(signal.correct) &&
+                Number.isInteger(signal.attempted) &&
+                signal.correct >= 0 &&
+                signal.attempted >= signal.correct
+            ) {
+                this.topicAttemptsByCedTopicCode.set(topicCode, { correct: signal.correct, attempted: signal.attempted });
+            }
+        }
     }
 
     public getJournalEntriesForScenario(scenarioNumber: number): JournalEntry[] {
@@ -348,103 +389,10 @@ export class AssessmentManager {
         this.journalEntries.length = 0;
         this.latestVictoryFlagsByScenarioNumber.clear();
         this.topicAttemptsByCedTopicCode.clear();
-        if (this.storage !== null) {
-            this.storage.removeItem(AssessmentManager.STORAGE_KEY);
-        }
-    }
-
-    private loadFromStorage(): void {
-        if (this.storage === null) {
-            return;
-        }
-        try {
-            const storedValue = this.storage.getItem(AssessmentManager.STORAGE_KEY);
-            if (storedValue === null) {
-                return;
-            }
-            const parsedRecord = JSON.parse(storedValue) as Partial<PersistedAssessmentRecord>;
-            if (Array.isArray(parsedRecord.journalEntries)) {
-                for (const entry of parsedRecord.journalEntries) {
-                    if (
-                        typeof entry.entryIdentifier !== "string" ||
-                        typeof entry.scenarioNumber !== "number" ||
-                        typeof entry.turnNumber !== "number" ||
-                        typeof entry.entryCategory !== "string" ||
-                        typeof entry.promptText !== "string" ||
-                        typeof entry.responseText !== "string" ||
-                        typeof entry.recordedAtIsoTimestamp !== "string"
-                    ) {
-                        continue;
-                    }
-                    this.journalEntries.push(
-                        new JournalEntry(
-                            entry.entryIdentifier,
-                            entry.scenarioNumber,
-                            entry.turnNumber,
-                            entry.entryCategory,
-                            entry.promptText,
-                            entry.responseText,
-                            entry.recordedAtIsoTimestamp,
-                        ),
-                    );
-                }
-            }
-            if (Array.isArray(parsedRecord.latestVictoryFlagsByScenarioNumber)) {
-                for (const entry of parsedRecord.latestVictoryFlagsByScenarioNumber) {
-                    if (Array.isArray(entry) && typeof entry[0] === "number" && typeof entry[1] === "boolean") {
-                        this.latestVictoryFlagsByScenarioNumber.set(entry[0], entry[1]);
-                    }
-                }
-            }
-            if (
-                parsedRecord.topicAttemptsByCedTopicCode !== null &&
-                typeof parsedRecord.topicAttemptsByCedTopicCode === "object" &&
-                !Array.isArray(parsedRecord.topicAttemptsByCedTopicCode)
-            ) {
-                for (const [topicCode, signal] of Object.entries(parsedRecord.topicAttemptsByCedTopicCode)) {
-                    if (
-                        signal !== null &&
-                        typeof signal === "object" &&
-                        typeof signal.correct === "number" &&
-                        typeof signal.attempted === "number" &&
-                        signal.correct >= 0 &&
-                        signal.attempted >= signal.correct
-                    ) {
-                        this.topicAttemptsByCedTopicCode.set(topicCode, {
-                            correct: signal.correct,
-                            attempted: signal.attempted,
-                        });
-                    }
-                }
-            }
-        } catch {
-            this.journalEntries.length = 0;
-            this.latestVictoryFlagsByScenarioNumber.clear();
-            this.topicAttemptsByCedTopicCode.clear();
-        }
+        this.saveToStorage();
     }
 
     private saveToStorage(): void {
-        if (this.storage === null) {
-            return;
-        }
-        const persistedRecord: PersistedAssessmentRecord = {
-            journalEntries: this.journalEntries.map((entry) => ({
-                entryIdentifier: entry.entryIdentifier,
-                scenarioNumber: entry.scenarioNumber,
-                turnNumber: entry.turnNumber,
-                entryCategory: entry.entryCategory,
-                promptText: entry.promptText,
-                responseText: entry.responseText,
-                recordedAtIsoTimestamp: entry.recordedAtIsoTimestamp,
-            })),
-            latestVictoryFlagsByScenarioNumber: Array.from(this.latestVictoryFlagsByScenarioNumber.entries()),
-            topicAttemptsByCedTopicCode: Object.fromEntries(this.topicAttemptsByCedTopicCode.entries()),
-        };
-        try {
-            this.storage.setItem(AssessmentManager.STORAGE_KEY, JSON.stringify(persistedRecord));
-        } catch {
-            // Keep current-session work available if browser storage is disabled or full.
-        }
+        LocalProfileManager.getInstance().saveAssessment(this.createSnapshot());
     }
 }
