@@ -10,6 +10,7 @@ export class SceneKeys {
     public static readonly PROGRESS_CHECK = "progress_check";
     public static readonly TEACHER_DASHBOARD = "teacher_dashboard";
     public static readonly SETTINGS = "settings";
+    public static readonly STUDENT_PROFILES = "student_profiles";
     public static readonly LEDGER = "ledger";
     public static readonly FOCUS_TREE = "focus_tree";
     public static readonly PRODUCTION_QUEUE = "production_queue";
@@ -30,6 +31,7 @@ export class SceneKeys {
             SceneKeys.PROGRESS_CHECK,
             SceneKeys.TEACHER_DASHBOARD,
             SceneKeys.SETTINGS,
+            SceneKeys.STUDENT_PROFILES,
             SceneKeys.LEDGER,
             SceneKeys.FOCUS_TREE,
             SceneKeys.PRODUCTION_QUEUE,
