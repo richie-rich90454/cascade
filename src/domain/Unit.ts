@@ -42,6 +42,18 @@ export class Unit extends GameEntity {
         this.stationedProvinceIdentifier = provinceIdentifier;
     }
 
+    public restoreMutableState(state: {
+        stationedProvinceIdentifier: string;
+        strengthValue: number;
+        organizationValue: number;
+        experienceValue: number;
+    }): void {
+        this.stationedProvinceIdentifier = state.stationedProvinceIdentifier;
+        this.strengthValue = state.strengthValue;
+        this.organizationValue = state.organizationValue;
+        this.experienceValue = state.experienceValue;
+    }
+
     public getStrength(): number {
         return this.strengthValue;
     }
