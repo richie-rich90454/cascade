@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
+import { LocalProfileManager } from "../managers/LocalProfileManager";
 import { SceneKeys } from "../core/SceneKeys";
 import { AssetManager } from "../managers/AssetManager";
 import { FontFamilies } from "../managers/FontManager";
@@ -9,8 +10,8 @@ import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
 export class MainMenuScene extends Phaser.Scene {
     private static readonly BUTTON_WIDTH_PX = 320;
-    private static readonly BUTTON_HEIGHT_PX = 48;
-    private static readonly BUTTON_VERTICAL_GAP_PX = 8;
+    private static readonly BUTTON_HEIGHT_PX = 44;
+    private static readonly BUTTON_VERTICAL_GAP_PX = 6;
     private static readonly BUTTON_STACK_TOP_Y = 416;
     private static readonly CONTENT_HEIGHT_FOR_SCALING_PX = 812;
 
@@ -35,79 +36,83 @@ export class MainMenuScene extends Phaser.Scene {
         this.menuContentRoot = this.add.container(0, 0);
         const screenCenterX = this.scale.width / 2;
 
-        this.menuContentRoot.add(
-            this.add
-                .text(screenCenterX, 84, "CASCADE", {
-                    fontFamily: FontFamilies.GOTHIC,
-                    fontSize: "96px",
-                    color: UiPalette.HIGHLIGHT_BRASS_CSS,
-                })
-                .setOrigin(0.5, 0.5),
-        );
-        this.menuContentRoot.add(
-            this.add
-                .text(screenCenterX, 148, "GLOBAL CONFLICT", {
-                    fontFamily: FontFamilies.GOTHIC,
-                    fontSize: "72px",
-                    color: UiPalette.BRASS_TAN_CSS,
-                })
-                .setOrigin(0.5, 0.5),
-        );
-        this.menuContentRoot.add(
-            this.add
+        const cascadeTitle = this.add
+            .text(screenCenterX, 84, "CASCADE", {
+                fontFamily: FontFamilies.GOTHIC,
+                fontSize: "96px",
+                color: UiPalette.HIGHLIGHT_BRASS_CSS,
+            })
+            .setOrigin(0.5, 0.5);
+        this.fitTextToWidth(cascadeTitle, this.scale.width - 40, 34);
+        this.menuContentRoot.add(cascadeTitle);
+        const globalConflictTitle = this.add
+            .text(screenCenterX, 148, "GLOBAL CONFLICT", {
+                fontFamily: FontFamilies.GOTHIC,
+                fontSize: "72px",
+                color: UiPalette.BRASS_TAN_CSS,
+            })
+            .setOrigin(0.5, 0.5);
+        this.fitTextToWidth(globalConflictTitle, this.scale.width - 40, 24);
+        this.menuContentRoot.add(globalConflictTitle);
+        const menuSubtitle = this.add
                 .text(screenCenterX, 212, "Global Conflict, c. 1900 to the Present", {
                     fontFamily: FontFamilies.BODY_SERIF,
                     fontSize: "26px",
                     fontStyle: "italic",
                     color: UiPalette.PARCHMENT_CSS,
                 })
-                .setOrigin(0.5, 0.5),
-        );
-        this.menuContentRoot.add(
-            this.add
+                .setOrigin(0.5, 0.5);
+        this.fitTextToWidth(menuSubtitle, this.scale.width - 40, 16);
+        this.menuContentRoot.add(menuSubtitle);
+        const menuCourseLabel = this.add
                 .text(screenCenterX, 246, "An AP World History: Modern Unit 7 Review Game", {
                     fontFamily: FontFamilies.BODY_SERIF,
                     fontSize: "18px",
                     color: UiPalette.AGED_PARCHMENT_CSS,
                 })
-                .setOrigin(0.5, 0.5),
-        );
+                .setOrigin(0.5, 0.5);
+        this.fitTextToWidth(menuCourseLabel, this.scale.width - 40, 12);
+        this.menuContentRoot.add(menuCourseLabel);
 
+        const unitOverviewWidth = Math.max(160, Math.min(640, this.scale.width - 40));
         const unitOverviewPanel = UiPanelFactory.createPanelContainer(
             this,
-            screenCenterX - 320,
-            272,
-            640,
-            132,
+            screenCenterX - unitOverviewWidth / 2,
+            270,
+            unitOverviewWidth,
+            104,
             PanelVariant.PARCHMENT,
         );
         unitOverviewPanel.add(
             UiPanelFactory.createBodyText(
                 this,
-                24,
-                16,
-                592,
-                [
-                    "Unit 7: Global Conflict, c. 1900 to the present.",
-                    "This unit represents 8-10% of your AP Exam score and takes approximately 9-12 class periods.",
-                    "The Personal Progress Check 7 includes about 25 multiple-choice questions, 2 short-answer questions, and 1 document-based question.",
-                ].join("\n"),
-                15,
+                20,
+                12,
+                unitOverviewWidth - 40,
+                this.scale.width < 540
+                    ? "AP World History Unit 7 · Global Conflict, c. 1900 to the present · 8–10% of the exam."
+                    : [
+                          "Unit 7: Global Conflict, c. 1900 to the present.",
+                          "This unit represents 8-10% of your AP Exam score and takes approximately 9-12 class periods.",
+                          "The Personal Progress Check 7 includes about 25 multiple-choice questions, 2 short-answer questions, and 1 document-based question.",
+                      ].join("\n"),
+                this.scale.width < 540 ? 12 : 13,
                 UiPalette.NEAR_BLACK_LEATHER_CSS,
             ),
         );
         this.menuContentRoot.add(unitOverviewPanel);
 
-        const buttonLeftX = screenCenterX - MainMenuScene.BUTTON_WIDTH_PX / 2;
+        const buttonWidth = Math.min(MainMenuScene.BUTTON_WIDTH_PX, this.scale.width - 48);
+        const buttonLeftX = screenCenterX - buttonWidth / 2;
         const buttonEntries: Array<{ labelText: string; onActivated: () => void }> = [
             { labelText: "HOW TO PLAY", onActivated: () => this.showHowToPlayOverlay() },
         ];
+        const savedCampaign = LocalProfileManager.getInstance().getActiveCampaign();
         const currentScenario = GameSession.getInstance().getCurrentScenario();
-        if (currentScenario !== null) {
+        if (savedCampaign !== null || currentScenario !== null) {
             buttonEntries.push({
                 labelText: "RESUME CAMPAIGN",
-                onActivated: () =>
-                    this.scene.start(SceneKeys.SCENARIO_PLAY, { scenarioNumber: currentScenario.getScenarioNumber() }),
+                onActivated: () => this.resumeSavedCampaign(),
             });
         }
         buttonEntries.push(
@@ -115,6 +120,7 @@ export class MainMenuScene extends Phaser.Scene {
             { labelText: "PROGRESS CHECK", onActivated: () => this.scene.start(SceneKeys.PROGRESS_CHECK) },
             { labelText: "TEACHER DASHBOARD", onActivated: () => this.scene.start(SceneKeys.TEACHER_DASHBOARD) },
             { labelText: "SETTINGS", onActivated: () => this.scene.start(SceneKeys.SETTINGS) },
+            { labelText: "STUDENT PROFILES", onActivated: () => this.scene.start(SceneKeys.STUDENT_PROFILES) },
         );
         buttonEntries.forEach((buttonEntry, buttonIndex) => {
             this.menuContentRoot?.add(
@@ -122,7 +128,7 @@ export class MainMenuScene extends Phaser.Scene {
                     this,
                     buttonLeftX,
                     this.getButtonTopY(buttonIndex),
-                    MainMenuScene.BUTTON_WIDTH_PX,
+                    buttonWidth,
                     MainMenuScene.BUTTON_HEIGHT_PX,
                     buttonEntry.labelText,
                     buttonEntry.onActivated,
@@ -145,8 +151,53 @@ export class MainMenuScene extends Phaser.Scene {
         creditText.setPadding(10, 5, 10, 5);
         this.menuContentRoot.add(creditText);
 
+        const profileManager = LocalProfileManager.getInstance();
+        const profileStatus = profileManager.getRecoveryMessage();
+        const activeProfile = profileManager.getActiveProfile();
+        const statusText = profileStatus.length > 0
+            ? profileStatus
+            : `LOCAL PROFILE · ${activeProfile.displayName}${profileManager.getActiveCampaign() === null ? "" : " · CAMPAIGN SAVED"}`;
+        const saveStatus = this.add.text(screenCenterX, 386, statusText, {
+            fontFamily: FontFamilies.TYPEWRITER_BODY,
+            fontSize: "14px",
+            color: profileManager.canSaveLocally() ? UiPalette.PARCHMENT_CSS : UiPalette.ALERT_TEXT_ON_DARK_CSS,
+            align: "center",
+            wordWrap: { width: Math.min(800, this.scale.width - 48) },
+            backgroundColor: UiPalette.NEAR_BLACK_LEATHER_CSS,
+            padding: { x: 8, y: 5 },
+        });
+        saveStatus.setOrigin(0.5, 0.5);
+        this.menuContentRoot.add(saveStatus);
+
         this.applyContentScaling();
         GameSession.getInstance().getAudioManager().playMusicTrack("menu_main");
+    }
+
+    private resumeSavedCampaign(): void {
+        const save = LocalProfileManager.getInstance().getActiveCampaign();
+        if (save === null) {
+            const currentScenario = GameSession.getInstance().getCurrentScenario();
+            if (currentScenario !== null) {
+                this.scene.start(SceneKeys.SCENARIO_PLAY, { scenarioNumber: currentScenario.getScenarioNumber() });
+                return;
+            }
+            this.scene.restart();
+            return;
+        }
+        if (!GameSession.getInstance().restoreCampaign(save)) {
+            LocalProfileManager.getInstance().reportRecoveryIssue(
+                "The saved campaign did not match the current game data. Your profile and last valid save were kept; start a new campaign or restore another profile.",
+            );
+            this.scene.restart();
+            return;
+        }
+        this.scene.start(SceneKeys.SCENARIO_PLAY, {
+            scenarioNumber: save.scenarioNumber,
+            phaseIndex: save.playProgress.phaseIndex,
+            walkthroughEnabled: save.playProgress.walkthroughEnabled,
+            walkthroughPaused: save.playProgress.walkthroughPaused,
+            walkthroughStep: save.playProgress.walkthroughStep,
+        });
     }
 
     private applyContentScaling(): void {
@@ -166,6 +217,15 @@ export class MainMenuScene extends Phaser.Scene {
             MainMenuScene.BUTTON_STACK_TOP_Y +
             buttonIndex * (MainMenuScene.BUTTON_HEIGHT_PX + MainMenuScene.BUTTON_VERTICAL_GAP_PX)
         );
+    }
+
+    private fitTextToWidth(textObject: Phaser.GameObjects.Text, availableWidth: number, minimumFontSize: number): void {
+        let currentFontSize = Number.parseFloat(String(textObject.style.fontSize));
+        const minimumInternalFontSize = minimumFontSize / Math.max(0.1, textObject.scaleX);
+        while (textObject.displayWidth > availableWidth && currentFontSize > minimumInternalFontSize) {
+            currentFontSize = Math.max(minimumInternalFontSize, currentFontSize - 1);
+            textObject.setFontSize(currentFontSize);
+        }
     }
 
     private showHowToPlayOverlay(): void {
