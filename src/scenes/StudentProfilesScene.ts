@@ -2,10 +2,11 @@ import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
-import { LocalProfileManager } from "../managers/LocalProfileManager";
 import { FontFamilies } from "../managers/FontManager";
+import { LocalProfileManager } from "../managers/LocalProfileManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 
 export class StudentProfilesScene extends Phaser.Scene {
     private activeDialogElement: HTMLElement | null;
@@ -28,12 +29,17 @@ export class StudentProfilesScene extends Phaser.Scene {
         UiPanelFactory.createBrassButton(this, 24, 24, 150, 44, "BACK", () => this.scene.start(SceneKeys.MAIN_MENU));
         UiPanelFactory.createSectionHeader(this, 206, 30, "LOCAL STUDENT PROFILES", 28);
 
-        const intro = this.add.text(32, 120, "Each profile keeps its own campaigns, journal, and assessment progress on this device.", {
-            fontFamily: FontFamilies.BODY_SERIF,
-            fontSize: "18px",
-            color: UiPalette.PARCHMENT_CSS,
-            wordWrap: { width: width - 64 },
-        });
+        const intro = this.add.text(
+            32,
+            120,
+            "Each profile keeps its own campaigns, journal, and assessment progress on this device.",
+            {
+                fontFamily: FontFamilies.BODY_SERIF,
+                fontSize: "18px",
+                color: UiPalette.PARCHMENT_CSS,
+                wordWrap: { width: width - 64 },
+            },
+        );
         void intro;
 
         const cardWidth = Math.min(700, width - 64);
@@ -55,44 +61,55 @@ export class StudentProfilesScene extends Phaser.Scene {
             const isActive = profile.profileIdentifier === activeProfile.profileIdentifier;
             const hasCampaign = profile.campaign !== null;
             const description = `${profile.displayName}${isActive ? " · ACTIVE" : ""}${hasCampaign ? ` · CAMPAIGN SAVED AT CHAPTER ${profile.campaign?.turnManager.turnNumber}` : " · NO CAMPAIGN SAVE"}`;
-            row.add(UiPanelFactory.createBrassButton(this, 0, 0, cardWidth - 36, 42, description, () => {
-                this.activateProfile(profile.profileIdentifier);
-            }));
-            row.add(UiPanelFactory.createBrassButton(this, 0, 46, 128, 34, "RENAME", () => {
-                this.openNameDialog("Rename student profile", profile.displayName, "SAVE NAME", (nextName) => {
-                    if (LocalProfileManager.getInstance().renameProfile(profile.profileIdentifier, nextName)) {
-                        this.scene.restart();
-                    } else {
-                        this.showStatus(LocalProfileManager.getInstance().getRecoveryMessage());
-                    }
-                });
-            }));
-            row.add(UiPanelFactory.createBrassButton(this, 138, 46, 128, 34, "DELETE", () => {
-                if (profiles.length <= 1) {
-                    this.showStatus("Keep at least one local student profile.");
-                    return;
-                }
-                this.openConfirmDialog(
-                    "Delete this profile?",
-                    `Delete ${profile.displayName} and its saved campaigns, journal, and assessment records from this browser?`,
-                    "DELETE PROFILE",
-                    () => {
-                        const profileManager = LocalProfileManager.getInstance();
-                        if (profile.profileIdentifier === profileManager.getActiveProfile().profileIdentifier) {
-                            const nextProfile = profiles.find((candidate) => candidate.profileIdentifier !== profile.profileIdentifier);
-                            if (nextProfile === undefined || !GameSession.getInstance().switchToProfile(nextProfile.profileIdentifier)) {
-                                this.showStatus(profileManager.getRecoveryMessage());
-                                return;
-                            }
-                        }
-                        if (profileManager.deleteProfile(profile.profileIdentifier)) {
+            row.add(
+                UiPanelFactory.createBrassButton(this, 0, 0, cardWidth - 36, 42, description, () => {
+                    this.activateProfile(profile.profileIdentifier);
+                }),
+            );
+            row.add(
+                UiPanelFactory.createBrassButton(this, 0, 46, 128, 34, "RENAME", () => {
+                    this.openNameDialog("Rename student profile", profile.displayName, "SAVE NAME", (nextName) => {
+                        if (LocalProfileManager.getInstance().renameProfile(profile.profileIdentifier, nextName)) {
                             this.scene.restart();
                         } else {
-                            this.showStatus(profileManager.getRecoveryMessage());
+                            this.showStatus(LocalProfileManager.getInstance().getRecoveryMessage());
                         }
+                    });
+                }),
+            );
+            row.add(
+                UiPanelFactory.createBrassButton(this, 138, 46, 128, 34, "DELETE", () => {
+                    if (profiles.length <= 1) {
+                        this.showStatus("Keep at least one local student profile.");
+                        return;
                     }
-                );
-            }));
+                    this.openConfirmDialog(
+                        "Delete this profile?",
+                        `Delete ${profile.displayName} and its saved campaigns, journal, and assessment records from this browser?`,
+                        "DELETE PROFILE",
+                        () => {
+                            const profileManager = LocalProfileManager.getInstance();
+                            if (profile.profileIdentifier === profileManager.getActiveProfile().profileIdentifier) {
+                                const nextProfile = profiles.find(
+                                    (candidate) => candidate.profileIdentifier !== profile.profileIdentifier,
+                                );
+                                if (
+                                    nextProfile === undefined ||
+                                    !GameSession.getInstance().switchToProfile(nextProfile.profileIdentifier)
+                                ) {
+                                    this.showStatus(profileManager.getRecoveryMessage());
+                                    return;
+                                }
+                            }
+                            if (profileManager.deleteProfile(profile.profileIdentifier)) {
+                                this.scene.restart();
+                            } else {
+                                this.showStatus(profileManager.getRecoveryMessage());
+                            }
+                        },
+                    );
+                }),
+            );
             rowsContainer.add(row);
         });
 
@@ -104,15 +121,20 @@ export class StudentProfilesScene extends Phaser.Scene {
             _deltaX: number,
             deltaY: number,
         ): void => {
+            const pointerPosition = UiScrollInput.getCssPointerPosition(pointer);
             if (
-                pointer.x < listLeft ||
-                pointer.x > listLeft + cardWidth ||
-                pointer.y < viewportTop ||
-                pointer.y > viewportTop + viewportHeight
+                pointerPosition.x < listLeft ||
+                pointerPosition.x > listLeft + cardWidth ||
+                pointerPosition.y < viewportTop ||
+                pointerPosition.y > viewportTop + viewportHeight
             ) {
                 return;
             }
-            scrollOffset = Phaser.Math.Clamp(scrollOffset + deltaY, 0, maxScrollOffset);
+            scrollOffset = Phaser.Math.Clamp(
+                scrollOffset + UiScrollInput.getWheelDeltaPx(pointer, deltaY, viewportHeight),
+                0,
+                maxScrollOffset,
+            );
             rowsContainer.y = viewportTop - scrollOffset;
         };
         this.input.on("wheel", onWheel);
@@ -134,31 +156,47 @@ export class StudentProfilesScene extends Phaser.Scene {
         });
 
         if (profiles.length * 94 > viewportHeight) {
-            const scrollHint = this.add.text(listLeft + cardWidth - 20, listTop + listHeight - 68, "SCROLL OR USE PAGE UP / PAGE DOWN", {
-                fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: "12px",
-                color: UiPalette.AGED_PARCHMENT_CSS,
-            });
+            const scrollHint = this.add.text(
+                listLeft + cardWidth - 20,
+                listTop + listHeight - 68,
+                "SCROLL OR USE PAGE UP / PAGE DOWN",
+                {
+                    fontFamily: FontFamilies.TYPEWRITER_BODY,
+                    fontSize: "12px",
+                    color: UiPalette.AGED_PARCHMENT_CSS,
+                },
+            );
             scrollHint.setOrigin(1, 0);
         }
 
-        UiPanelFactory.createBrassButton(this, listLeft + 18, listTop + listHeight - 58, cardWidth - 36, 44, "ADD STUDENT PROFILE", () => {
-            this.openNameDialog("Add student profile", "", "CREATE PROFILE", (newName) => {
-                const newProfile = LocalProfileManager.getInstance().createProfile(newName);
-                if (newProfile === null) {
-                    this.showStatus(LocalProfileManager.getInstance().getRecoveryMessage());
-                    return;
-                }
-                GameSession.getInstance().clearActiveSession();
-                GameSession.getInstance().getAssessmentManager().restoreSnapshot(newProfile.assessment);
-                this.scene.restart();
-            });
-        });
+        UiPanelFactory.createBrassButton(
+            this,
+            listLeft + 18,
+            listTop + listHeight - 58,
+            cardWidth - 36,
+            44,
+            "ADD STUDENT PROFILE",
+            () => {
+                this.openNameDialog("Add student profile", "", "CREATE PROFILE", (newName) => {
+                    const newProfile = LocalProfileManager.getInstance().createProfile(newName);
+                    if (newProfile === null) {
+                        this.showStatus(LocalProfileManager.getInstance().getRecoveryMessage());
+                        return;
+                    }
+                    GameSession.getInstance().clearActiveSession();
+                    GameSession.getInstance().getAssessmentManager().restoreSnapshot(newProfile.assessment);
+                    this.scene.restart();
+                });
+            },
+        );
 
         const recoveryMessage = LocalProfileManager.getInstance().getRecoveryMessage();
-        this.showStatus(recoveryMessage || (LocalProfileManager.getInstance().canSaveLocally()
-            ? `Active profile: ${activeProfile.displayName}. Saves update automatically after each completed action.`
-            : "Local saving is unavailable in this browser. Progress will last only until this tab closes."));
+        this.showStatus(
+            recoveryMessage ||
+                (LocalProfileManager.getInstance().canSaveLocally()
+                    ? `Active profile: ${activeProfile.displayName}. Saves update automatically after each completed action.`
+                    : "Local saving is unavailable in this browser. Progress will last only until this tab closes."),
+        );
         this.input.keyboard?.once("keydown-ESC", () => this.scene.start(SceneKeys.MAIN_MENU));
     }
 
@@ -264,7 +302,12 @@ export class StudentProfilesScene extends Phaser.Scene {
         });
     }
 
-    private openConfirmDialog(title: string, descriptionText: string, confirmLabel: string, onConfirm: () => void): void {
+    private openConfirmDialog(
+        title: string,
+        descriptionText: string,
+        confirmLabel: string,
+        onConfirm: () => void,
+    ): void {
         this.closeDialog();
         const overlay = document.createElement("div");
         overlay.className = "profile-dialog-backdrop";
