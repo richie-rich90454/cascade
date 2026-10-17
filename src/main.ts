@@ -17,12 +17,14 @@ import { ProgressCheckScene } from "./scenes/ProgressCheckScene";
 import { ScenarioBriefingScene } from "./scenes/ScenarioBriefingScene";
 import { ScenarioPlayScene } from "./scenes/ScenarioPlayScene";
 import { SettingsScene } from "./scenes/SettingsScene";
+import { StudentProfilesScene } from "./scenes/StudentProfilesScene";
 import { SourceAnalysisScene } from "./scenes/SourceAnalysisScene";
 import { TeacherDashboardScene } from "./scenes/TeacherDashboardScene";
 import { WarScoreScene } from "./scenes/WarScoreScene";
 
 const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
-    type: Phaser.AUTO,
+    // Scroll panels use Phaser geometry masks, which Phaser 4 supports only in Canvas.
+    type: Phaser.CANVAS,
     parent: "cascade-game-root",
     backgroundColor: "#1A1410",
     scale: {
@@ -50,6 +52,7 @@ const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
         ProgressCheckScene,
         TeacherDashboardScene,
         SettingsScene,
+        StudentProfilesScene,
         LedgerScene,
         FocusTreeScene,
         ProductionQueueScene,
@@ -74,6 +77,13 @@ window.addEventListener("pointerdown", unlockGameAudio, { once: true });
 window.addEventListener("keydown", unlockGameAudio, { once: true });
 
 cascadeGame.events.once(Phaser.Core.Events.READY, () => {
+    cascadeGame.canvas.tabIndex = 0;
+    cascadeGame.canvas.setAttribute("role", "application");
+    cascadeGame.canvas.setAttribute(
+        "aria-label",
+        "Cascade historical strategy game. Press Tab to move between controls, then Enter or Space to activate. Use the arrow keys to inspect the map.",
+    );
+    cascadeGame.canvas.addEventListener("pointerdown", () => cascadeGame.canvas.focus());
     for (const registeredScene of cascadeGame.scene.scenes) {
         registeredScene.events.on(Phaser.Scenes.Events.CREATE, () => {
             HighDpiConfigurator.getInstance().registerScene(registeredScene);
