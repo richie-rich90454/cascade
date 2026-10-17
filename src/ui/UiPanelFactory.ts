@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { FontFamilies } from "../managers/FontManager";
+import { UiKeyboardFocus } from "./UiKeyboardFocus";
 import { UiPalette } from "./UiPalette";
 
 export class PanelVariant {
@@ -73,17 +74,24 @@ export class UiPanelFactory {
     ): Phaser.GameObjects.Container {
         const buttonContainer = scene.add.container(x, y);
         const buttonGraphics = scene.add.graphics();
+        let currentFillColor = UiPalette.MID_OLIVE;
+        let isKeyboardFocused = false;
         const redrawButton = (fillColor: number): void => {
+            currentFillColor = fillColor;
             buttonGraphics.clear();
             buttonGraphics.fillStyle(fillColor, 1);
             buttonGraphics.fillRect(0, 0, pixelWidth, pixelHeight);
             const isHovered = fillColor === UiPalette.BUTTON_HOVER;
             buttonGraphics.lineStyle(
-                isHovered ? 2 : 1,
-                isHovered ? UiPalette.HIGHLIGHT_BRASS : UiPalette.FIELD_GRAY,
+                isHovered || isKeyboardFocused ? 3 : 1,
+                isHovered || isKeyboardFocused ? UiPalette.HIGHLIGHT_BRASS : UiPalette.FIELD_GRAY,
                 1,
             );
             buttonGraphics.strokeRect(1, 1, pixelWidth - 2, pixelHeight - 2);
+            if (isKeyboardFocused) {
+                buttonGraphics.lineStyle(2, UiPalette.HIGHLIGHT_BRASS, 1);
+                buttonGraphics.strokeRect(4, 4, pixelWidth - 8, pixelHeight - 8);
+            }
         };
         redrawButton(UiPalette.MID_OLIVE);
         const buttonLabel = scene.add.text(pixelWidth / 2, pixelHeight / 2, buttonLabelText, {
@@ -92,9 +100,28 @@ export class UiPanelFactory {
             fontStyle: "bold",
             color: UiPalette.PARCHMENT_CSS,
         });
+        const availableLabelWidth = Math.max(24, pixelWidth - 20);
+        if (buttonLabel.width > availableLabelWidth) {
+            const fittedFontSize = Phaser.Math.Clamp(
+                Math.floor((16 * availableLabelWidth) / buttonLabel.width),
+                12,
+                16,
+            );
+            buttonLabel.setFontSize(fittedFontSize);
+        }
+        buttonLabel.setWordWrapWidth(availableLabelWidth, true);
         buttonLabel.setOrigin(0.5, 0.5);
         const buttonZone = scene.add.zone(0, 0, pixelWidth, pixelHeight).setOrigin(0, 0);
         buttonZone.setInteractive({ useHandCursor: true });
+        const focusHandle = UiKeyboardFocus.register(scene, {
+            container: buttonContainer,
+            setFocused: (isFocused) => {
+                isKeyboardFocused = isFocused;
+                redrawButton(currentFillColor);
+            },
+            activate: onButtonClicked,
+        });
+        buttonZone.on("pointerdown", () => focusHandle.focus());
         buttonZone.on("pointerover", () => {
             redrawButton(UiPalette.BUTTON_HOVER);
         });
