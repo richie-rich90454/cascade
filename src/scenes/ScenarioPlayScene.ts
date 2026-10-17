@@ -49,6 +49,7 @@ import { TerritorialHoldingsChartComponent } from "../ui/TerritorialHoldingsChar
 import { TestimonyPanelComponent } from "../ui/TestimonyPanelComponent";
 import { TopBarComponent } from "../ui/TopBarComponent";
 import { UiPalette } from "../ui/UiPalette";
+import { UiKeyboardFocus } from "../ui/UiKeyboardFocus";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 import { ScrollRegion, UiPointerRouting } from "../ui/UiPointerRouting";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
@@ -108,6 +109,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private toastContainer: Phaser.GameObjects.Container | null;
     private questTrackerComponent: QuestTrackerComponent | null;
     private rightSidebarComponent: RightSidebarComponent | null;
+    private contextPanelBlockingZone: Phaser.GameObjects.Zone | null;
     private leftSidebarComponent: LeftSidebarComponent | null;
     private mapModesToggleButton: Phaser.GameObjects.Container | null;
     private objectivesToggleButton: Phaser.GameObjects.Container | null;
@@ -127,6 +129,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private boundDecisionHandler: (payload: unknown) => void;
     private boundMechanicHandler: (payload: unknown) => void;
     private boundSourceHandler: (payload: unknown) => void;
+    private boundCausalHandler: (payload: unknown) => void;
+    private boundFocusHandler: (payload: unknown) => void;
+    private boundContinuityHandler: (payload: unknown) => void;
     private readonly boundMapLeftKeyHandler: () => void;
     private readonly boundMapRightKeyHandler: () => void;
     private readonly boundMapEnterKeyHandler: () => void;
@@ -153,6 +158,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.toastContainer = null;
         this.questTrackerComponent = null;
         this.rightSidebarComponent = null;
+        this.contextPanelBlockingZone = null;
         this.leftSidebarComponent = null;
         this.mapModesToggleButton = null;
         this.objectivesToggleButton = null;
@@ -172,10 +178,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.boundDecisionHandler = () => undefined;
         this.boundMechanicHandler = () => undefined;
         this.boundSourceHandler = () => undefined;
+        this.boundCausalHandler = () => undefined;
+        this.boundFocusHandler = () => undefined;
+        this.boundContinuityHandler = () => undefined;
         this.boundMapLeftKeyHandler = () => this.moveProvinceMapSelection(-1);
         this.boundMapRightKeyHandler = () => this.moveProvinceMapSelection(1);
         this.boundMapEnterKeyHandler = () => {
-            if (this.mechanicOverlayContainer !== null) {
+            if (this.mechanicOverlayContainer !== null || UiKeyboardFocus.hasFocus(this)) {
                 return;
             }
             const identifier = this.provinceIdentifiersInMapOrder[this.selectedProvinceMapIndex];
@@ -195,7 +204,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 : sessionScenario === null
                   ? 1
                   : sessionScenario.getScenarioNumber();
-        this.phaseIndex = 0;
+        const savedProgress = GameSession.getInstance().getPlayProgress();
+        this.phaseIndex =
+            typeof selectionPayload.phaseIndex === "number" ? selectionPayload.phaseIndex : savedProgress.phaseIndex;
         this.lastConsequenceText = "";
         this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Arc>();
         this.historicalMapImage = null;
@@ -210,7 +221,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.phaseCardPointerRegion = null;
         this.mapPointerDownPosition = null;
         this.isMapModesPanelOpen = false;
-        this.areInformationPanelsOpen = false;
+        this.areInformationPanelsOpen = this.scenarioNumber === 1 && this.scale.width >= 900;
         this.isPhaseDetailsExpanded = false;
     }
 
@@ -287,18 +298,25 @@ export class ScenarioPlayScene extends Phaser.Scene {
     } {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
-        const contentLeftX = 140;
-        const contentRightX = screenWidth - 344;
-        const contentWidth = Math.max(360, contentRightX - contentLeftX);
-        const phaseCardHeight = this.isPhaseDetailsExpanded ? 216 : 84;
+        const isCompactLayout = screenWidth < 1100;
+        const contentLeftX = isCompactLayout ? 24 : 140;
+        const contentRightX = screenWidth < 820
+            ? screenWidth - 24
+            : screenWidth - (isCompactLayout ? 356 : 344);
+        const contentWidth = Math.max(120, Math.min(screenWidth - contentLeftX - 12, contentRightX - contentLeftX));
+        const phaseCardHeight = this.scenarioNumber === 1
+            ? (screenWidth < 460 ? 272 : isCompactLayout ? 232 : this.isPhaseDetailsExpanded ? 232 : 164)
+            : this.isPhaseDetailsExpanded ? 216 : 84;
         const phaseCardTopY = screenHeight - 64 - phaseCardHeight - 4;
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
         const rightColumnHeight = rightColumnBottomY - rightColumnTopY;
+        const rightPanelWidth = Math.min(324, Math.max(160, screenWidth - 24));
+        const rightPanelLeftX = screenWidth - rightPanelWidth - 12;
         return {
-            map: new LayoutRect(contentLeftX, 96, contentWidth, Math.max(280, phaseCardTopY - 96 - 8)),
-            questTracker: new LayoutRect(screenWidth - 340, rightColumnTopY, 324, rightColumnHeight),
-            contextPanel: new LayoutRect(screenWidth - 340, rightColumnTopY, 324, rightColumnHeight),
+            map: new LayoutRect(contentLeftX, 96, contentWidth, Math.max(80, phaseCardTopY - 96 - 8)),
+            questTracker: new LayoutRect(rightPanelLeftX, rightColumnTopY, rightPanelWidth, rightColumnHeight),
+            contextPanel: new LayoutRect(rightPanelLeftX, rightColumnTopY, rightPanelWidth, rightColumnHeight),
             phaseCard: new LayoutRect(
                 contentLeftX,
                 screenHeight - 64 - phaseCardHeight - 4,
@@ -385,8 +403,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
             }
         });
         mapContainer.add(provinceSelectionZone);
+        const mapImageTopOffsetY = Math.max(0, (layoutRects.map.height - mapPixelHeight) / 2);
         const mapHudContainer = this.add
-            .container(layoutRects.map.leftX, layoutRects.map.topY)
+            .container(layoutRects.map.leftX, layoutRects.map.topY + mapImageTopOffsetY)
             .setDepth(UiPalette.UI_DEPTH_SIDEBAR);
         this.historicalMapYearLabel = this.add
             .text(
@@ -403,29 +422,47 @@ export class ScenarioPlayScene extends Phaser.Scene {
             )
             .setOrigin(1, 0);
         mapHudContainer.add(this.historicalMapYearLabel);
+        const mapHudFontSize = mapPixelWidth < 360 ? "11px" : mapPixelWidth < 620 ? "12px" : "14px";
+        const mapHudTextWidth = Math.max(96, mapPixelWidth - 36);
         const mapInstructions = this.add.text(
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 95 : 58),
-            mapPixelWidth < 620 ? "DRAG · SCROLL · SELECT" : "DRAG TO PAN · SCROLL TO ZOOM · SELECT A MARKER",
+            this.scenarioNumber === 1
+                ? mapPixelWidth < 400
+                    ? "MARKERS INSPECT · CHAPTER CARD GIVES NEXT ACTION"
+                    : mapPixelWidth < 620
+                    ? "MARKERS INSPECT · CHAPTER BUTTONS MAKE POLICY CHOICES"
+                    : "MAP MARKERS INSPECT HISTORY · CHAPTER BUTTONS MAKE POLICY CHOICES"
+                : mapPixelWidth < 400
+                  ? "DRAG TO PAN · WHEEL TO ZOOM · SELECT"
+                  : mapPixelWidth < 620
+                    ? "DRAG · SCROLL · SELECT"
+                  : "DRAG TO PAN · SCROLL TO ZOOM · SELECT A MARKER",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                fontSize: mapHudFontSize,
                 color: UiPalette.PARCHMENT_CSS,
                 backgroundColor: "#172128",
                 padding: { x: 10, y: 7 },
+                wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
         mapHudContainer.add(mapInstructions);
         this.disputedMapLegendText = this.add.text(
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 125 : 25),
-            mapPixelWidth < 620 ? "DISPUTED TERRITORY · HATCHED" : "DISPUTED TERRITORY · HATCHED AREA IS APPROXIMATE",
+            mapPixelWidth < 400
+                ? "DISPUTED AREA IS APPROXIMATE"
+                : mapPixelWidth < 620
+                  ? "DISPUTED TERRITORY · HATCHED"
+                  : "DISPUTED TERRITORY · HATCHED AREA IS APPROXIMATE",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                fontSize: mapHudFontSize,
                 color: UiPalette.PARCHMENT_CSS,
                 backgroundColor: "#172128",
                 padding: { x: 10, y: 7 },
+                wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
         this.disputedMapLegendText.setVisible(true);
@@ -433,15 +470,18 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.tibetHistoryNoteText = this.add.text(
             18,
             48,
-            mapPixelWidth < 620
+            mapPixelWidth < 400
+                ? "TIBET · CHINA ADMINISTRATION BY 1960"
+                : mapPixelWidth < 620
                 ? "TIBET · CHINESE ADMINISTRATION BY 1960"
                 : "TIBET · ADMINISTERED BY THE PEOPLE'S REPUBLIC OF CHINA BY 1960 · 1951 ACCOUNTS DIFFER",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                fontSize: mapHudFontSize,
                 color: UiPalette.PARCHMENT_CSS,
                 backgroundColor: "#172128",
                 padding: { x: 10, y: 7 },
+                wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
         this.tibetHistoryNoteText.setVisible(historicalMapYear >= 1960);
@@ -455,15 +495,18 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.taiwanHistoryNoteText = this.add.text(
             18,
             82,
-            mapPixelWidth < 620
+            mapPixelWidth < 400
+                ? "TAIWAN · CHINA COLOR GROUP FROM 1945"
+                : mapPixelWidth < 620
                 ? "TAIWAN · SAME COLOR GROUP SINCE 1945 · REPUBLIC OF CHINA GOVERNMENT"
                 : "TAIWAN · SAME COLOR GROUP FROM 1945 · GOVERNED BY REPUBLIC OF CHINA · CLAIMED BY PEOPLE'S REPUBLIC OF CHINA",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: mapPixelWidth < 620 ? "12px" : "14px",
+                fontSize: mapHudFontSize,
                 color: UiPalette.PARCHMENT_CSS,
                 backgroundColor: "#172128",
                 padding: { x: 10, y: 7 },
+                wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
         this.taiwanHistoryNoteText.setVisible(historicalMapYear >= 1945);
@@ -591,7 +634,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
         const layoutRects = this.getLayoutRects();
-        this.topBarComponent = new TopBarComponent(this, 0, 0, screenWidth, gameSession.getGameState());
+        this.topBarComponent = new TopBarComponent(
+            this,
+            0,
+            0,
+            screenWidth,
+            gameSession.getGameState(),
+            this.scenario?.getScenarioResourceCodes(),
+        );
         const scenarioHeaderComponent = new ScenarioHeaderComponent(this, 8, 52, 560);
         if (this.scenario !== null) {
             scenarioHeaderComponent.setScenario(this.scenario);
@@ -618,7 +668,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
             layoutRects.contextPanel.height,
         );
         this.rightSidebarComponent.setContentToEmptyPrompt();
-        this.rightSidebarComponent.setVisible(this.areInformationPanelsOpen);
+        // Keep objectives visible on entry; the inspector appears only after
+        // a province is selected, so it cannot cover the task list.
+        this.rightSidebarComponent.setVisible(false);
         this.registerPointerRegion(
             new ScrollRegion(
                 layoutRects.contextPanel.leftX,
@@ -636,6 +688,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         contextPanelBlockingZone.setOrigin(0, 0);
         contextPanelBlockingZone.setInteractive();
         contextPanelBlockingZone.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
+        contextPanelBlockingZone.setVisible(false);
+        this.contextPanelBlockingZone = contextPanelBlockingZone;
         this.mapModesToggleButton = UiPanelFactory.createBrassButton(this, 8, 144, 176, 38, "SHOW MAP MODES", () =>
             this.setMapModesPanelOpen(!this.isMapModesPanelOpen),
         );
@@ -651,9 +705,21 @@ export class ScenarioPlayScene extends Phaser.Scene {
         );
         this.objectivesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
         this.objectivesToggleButton.setVisible(!this.areInformationPanelsOpen);
-        this.bottomBarComponent = new BottomBarComponent(this, 0, screenHeight - 56, screenWidth, 56);
+        this.bottomBarComponent = new BottomBarComponent(
+            this,
+            0,
+            screenHeight - 56,
+            screenWidth,
+            56,
+            this.scenarioNumber !== 1,
+            this.scenarioNumber === 1,
+        );
         this.bottomBarComponent.setTurnDisplay(gameSession.getCurrentTurnNumber(), gameSession.getTotalTurnCount());
-        this.bottomBarComponent.setPhaseDisplay(TurnPhaseLabel.PHASE_LABELS[this.phaseIndex]);
+        this.bottomBarComponent.setPhaseDisplay(
+            this.scenarioNumber === 1
+                ? this.getPowderKegChapterTitle(GameSession.getInstance().getCurrentTurnNumber())
+                : TurnPhaseLabel.PHASE_LABELS[this.phaseIndex],
+        );
         this.refreshQuestTracker();
     }
 
@@ -672,6 +738,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.areInformationPanelsOpen = isOpen;
         this.questTrackerComponent?.setVisible(isOpen);
         this.rightSidebarComponent?.setVisible(false);
+        this.contextPanelBlockingZone?.setVisible(false);
         const buttonLabel = "SHOW OBJECTIVES";
         this.objectivesToggleButton?.setVisible(!isOpen);
         this.objectivesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
@@ -730,6 +797,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             .setOrigin(0, 0);
         blockingZone.setInteractive();
         this.phaseCardContainer.add(blockingZone);
+        if (this.scenarioNumber === 1) {
+            this.renderPowderKegChapterCard(phasePanel, layoutRects);
+            return;
+        }
         const currentPhaseLabel = TurnPhaseLabel.PHASE_LABELS[this.phaseIndex];
         const currentTurnNumber = GameSession.getInstance().getCurrentTurnNumber();
         const phaseProgressLabel = currentTurnNumber === 1 ? "GUIDED FIRST ROUND · " : "";
@@ -851,6 +922,354 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 },
             ),
         );
+    }
+
+    private renderPowderKegChapterCard(
+        phasePanel: Phaser.GameObjects.Container,
+        layoutRects: { phaseCard: LayoutRect },
+    ): void {
+        const session = GameSession.getInstance();
+        const turnNumber = session.getCurrentTurnNumber();
+        const chapterTitle = this.getPowderKegChapterTitle(turnNumber);
+        const action = this.getPowderKegNextAction(turnNumber);
+        const chapterCardWidth = layoutRects.phaseCard.width;
+        const isCompact = chapterCardWidth < 560;
+        const actionButtonWidth = isCompact ? Math.min(224, chapterCardWidth - 40) : 224;
+        const actionButtonX = isCompact ? (chapterCardWidth - actionButtonWidth) / 2 : chapterCardWidth - 244;
+        const actionButtonY = isCompact ? 148 : 22;
+        const guideControlsY = isCompact ? (this.scale.width < 460 ? 198 : 196) : 112;
+        const guideTextWidth = isCompact ? chapterCardWidth - 40 : chapterCardWidth - 276;
+        const guideStepNumber = this.getPowderKegGuideStep();
+        const progress = session.getPlayProgress();
+
+        const nextProgress = {
+            ...progress,
+            phaseIndex: Math.max(0, turnNumber - 1),
+            walkthroughStep: guideStepNumber,
+        };
+        if (
+            nextProgress.phaseIndex !== progress.phaseIndex ||
+            nextProgress.walkthroughStep !== progress.walkthroughStep
+        ) {
+            session.setPlayProgress(nextProgress);
+        }
+
+        const guideStateLabel = !progress.walkthroughEnabled
+            ? "WALKTHROUGH SKIPPED"
+            : progress.walkthroughPaused
+              ? `WALKTHROUGH PAUSED · STEP ${guideStepNumber} OF 15`
+              : `GUIDED STEP ${guideStepNumber} OF 15`;
+        const chapterHeader = UiPanelFactory.createSectionHeader(
+                this,
+                18,
+                10,
+                `CHAPTER ${turnNumber} OF ${session.getTotalTurnCount()} · ${chapterTitle.toUpperCase()}${isCompact ? ` · ${guideStateLabel}` : ""}`,
+                isCompact ? 14 : 17,
+            );
+        chapterHeader.setWordWrapWidth(chapterCardWidth - 36, true);
+        phasePanel.add(chapterHeader);
+        const isNarrowPhone = this.scale.width < 460;
+        const summaryText = isNarrowPhone && turnNumber === 1
+            ? "Map markers inspect historical locations. Select the highlighted chapter button to begin."
+            : action?.instruction ??
+            (turnNumber >= session.getTotalTurnCount()
+                ? "The chapter activities are complete. Open the final debrief to review your evidence and finish the scenario."
+                : `All required activities for ${chapterTitle} are complete. Advance to the next dated chapter when you are ready.`);
+        const actionTitle = action?.title ??
+            (turnNumber >= session.getTotalTurnCount() ? "Review your evidence" : "Chapter activities complete");
+        phasePanel.add(
+            UiPanelFactory.createBodyText(
+                this,
+                20,
+                isNarrowPhone ? 54 : 42,
+                isCompact ? chapterCardWidth - 40 : chapterCardWidth - 276,
+                actionTitle,
+                isNarrowPhone ? 13 : isCompact ? 16 : 18,
+                UiPalette.HIGHLIGHT_BRASS_CSS,
+            ),
+        );
+        phasePanel.add(
+            UiPanelFactory.createBodyText(
+                this,
+                20,
+                isNarrowPhone ? 86 : 68,
+                isCompact ? chapterCardWidth - 40 : chapterCardWidth - 276,
+                summaryText,
+                isNarrowPhone ? 11 : isCompact ? 13 : 15,
+                UiPalette.PARCHMENT_CSS,
+            ),
+        );
+
+        const guideCopy = !progress.walkthroughEnabled
+            ? "WALKTHROUGH SKIPPED · REPLAY ANYTIME"
+            : progress.walkthroughPaused
+              ? `WALKTHROUGH PAUSED · STEP ${guideStepNumber} OF 15`
+              : `GUIDED STEP ${guideStepNumber} OF 15`;
+        if (!isCompact) {
+            phasePanel.add(
+                UiPanelFactory.createBodyText(
+                    this,
+                    20,
+                    134,
+                    guideTextWidth,
+                    guideCopy,
+                    12,
+                    UiPalette.HIGHLIGHT_BRASS_CSS,
+                ),
+            );
+        }
+
+        const actionLabel = action?.buttonLabel ??
+            (turnNumber >= session.getTotalTurnCount()
+                ? "OPEN FINAL DEBRIEF"
+                : `CONTINUE TO ${this.getPowderKegChapterTitle(turnNumber + 1).toUpperCase()}`);
+        const actionButton = UiPanelFactory.createBrassButton(
+            this,
+            actionButtonX,
+            actionButtonY,
+            actionButtonWidth,
+            44,
+            actionLabel,
+            () => {
+                if (action !== null) {
+                    action.activate();
+                } else if (turnNumber >= session.getTotalTurnCount()) {
+                    this.scene.start(SceneKeys.DEBRIEF, new ScenarioSelectionPayload(this.scenarioNumber));
+                } else {
+                    this.advancePowderKegChapter();
+                }
+            },
+        );
+        this.phaseCardContainer?.add(actionButton);
+
+        if (progress.walkthroughEnabled && !progress.walkthroughPaused && action !== null) {
+            const spotlight = this.add.graphics();
+            spotlight.lineStyle(3, UiPalette.HIGHLIGHT_BRASS, 1);
+            spotlight.strokeRect(
+                actionButtonX - 4,
+                actionButtonY - 4,
+                actionButtonWidth + 8,
+                52,
+            );
+            this.phaseCardContainer?.add(spotlight);
+        }
+
+        const controls = [
+            {
+                label: progress.walkthroughEnabled
+                    ? progress.walkthroughPaused
+                        ? "RESUME GUIDE"
+                        : "PAUSE GUIDE"
+                    : "REPLAY GUIDE",
+                callback: () => {
+                    const currentProgress = session.getPlayProgress();
+                    session.setPlayProgress({
+                        ...currentProgress,
+                        walkthroughEnabled: true,
+                        walkthroughPaused: currentProgress.walkthroughEnabled ? !currentProgress.walkthroughPaused : false,
+                        walkthroughStep: this.getPowderKegGuideStep(),
+                    });
+                    this.renderPhaseCard();
+                },
+            },
+            {
+                label: "SKIP GUIDE",
+                callback: () => {
+                    session.setPlayProgress({
+                        ...session.getPlayProgress(),
+                        walkthroughEnabled: false,
+                        walkthroughPaused: false,
+                    });
+                    this.renderPhaseCard();
+                },
+            },
+        ];
+        controls.forEach((control, index) => {
+            const isNarrowCard = isCompact && this.scale.width < 460;
+            const controlWidth = isNarrowCard
+                ? chapterCardWidth - 40
+                : isCompact
+                  ? Math.min(142, (chapterCardWidth - 48) / 3)
+                  : 108;
+            const controlGap = 8;
+            const controlX = isCompact
+                ? isNarrowCard
+                    ? 20
+                    : 20 + index * (controlWidth + controlGap)
+                : chapterCardWidth - 244 + index * 116;
+            const controlY = guideControlsY + (isNarrowCard ? index * 32 : 0);
+            const button = UiPanelFactory.createBrassButton(
+                this,
+                controlX,
+                controlY,
+                controlWidth,
+                isNarrowCard ? 28 : 30,
+                control.label,
+                control.callback,
+            );
+            this.phaseCardContainer?.add(button);
+        });
+    }
+
+    private getPowderKegChapterTitle(turnNumber: number): string {
+        const chapterTitles = [
+            "1900 Setup",
+            "1905 · Russian Empire",
+            "1908 · Ottoman Empire",
+            "1910 · Mexico",
+            "1911 · Qing China",
+            "1914 · Great-Power Rivalry",
+        ];
+        return chapterTitles[Phaser.Math.Clamp(turnNumber - 1, 0, chapterTitles.length - 1)];
+    }
+
+    private getPowderKegNextAction(turnNumber: number): {
+        title: string;
+        instruction: string;
+        buttonLabel: string;
+        activate: () => void;
+    } | null {
+        const session = GameSession.getInstance();
+        const state = session.getGameState();
+        if (turnNumber === 1) {
+            return {
+                title: "Start the first dated chapter",
+                instruction: "Use the map to inspect locations if you like. The map markers show historical locations; the highlighted button starts the first learning chapter.",
+                buttonLabel: "BEGIN 1905 CHAPTER",
+                activate: () => this.advancePowderKegChapter(),
+            };
+        }
+        const sourceTask = (sourceIdentifier: string, sourceTitle: string) =>
+            session.getIntelligenceManager().getSourceAnalysisResult(sourceIdentifier) === true
+                ? null
+                : {
+                      title: `Analyze ${sourceTitle}`,
+                      instruction: session.getIntelligenceManager().isSourceAnalyzed(sourceIdentifier)
+                          ? `Review the feedback for ${sourceTitle}, then answer again. Look for the author's point of view, purpose, and a specific limitation.`
+                          : `Open ${sourceTitle}. Identify its author, purpose, and limitation, then answer the source question. The map remains available for inspection.`,
+                      buttonLabel: session.getIntelligenceManager().isSourceAnalyzed(sourceIdentifier)
+                          ? "RETRY SOURCE ANALYSIS"
+                          : `ANALYZE ${sourceTitle.toUpperCase()}`,
+                      activate: () =>
+                          this.scene.start(
+                              SceneKeys.SOURCE_ANALYSIS,
+                              new ScenarioSelectionPayload(this.scenarioNumber, SceneKeys.SCENARIO_PLAY, undefined, sourceIdentifier),
+                          ),
+                  };
+        const decisionTask = (decisionIdentifier: string) => {
+            const decision = this.scenario?.getDecisionRecords().find(
+                (candidate) => candidate.decisionIdentifier === decisionIdentifier,
+            );
+            if (decision === undefined || this.isPowderKegDecisionComplete(decision)) {
+                return null;
+            }
+            return {
+                title: `Make a policy choice: ${decision.decisionTitle}`,
+                instruction: `${decision.decisionTitle}: read the documented context, compare the policy options, and choose one. The immediate outcome is an alternate-history consequence.`,
+                buttonLabel: "OPEN POLICY DECISION",
+                activate: () => this.openDecisionOverlay(decision),
+            };
+        };
+        const chainTask = (chainIdentifier: string) => {
+            const chain = this.scenario?.getCausalChainDefinitions().find(
+                (candidate) => candidate.chainIdentifier === chainIdentifier,
+            );
+            if (chain === undefined || state.isScenarioFlagSet(`${chainIdentifier}_complete`)) {
+                return null;
+            }
+            return {
+                title: `Order causes: ${chain.chainTitle}`,
+                instruction: "Sort the causes into long-term, intermediate, and short-term factors. Use the historical dates and evidence in the cards, then confirm your reasoning.",
+                buttonLabel: "OPEN CAUSAL ANALYSIS",
+                activate: () => this.openCausalChainsOverlay(chainIdentifier),
+            };
+        };
+
+        const chapterActions: Record<number, Array<ReturnType<typeof sourceTask> | ReturnType<typeof decisionTask> | ReturnType<typeof chainTask>>> = {
+            2: [sourceTask("october_manifesto", "the October Manifesto"), decisionTask("s1_decision_russian"), chainTask("causal_chain_s1_russian")],
+            3: [decisionTask("s1_decision_ottoman"), chainTask("causal_chain_s1_ottoman")],
+            4: [sourceTask("madero_plan_of_san_luis_potosi", "the Plan of San Luis Potosí"), decisionTask("s1_decision_mexico"), chainTask("causal_chain_s1_mexican")],
+            5: [decisionTask("s1_decision_qing"), chainTask("causal_chain_s1_qing")],
+            6: [decisionTask("s1_decision_great_war")],
+        };
+        const remainingChapterActions = chapterActions[turnNumber] ?? [];
+        for (const task of remainingChapterActions) {
+            if (task !== null) {
+                return task;
+            }
+        }
+        if (turnNumber === 6) {
+            const sarajevoDispatch = this.scenario?.getScenarioEventSchedule().find(
+                (eventRecord) => eventRecord.eventIdentifier === "assassination_at_sarajevo",
+            );
+            if (sarajevoDispatch !== undefined && !state.isScenarioFlagSet("event_s1_sarajevo_read")) {
+                return {
+                    title: "Read the documented 1914 Sarajevo dispatch",
+                    instruction: "Read the dated newspaper report, then compare the documented event with the policy path you created. The assassination happened in 1914; it is not a player-created outcome.",
+                    buttonLabel: "READ THE 1914 DISPATCH",
+                    activate: () => {
+                        state.setScenarioFlag("event_s1_sarajevo_read");
+                        this.showNewspaperForEventRecord(
+                            sarajevoDispatch.headline,
+                            sarajevoDispatch.nationCode,
+                            sarajevoDispatch.illustrationAssetIdentifier,
+                        );
+                        this.renderPhaseCard();
+                    },
+                };
+            }
+        }
+        if (turnNumber === 6 && !state.isScenarioFlagSet("continuity_chart_s1_complete")) {
+            return {
+                title: "Complete the continuity and change activity",
+                instruction: "Sort the timeline markers to explain what changed and what continued from 1900 to 1924. The chart includes later events for comparison, clearly outside this scenario’s event window.",
+                buttonLabel: "OPEN CONTINUITY CHART",
+                activate: () => this.openContinuityChartOverlay(),
+            };
+        }
+        if (turnNumber === 6 && !state.isScenarioFlagSet("contextualization_s1_scored")) {
+            return {
+                title: "Write the final contextualization response",
+                instruction: "Open the debrief, answer the short-answer prompts, and write a paragraph connecting the crises to broader imperial competition and political change.",
+                buttonLabel: "WRITE FINAL RESPONSE",
+                activate: () => this.scene.start(SceneKeys.DEBRIEF, new ScenarioSelectionPayload(this.scenarioNumber)),
+            };
+        }
+        return null;
+    }
+
+    private isPowderKegDecisionComplete(decision: DecisionRecord): boolean {
+        return decision.options.some((option) => GameSession.getInstance().getGameState().isScenarioFlagSet(option.resultingFlagIdentifier));
+    }
+
+    private getPowderKegGuideStep(): number {
+        const session = GameSession.getInstance();
+        const state = session.getGameState();
+        let completedActions = session.getCurrentTurnNumber() > 1 ? 1 : 0;
+        completedActions += session.getIntelligenceManager().getCorrectlyAnalyzedSourceCount();
+        completedActions += this.scenario?.getDecisionRecords().filter((decision) => this.isPowderKegDecisionComplete(decision)).length ?? 0;
+        completedActions += this.scenario?.getCausalChainDefinitions().filter((chain) => state.isScenarioFlagSet(`${chain.chainIdentifier}_complete`)).length ?? 0;
+        completedActions += state.isScenarioFlagSet("continuity_chart_s1_complete") ? 1 : 0;
+        completedActions += state.isScenarioFlagSet("contextualization_s1_scored") ? 1 : 0;
+        completedActions += state.isScenarioFlagSet("event_s1_sarajevo_read") ? 1 : 0;
+        return Math.min(15, completedActions + 1);
+    }
+
+    private advancePowderKegChapter(): void {
+        const gameSession = GameSession.getInstance();
+        if (gameSession.getCurrentTurnNumber() >= gameSession.getTotalTurnCount()) {
+            this.scene.start(SceneKeys.DEBRIEF, new ScenarioSelectionPayload(this.scenarioNumber));
+            return;
+        }
+        gameSession.advanceScenarioTurn();
+        this.refreshHistoricalMapSnapshot();
+        if (this.topBarComponent !== null) {
+            this.topBarComponent.refreshValues();
+        }
+        this.bottomBarComponent?.setTurnDisplay(gameSession.getCurrentTurnNumber(), gameSession.getTotalTurnCount());
+        this.bottomBarComponent?.setPhaseDisplay(this.getPowderKegChapterTitle(gameSession.getCurrentTurnNumber()));
+        this.renderPhaseCard();
+        this.refreshQuestTracker();
     }
 
     private renderBriefingPhaseContent(phasePanel: Phaser.GameObjects.Container, phaseCardRect: LayoutRect): void {
@@ -1083,6 +1502,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
     }
 
     private advancePhase(): void {
+        if (this.scenarioNumber === 1) {
+            this.advancePowderKegChapter();
+            return;
+        }
         const gameSession = GameSession.getInstance();
         if (this.phaseIndex >= TurnPhaseLabel.PHASE_LABELS.length - 1) {
             if (gameSession.isFinalTurn()) {
@@ -1096,6 +1519,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         } else {
             this.phaseIndex += 1;
         }
+        gameSession.setPlayProgress({ ...gameSession.getPlayProgress(), phaseIndex: this.phaseIndex });
         if (this.topBarComponent !== null) {
             this.topBarComponent.refreshValues();
         }
@@ -1177,6 +1601,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.rightSidebarComponent.addContextContent(provincePanelComponent);
         this.setInformationPanelsOpen(false);
         this.rightSidebarComponent.setVisible(true);
+        this.contextPanelBlockingZone?.setVisible(true);
     }
 
     private applyMapMode(mapModeCode: string): void {
@@ -1290,8 +1715,16 @@ export class ScenarioPlayScene extends Phaser.Scene {
 
     private openMechanicByKey(mechanicKey: string): void {
         switch (mechanicKey) {
+            case "chapter_route":
+                this.setInformationPanelsOpen(false);
+                this.showToast("Follow the highlighted action in the current chapter card to continue.");
+                break;
             case "decision":
-                this.phaseIndex = 2;
+                if (this.scenarioNumber !== 1) {
+                    this.phaseIndex = 2;
+                    const gameSession = GameSession.getInstance();
+                    gameSession.setPlayProgress({ ...gameSession.getPlayProgress(), phaseIndex: this.phaseIndex });
+                }
                 if (this.bottomBarComponent !== null) {
                     this.bottomBarComponent.setPhaseDisplay(TurnPhaseLabel.PHASE_LABELS[this.phaseIndex]);
                 }
@@ -1487,13 +1920,16 @@ export class ScenarioPlayScene extends Phaser.Scene {
         }
     }
 
-    private openCausalChainsOverlay(): void {
+    private openCausalChainsOverlay(preferredChainIdentifier: string | null = null): void {
         if (this.scenario === null) {
             return;
         }
         const gameState = GameSession.getInstance().getGameState();
         const causalChainDefinitions = this.scenario.getCausalChainDefinitions();
-        let activeChainIndex = 0;
+        const preferredChainIndex = causalChainDefinitions.findIndex(
+            (chain) => chain.chainIdentifier === preferredChainIdentifier,
+        );
+        let activeChainIndex = preferredChainIndex < 0 ? 0 : preferredChainIndex;
         const renderChainInto = (
             overlayPanel: Phaser.GameObjects.Container,
             panelWidth: number,
@@ -1523,7 +1959,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     `${isCompleted ? "\u2713 " : ""}${causalChainDefinition.chainTitle.substring(0, 22)}`,
                     () => {
                         activeChainIndex = chainIndex;
-                        this.openCausalChainsOverlay();
+                        this.openCausalChainsOverlay(causalChainDefinition.chainIdentifier);
                     },
                 );
                 chainSelectorContainer.add(chainButton);
@@ -1957,18 +2393,27 @@ export class ScenarioPlayScene extends Phaser.Scene {
         eventBus.subscribe(GameEventTypes.DECISION_MADE, this.boundDecisionHandler);
         eventBus.subscribe(GameEventTypes.MECHANIC_COMPLETED, this.boundMechanicHandler);
         eventBus.subscribe(GameEventTypes.SOURCE_ANALYZED, this.boundSourceHandler);
-        eventBus.subscribe(GameEventTypes.CAUSAL_CHAIN_COMPLETED, (payload: unknown) => {
+        this.boundCausalHandler = (payload: unknown) => {
             const causalChainPayload = payload as CausalChainPayload;
             void causalChainPayload;
             this.showToast("Causal chain complete. A focus path may have opened.");
+            this.renderPhaseCard();
             this.refreshQuestTracker();
             this.checkForVictory();
-        });
-        eventBus.subscribe(GameEventTypes.FOCUS_NODE_COMPLETED, () => {
+        };
+        this.boundFocusHandler = () => {
             this.showToast("Focus completed.");
             this.refreshQuestTracker();
             this.checkForVictory();
-        });
+        };
+        this.boundContinuityHandler = () => {
+            this.renderPhaseCard();
+            this.refreshQuestTracker();
+            this.checkForVictory();
+        };
+        eventBus.subscribe(GameEventTypes.CAUSAL_CHAIN_COMPLETED, this.boundCausalHandler);
+        eventBus.subscribe(GameEventTypes.FOCUS_NODE_COMPLETED, this.boundFocusHandler);
+        eventBus.subscribe(GameEventTypes.CONTINUITY_CHART_COMPLETED, this.boundContinuityHandler);
     }
 
     private unsubscribeFromGameEvents(): void {
@@ -1988,6 +2433,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         eventBus.unsubscribe(GameEventTypes.DECISION_MADE, this.boundDecisionHandler);
         eventBus.unsubscribe(GameEventTypes.MECHANIC_COMPLETED, this.boundMechanicHandler);
         eventBus.unsubscribe(GameEventTypes.SOURCE_ANALYZED, this.boundSourceHandler);
+        eventBus.unsubscribe(GameEventTypes.CAUSAL_CHAIN_COMPLETED, this.boundCausalHandler);
+        eventBus.unsubscribe(GameEventTypes.FOCUS_NODE_COMPLETED, this.boundFocusHandler);
+        eventBus.unsubscribe(GameEventTypes.CONTINUITY_CHART_COMPLETED, this.boundContinuityHandler);
     }
 
     private checkForVictory(): void {
