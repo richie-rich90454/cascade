@@ -197,6 +197,7 @@ export class GameEventTypes {
     public static readonly TURN_PHASE_CHANGED = "turn:phase:changed";
     public static readonly TURN_ENDED = "turn:ended";
     public static readonly RESOURCE_CHANGED = "resource:changed";
+    public static readonly GAME_STATE_CHANGED = "game:state:changed";
     public static readonly NATION_SELECTED = "nation:selected";
     public static readonly PROVINCE_SELECTED = "province:selected";
     public static readonly SOURCE_ANALYZED = "source:analyzed";
