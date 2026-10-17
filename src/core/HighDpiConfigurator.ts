@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { getTextScale } from "./AccessibilityPreferences";
 
 export class HighDpiConfigurator {
     private static readonly MAXIMUM_DEVICE_PIXEL_RATIO = 2;
@@ -34,9 +35,6 @@ export class HighDpiConfigurator {
         }
         this.hasInstalledTextPatch = true;
         const devicePixelRatioForPatch = this.devicePixelRatioValue;
-        if (devicePixelRatioForPatch === 1) {
-            return;
-        }
         const originalTextMethod = Phaser.GameObjects.GameObjectFactory.prototype.text;
         Phaser.GameObjects.GameObjectFactory.prototype.text = function (
             this: Phaser.GameObjects.GameObjectFactory,
@@ -48,16 +46,19 @@ export class HighDpiConfigurator {
             const createdTextObject = originalTextMethod.call(this, x, y, text, style);
             const parsedFontSizePx = Number.parseFloat(String(createdTextObject.style.fontSize));
             if (Number.isFinite(parsedFontSizePx) && parsedFontSizePx > 0) {
-                createdTextObject.setFontSize(parsedFontSizePx * devicePixelRatioForPatch);
+                const textScale = getTextScale();
+                createdTextObject.setFontSize(parsedFontSizePx * devicePixelRatioForPatch * textScale);
                 const wordWrapWidthPx = createdTextObject.style.wordWrapWidth;
                 if (wordWrapWidthPx !== null && wordWrapWidthPx > 0) {
                     createdTextObject.style.setWordWrapWidth(wordWrapWidthPx * devicePixelRatioForPatch, true);
                 }
                 const lineSpacingPx = createdTextObject.lineSpacing;
                 if (lineSpacingPx !== 0) {
-                    createdTextObject.setLineSpacing(lineSpacingPx * devicePixelRatioForPatch);
+                    createdTextObject.setLineSpacing(lineSpacingPx * devicePixelRatioForPatch * textScale);
                 }
-                createdTextObject.setScale(1 / devicePixelRatioForPatch);
+                if (devicePixelRatioForPatch !== 1) {
+                    createdTextObject.setScale(1 / devicePixelRatioForPatch);
+                }
             }
             return createdTextObject;
         };
