@@ -28,30 +28,54 @@ export class CampaignSelectorScene extends Phaser.Scene {
     }
 
     public create(): void {
+        const screenWidth = this.scale.width;
+        const screenHeight = this.scale.height;
+        const isCompactHeader = screenWidth < 900;
+        const headerHeight = screenWidth < 520 ? 104 : CampaignSelectorScene.HEADER_HEIGHT_PX;
         const background = this.add
-            .rectangle(0, 0, this.scale.width, this.scale.height, UiPalette.NEAR_BLACK_LEATHER)
+            .rectangle(0, 0, screenWidth, screenHeight, UiPalette.NEAR_BLACK_LEATHER)
             .setOrigin(0, 0);
         const headerBackground = this.add
-            .rectangle(0, 0, this.scale.width, 76, UiPalette.DARK_OLIVE)
+            .rectangle(0, 0, screenWidth, headerHeight, UiPalette.DARK_OLIVE)
             .setOrigin(0, 0)
             .setAlpha(0.85);
-        const screenCenterX = this.scale.width / 2;
-        const headerText = UiPanelFactory.createSectionHeader(this, screenCenterX, 20, "SELECT A CAMPAIGN", 34);
-        headerText.setOrigin(0.5, 0);
-        const backButton = UiPanelFactory.createBrassButton(this, 24, 18, 200, 44, "BACK TO MENU", () => {
+        const screenCenterX = screenWidth / 2;
+        const backButtonWidth = isCompactHeader ? Math.min(200, Math.max(72, screenWidth * 0.3)) : 200;
+        const backButton = UiPanelFactory.createBrassButton(this, 12, 14, backButtonWidth, 42, "BACK TO MENU", () => {
             this.scene.start(SceneKeys.MAIN_MENU);
         });
-        const scrollHint = this.add.text(
-            this.scale.width - 24,
-            32,
-            "SCROLL TO EXPLORE · MOUSE WHEEL OR PAGE UP / DOWN",
-            {
-                fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: "13px",
-                color: UiPalette.PARCHMENT_CSS,
-            },
+        const titleSafeLeft = isCompactHeader ? backButtonWidth + 24 : 0;
+        const titleSafeWidth = Math.max(1, screenWidth - titleSafeLeft - (isCompactHeader ? 12 : 0));
+        const titleCenterX = isCompactHeader ? titleSafeLeft + titleSafeWidth / 2 : screenCenterX;
+        const headerText = UiPanelFactory.createSectionHeader(
+            this,
+            titleCenterX,
+            screenWidth < 520 ? 10 : 20,
+            "SELECT A CAMPAIGN",
+            screenWidth < 360 ? 17 : screenWidth < 520 ? 21 : isCompactHeader ? 28 : 34,
         );
-        scrollHint.setOrigin(1, 0.5);
+        headerText.setOrigin(0.5, 0);
+        headerText.setWordWrapWidth(titleSafeWidth, true);
+        headerText.setAlign("center");
+        const scrollHint = screenWidth < 520
+            ? this.add.text(screenCenterX, headerHeight - 14, "SCROLL · MOUSE WHEEL OR PAGE UP / DOWN", {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: screenWidth < 360 ? "10px" : "11px",
+                color: UiPalette.PARCHMENT_CSS,
+                wordWrap: { width: screenWidth - 24, useAdvancedWrap: true },
+                align: "center",
+            })
+            : this.add.text(
+                  screenWidth - 16,
+                  isCompactHeader ? 58 : 32,
+                  "SCROLL TO EXPLORE · MOUSE WHEEL OR PAGE UP / DOWN",
+                  {
+                      fontFamily: FontFamilies.TYPEWRITER_BODY,
+                      fontSize: isCompactHeader ? "11px" : "13px",
+                      color: UiPalette.PARCHMENT_CSS,
+                  },
+              );
+        scrollHint.setOrigin(screenWidth < 520 ? 0.5 : 1, 0.5);
         background.setDepth(-100);
         headerBackground.setDepth(1001);
         headerText.setDepth(1002);
@@ -61,7 +85,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
         const contentContainer = this.add.container(0, 0);
         contentContainer.setDepth(UiPalette.UI_DEPTH_BASE + 1);
         this.campaignContentContainer = contentContainer;
-        let layoutCursorY = 96;
+        let layoutCursorY = headerHeight + 20;
         for (const campaignDefinition of ScenarioRegistry.getInstance().getCampaigns()) {
             layoutCursorY = this.renderCampaignSection(contentContainer, campaignDefinition, layoutCursorY);
         }
