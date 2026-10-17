@@ -14,7 +14,14 @@ export class TopBarComponent extends Phaser.GameObjects.Container {
     private readonly gameState: GameState;
     private readonly valueTextByResourceTypeCode: Map<string, Phaser.GameObjects.Text>;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, width: number, gameState: GameState) {
+    constructor(
+        scene: Phaser.Scene,
+        x: number,
+        y: number,
+        width: number,
+        gameState: GameState,
+        resourceCodes: string[] = ResourceType.getTopBarResourceTypes().map((resourceType) => resourceType.getCode()),
+    ) {
         super(scene, x, y);
         this.gameState = gameState;
         this.valueTextByResourceTypeCode = new Map<string, Phaser.GameObjects.Text>();
@@ -31,24 +38,29 @@ export class TopBarComponent extends Phaser.GameObjects.Container {
         );
         this.add(topBarPanelContainer);
 
-        const topBarResourceTypes = ResourceType.getTopBarResourceTypes();
+        const topBarResourceTypes = resourceCodes
+            .map((resourceCode) => ResourceType.findByResourceTypeCode(resourceCode))
+            .filter((resourceType): resourceType is ResourceType => resourceType !== null);
         const slotWidthPx = width / topBarResourceTypes.length;
+        const compactTypography = width < 720;
         const slotDividerGraphics = scene.add.graphics();
         const sharedTooltip = new TooltipComponent(scene, x, y + TopBarComponent.BAR_HEIGHT_PX + 8, 280);
         for (let resourceIndex = 0; resourceIndex < topBarResourceTypes.length; resourceIndex++) {
             const resourceType = topBarResourceTypes[resourceIndex];
             const slotLeftX = resourceIndex * slotWidthPx;
             const slotCenterX = slotLeftX + slotWidthPx / 2;
-            const slotLabelTextObject = scene.add.text(slotCenterX, 6, TopBarComponent.getSlotLabelText(resourceType), {
+            const slotLabelTextObject = scene.add.text(slotCenterX, 4, TopBarComponent.getSlotLabelText(resourceType), {
                 fontFamily: FontFamilies.SMALL_CAPS,
-                fontSize: "14px",
+                fontSize: `${compactTypography ? Math.max(9, Math.min(12, Math.floor(slotWidthPx * 0.15))) : 14}px`,
                 color: UiPalette.HIGHLIGHT_BRASS_CSS,
                 fontStyle: "bold",
+                wordWrap: { width: Math.max(36, slotWidthPx - 8), useAdvancedWrap: true },
+                align: "center",
             });
             slotLabelTextObject.setOrigin(0.5, 0);
-            const slotValueTextObject = scene.add.text(slotCenterX, 23, "", {
+            const slotValueTextObject = scene.add.text(slotCenterX, compactTypography ? 29 : 23, "", {
                 fontFamily: FontFamilies.DISPLAY_SERIF,
-                fontSize: "15px",
+                fontSize: `${compactTypography ? 12 : 15}px`,
                 color: UiPalette.PARCHMENT_CSS,
             });
             slotValueTextObject.setOrigin(0.5, 0);
@@ -75,9 +87,9 @@ export class TopBarComponent extends Phaser.GameObjects.Container {
     }
 
     public refreshValues(): void {
-        for (const resourceType of ResourceType.getTopBarResourceTypes()) {
-            const valueTextObject = this.valueTextByResourceTypeCode.get(resourceType.getCode());
-            if (valueTextObject !== undefined) {
+        for (const [resourceCode, valueTextObject] of this.valueTextByResourceTypeCode) {
+            const resourceType = ResourceType.findByResourceTypeCode(resourceCode);
+            if (resourceType !== null) {
                 valueTextObject.setText(String(this.gameState.getResourceQuantity(resourceType)));
             }
         }
