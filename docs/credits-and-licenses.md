@@ -34,4 +34,8 @@ The following direct libraries are used by the game. Their license identifiers a
 | [TypeScript](https://github.com/microsoft/TypeScript) | 5.9.3   | [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) |
 | [Vite](https://github.com/vitejs/vite)                | 8.3.4   | [MIT](https://spdx.org/licenses/MIT.html)               |
 
+## Fonts
+
+The interface loads [Noto Sans](https://fonts.google.com/specimen/Noto+Sans), [Noto Sans SC](https://fonts.google.com/specimen/Noto+Sans+SC), and [EB Garamond](https://fonts.google.com/specimen/EB+Garamond) from Google Fonts. These font families are distributed under the [SIL Open Font License, version 1.1](https://openfontlicense.org/). The game uses Noto Sans for interface and reading text, and EB Garamond for display headings. When Google Fonts cannot be reached, system sans-serif and serif fallbacks keep the interface usable.
+
 Cascade's own application code and generated visual assets do not acquire the upstream map-data license merely by being listed here; the adapted map data and generated map files retain the notices and obligations applicable to that data.
