@@ -5,8 +5,8 @@ import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 
 export class TitleCardComponent extends Phaser.GameObjects.Container {
-    private static readonly AUTO_DISMISS_DELAY_MS = 2800;
-    private static readonly FADE_DURATION_MS = 400;
+    private static readonly AUTO_DISMISS_DELAY_MS = 520;
+    private static readonly FADE_DURATION_MS = 180;
 
     private readonly chapterTextObject: Phaser.GameObjects.Text;
     private readonly titleTextObject: Phaser.GameObjects.Text;
@@ -26,12 +26,12 @@ export class TitleCardComponent extends Phaser.GameObjects.Container {
         const screenCenterOffsetY = screenHeightPx / 2 - y;
 
         const backdropGraphics = scene.add.graphics();
-        backdropGraphics.fillStyle(UiPalette.NEAR_BLACK_LEATHER, 0.97);
+        backdropGraphics.fillStyle(UiPalette.NEAR_BLACK_LEATHER, 0.78);
         backdropGraphics.fillRect(0, 0, screenWidthPx, screenHeightPx);
         backdropGraphics.lineStyle(2, UiPalette.DEEP_BRASS, 0.9);
-        backdropGraphics.strokeRect(36, 28, screenWidthPx - 72, screenHeightPx - 56);
+        backdropGraphics.strokeRect(12, 12, Math.max(0, screenWidthPx - 24), Math.max(0, screenHeightPx - 24));
         backdropGraphics.lineStyle(1, UiPalette.DEEP_BRASS, 0.5);
-        backdropGraphics.strokeRect(42, 34, screenWidthPx - 84, screenHeightPx - 68);
+        backdropGraphics.strokeRect(18, 18, Math.max(0, screenWidthPx - 36), Math.max(0, screenHeightPx - 36));
         backdropGraphics.setPosition(-x, -y);
 
         this.chapterTextObject = scene.add.text(screenCenterOffsetX, screenCenterOffsetY - 150, "", {
@@ -73,6 +73,13 @@ export class TitleCardComponent extends Phaser.GameObjects.Container {
         this.chapterTextObject.setText(chapterNumberText);
         this.titleTextObject.setText(titleText);
         this.subtitleTextObject.setText(subtitleText);
+        const safeTextWidth = Math.max(160, this.scene.scale.width - 64);
+        this.chapterTextObject.setWordWrapWidth(safeTextWidth, true);
+        this.titleTextObject.setWordWrapWidth(safeTextWidth, true);
+        this.subtitleTextObject.setWordWrapWidth(safeTextWidth, true);
+        this.fitTextToBounds(this.chapterTextObject, safeTextWidth, 54, 14);
+        this.fitTextToBounds(this.titleTextObject, safeTextWidth, 106, 22);
+        this.fitTextToBounds(this.subtitleTextObject, safeTextWidth, 48, 14);
         if (this.dismissTimerEvent !== null) {
             this.dismissTimerEvent.remove(false);
             this.dismissTimerEvent = null;
@@ -106,5 +113,22 @@ export class TitleCardComponent extends Phaser.GameObjects.Container {
                 },
             });
         });
+    }
+
+    private fitTextToBounds(
+        textObject: Phaser.GameObjects.Text,
+        maximumWidthPx: number,
+        maximumHeightPx: number,
+        minimumFontSizePx: number,
+    ): void {
+        let currentFontSizePx = Number.parseFloat(String(textObject.style.fontSize));
+        const minimumInternalFontSizePx = minimumFontSizePx / Math.max(0.1, textObject.scaleX);
+        while (
+            (textObject.displayWidth > maximumWidthPx || textObject.displayHeight > maximumHeightPx) &&
+            currentFontSizePx > minimumInternalFontSizePx
+        ) {
+            currentFontSizePx = Math.max(minimumInternalFontSizePx, currentFontSizePx - 2);
+            textObject.setFontSize(currentFontSizePx);
+        }
     }
 }
