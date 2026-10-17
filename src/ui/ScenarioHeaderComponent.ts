@@ -15,12 +15,12 @@ export class ScenarioHeaderComponent extends Phaser.GameObjects.Container {
 
         this.titleTextObject = scene.add.text(0, 0, "", {
             fontFamily: FontFamilies.DISPLAY_SERIF,
-            fontSize: "24px",
+            fontSize: width < 420 ? "18px" : width < 560 ? "20px" : "24px",
             fontStyle: "bold",
             color: UiPalette.HIGHLIGHT_BRASS_CSS,
-            wordWrap: { width: width - 24, useAdvancedWrap: true },
+            wordWrap: { width: Math.max(100, width - 24), useAdvancedWrap: true },
         });
-        this.subtitleTextObject = scene.add.text(0, 38, "", {
+        this.subtitleTextObject = scene.add.text(0, 0, "", {
             fontFamily: FontFamilies.BODY_SERIF,
             fontSize: "16px",
             fontStyle: "italic",
@@ -32,6 +32,7 @@ export class ScenarioHeaderComponent extends Phaser.GameObjects.Container {
 
     public setScenario(scenario: Scenario): void {
         this.titleTextObject.setText(scenario.getScenarioTitle());
+        this.subtitleTextObject.setY(this.titleTextObject.displayHeight + 2);
         this.subtitleTextObject.setText(`${scenario.getStartYear()}-${scenario.getEndYear()}`);
     }
 }
