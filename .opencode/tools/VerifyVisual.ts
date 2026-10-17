@@ -29,7 +29,8 @@ class VisualCheckResult {
     }
 }
 
-const EDGE_EXECUTABLE_PATH = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+const EDGE_EXECUTABLE_PATH =
+    process.env.CASCADE_BROWSER_EXECUTABLE_PATH ?? "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 const DEVELOPMENT_SERVER_PORT = 5342;
 const OUTPUT_DIRECTORY_PATH = join(process.cwd(), ".opencode", "visual-checks");
 
@@ -125,6 +126,42 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await switchToSingleScene("campaign_selector");
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 2000));
         await browserPage.mouse.move(720, 450);
+        const lineModeScroll = await browserPage.evaluate(async () => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: { getScene: (key: string) => { campaignContentContainer?: { y: number } | null } };
+                    };
+                }
+            ).cascadeGame;
+            const canvas = document.querySelector("canvas");
+            const container = gameInstance?.scene.getScene("campaign_selector").campaignContentContainer;
+            if (canvas === null || container === undefined || container === null) {
+                return null;
+            }
+            const previousY = container.y;
+            const bounds = canvas.getBoundingClientRect();
+            canvas.dispatchEvent(
+                new WheelEvent("wheel", {
+                    deltaY: 1,
+                    deltaMode: WheelEvent.DOM_DELTA_LINE,
+                    clientX: bounds.left + bounds.width * 0.5,
+                    clientY: bounds.top + bounds.height * 0.5,
+                    bubbles: true,
+                    cancelable: true,
+                }),
+            );
+            await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+            return {
+                movedCssPx: Math.abs(container.y - previousY) / window.devicePixelRatio,
+                devicePixelRatio: window.devicePixelRatio,
+            };
+        });
+        if (lineModeScroll === null || lineModeScroll.movedCssPx < 24) {
+            throw new Error(
+                `One line-mode wheel tick moved only ${lineModeScroll?.movedCssPx ?? 0} CSS px; scroll feels unresponsive.`,
+            );
+        }
         await browserPage.mouse.wheel({ deltaY: 700 });
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
         const campaignScrolledDown = await browserPage.evaluate(() => {
@@ -139,6 +176,62 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         });
         if (!campaignScrolledDown) {
             throw new Error("Mouse wheel did not scroll the campaign list.");
+        }
+        const campaignButtonMetrics = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                }
+            ).cascadeGame;
+            const metrics: Array<{
+                label: string;
+                fontSizeCss: number;
+                width: number;
+                height: number;
+                availableWidth: number;
+                availableHeight: number;
+            }> = [];
+            const pendingObjects = [
+                ...(gameInstance?.scene.getScene("campaign_selector").children.list ?? []),
+            ] as any[];
+            while (pendingObjects.length > 0) {
+                const object = pendingObjects.pop();
+                if (!object || object.visible === false || object.active === false) continue;
+                if (Array.isArray(object.list)) {
+                    let label: any = null;
+                    let zone: any = null;
+                    if (object.name === "cascade-ui-button") {
+                        for (const child of object.list) {
+                            if (label === null && typeof child?.text === "string") label = child;
+                            if (zone === null && child?.input?.hitArea !== undefined) zone = child;
+                        }
+                    }
+                    if (label && zone) {
+                        metrics.push({
+                            label: label.text,
+                            fontSizeCss: Number.parseFloat(String(label.style.fontSize)) * label.scaleX * object.scaleX,
+                            width: label.displayWidth * object.scaleX,
+                            height: label.displayHeight * object.scaleY,
+                            availableWidth: zone.input.hitArea.width - 20,
+                            availableHeight: zone.input.hitArea.height - 4,
+                        });
+                    }
+                    pendingObjects.push(...object.list);
+                }
+            }
+            return metrics;
+        });
+        if (campaignButtonMetrics.length === 0) {
+            throw new Error("The browser regression loop could not inspect campaign button labels.");
+        }
+        const invalidButtonMetric = campaignButtonMetrics.find(
+            (metric) =>
+                metric.fontSizeCss < 12 ||
+                metric.width > metric.availableWidth + 1 ||
+                metric.height > metric.availableHeight + 1,
+        );
+        if (invalidButtonMetric !== undefined) {
+            throw new Error(`Campaign button label is too small or clipped: ${JSON.stringify(invalidButtonMetric)}`);
         }
         await browserPage.mouse.wheel({ deltaY: -900 });
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
@@ -209,6 +302,63 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await browserPage.mouse.click(1262, 439);
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 2200));
         await captureScreenshot("05-scenario-play-next-step.png");
+        const scenarioButtonMetrics = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                }
+            ).cascadeGame;
+            const metrics: Array<{
+                label: string;
+                fontSizeCss: number;
+                width: number;
+                height: number;
+                availableWidth: number;
+                availableHeight: number;
+            }> = [];
+            const pendingObjects = [...(gameInstance?.scene.getScene("scenario_play").children.list ?? [])] as any[];
+            while (pendingObjects.length > 0) {
+                const object = pendingObjects.pop();
+                if (!object || object.visible === false || object.active === false) continue;
+                if (object.name === "cascade-ui-button" && Array.isArray(object.list)) {
+                    let label: any = null;
+                    for (const child of object.list) {
+                        if (typeof child?.text === "string") {
+                            label = child;
+                            break;
+                        }
+                    }
+                    if (label !== null) {
+                        const width = Number(object.getData("buttonWidthPx"));
+                        const height = Number(object.getData("buttonHeightPx"));
+                        metrics.push({
+                            label: label.text,
+                            fontSizeCss: Number.parseFloat(String(label.style.fontSize)) * label.scaleX * object.scaleX,
+                            width: label.displayWidth * object.scaleX,
+                            height: label.displayHeight * object.scaleY,
+                            availableWidth: width - 20,
+                            availableHeight: height - 4,
+                        });
+                    }
+                }
+                if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+            }
+            return metrics;
+        });
+        if (scenarioButtonMetrics.length === 0) {
+            throw new Error("The browser regression loop could not inspect scenario play button labels.");
+        }
+        const clippedScenarioButton = scenarioButtonMetrics.find(
+            (metric) =>
+                metric.fontSizeCss < 12 ||
+                metric.width > metric.availableWidth + 1 ||
+                metric.height > metric.availableHeight + 1,
+        );
+        if (clippedScenarioButton !== undefined) {
+            throw new Error(
+                `Scenario play button label is too small or clipped: ${JSON.stringify(clippedScenarioButton)}`,
+            );
+        }
 
         const trackerDebugState = await browserPage.evaluate(() => {
             const gameInstance = (
