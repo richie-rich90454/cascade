@@ -50,6 +50,18 @@ export class Province extends GameEntity {
         this.ownerNationIdentifier = ownerNationIdentifier;
     }
 
+    public restoreMutableState(state: {
+        ownerNationIdentifier: string;
+        victoryPointValue: number;
+        isCapitalOfOwner: boolean;
+        supplyValue: number;
+    }): void {
+        this.ownerNationIdentifier = state.ownerNationIdentifier;
+        this.victoryPointValue = state.victoryPointValue;
+        this.isCapitalOfOwner = state.isCapitalOfOwner;
+        this.supplyValue = state.supplyValue;
+    }
+
     public getVictoryPointValue(): number {
         return this.victoryPointValue;
     }
