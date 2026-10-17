@@ -8,6 +8,7 @@ import type { Scenario } from "../domain/scenarios/Scenario";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 
 export class CampaignSelectorScene extends Phaser.Scene {
     private static readonly CARD_WIDTH_PX = 280;
@@ -57,24 +58,25 @@ export class CampaignSelectorScene extends Phaser.Scene {
         headerText.setOrigin(0.5, 0);
         headerText.setWordWrapWidth(titleSafeWidth, true);
         headerText.setAlign("center");
-        const scrollHint = screenWidth < 520
-            ? this.add.text(screenCenterX, headerHeight - 14, "SCROLL · MOUSE WHEEL OR PAGE UP / DOWN", {
-                fontFamily: FontFamilies.TYPEWRITER_BODY,
-                fontSize: screenWidth < 360 ? "10px" : "11px",
-                color: UiPalette.PARCHMENT_CSS,
-                wordWrap: { width: screenWidth - 24, useAdvancedWrap: true },
-                align: "center",
-            })
-            : this.add.text(
-                  screenWidth - 16,
-                  isCompactHeader ? 58 : 32,
-                  "SCROLL TO EXPLORE · MOUSE WHEEL OR PAGE UP / DOWN",
-                  {
+        const scrollHint =
+            screenWidth < 520
+                ? this.add.text(screenCenterX, headerHeight - 14, "SCROLL · MOUSE WHEEL OR PAGE UP / DOWN", {
                       fontFamily: FontFamilies.TYPEWRITER_BODY,
-                      fontSize: isCompactHeader ? "11px" : "13px",
+                      fontSize: screenWidth < 360 ? "10px" : "11px",
                       color: UiPalette.PARCHMENT_CSS,
-                  },
-              );
+                      wordWrap: { width: screenWidth - 24, useAdvancedWrap: true },
+                      align: "center",
+                  })
+                : this.add.text(
+                      screenWidth - 16,
+                      isCompactHeader ? 58 : 32,
+                      "SCROLL TO EXPLORE · MOUSE WHEEL OR PAGE UP / DOWN",
+                      {
+                          fontFamily: FontFamilies.TYPEWRITER_BODY,
+                          fontSize: isCompactHeader ? "11px" : "13px",
+                          color: UiPalette.PARCHMENT_CSS,
+                      },
+                  );
         scrollHint.setOrigin(screenWidth < 520 ? 0.5 : 1, 0.5);
         background.setDepth(-100);
         headerBackground.setDepth(1001);
@@ -288,10 +290,12 @@ export class CampaignSelectorScene extends Phaser.Scene {
         _deltaX: number,
         deltaY: number,
     ): void {
-        if (pointer.y < CampaignSelectorScene.HEADER_HEIGHT_PX) {
+        const pointerPosition = UiScrollInput.getCssPointerPosition(pointer);
+        const headerHeightPx = this.scale.width < 520 ? 104 : CampaignSelectorScene.HEADER_HEIGHT_PX;
+        if (pointerPosition.y < headerHeightPx) {
             return;
         }
-        this.scrollCampaignBy(deltaY);
+        this.scrollCampaignBy(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.scale.height));
     }
 
     private scrollCampaignBy(distancePx: number): void {
