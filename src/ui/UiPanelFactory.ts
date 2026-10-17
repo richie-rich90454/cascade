@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { FontFamilies } from "../managers/FontManager";
 import { UiKeyboardFocus } from "./UiKeyboardFocus";
 import { UiPalette } from "./UiPalette";
@@ -101,16 +102,33 @@ export class UiPanelFactory {
             color: UiPalette.PARCHMENT_CSS,
         });
         const availableLabelWidth = Math.max(24, pixelWidth - 20);
-        if (buttonLabel.width > availableLabelWidth) {
-            const fittedFontSize = Phaser.Math.Clamp(
-                Math.floor((16 * availableLabelWidth) / buttonLabel.width),
-                12,
-                16,
-            );
-            buttonLabel.setFontSize(fittedFontSize);
+        const dpiConfigurator = HighDpiConfigurator.getInstance();
+        let cssFontSizePx = Phaser.Math.Clamp(dpiConfigurator.getCssFontSize(buttonLabel), 13, 16);
+        const initialFittedFontSizePx = HighDpiConfigurator.fitCssFontSize(
+            cssFontSizePx,
+            buttonLabel.displayWidth,
+            availableLabelWidth,
+            13,
+        );
+        if (initialFittedFontSizePx < cssFontSizePx) {
+            cssFontSizePx = initialFittedFontSizePx;
+            dpiConfigurator.setCssFontSize(buttonLabel, cssFontSizePx);
         }
-        buttonLabel.setWordWrapWidth(availableLabelWidth, true);
+        buttonLabel.setWordWrapWidth(availableLabelWidth * dpiConfigurator.getDevicePixelRatio(), true);
         buttonLabel.setOrigin(0.5, 0.5);
+        const availableLabelHeightPx = Math.max(16, pixelHeight - 2);
+        while (
+            (buttonLabel.displayWidth > availableLabelWidth + 0.5 ||
+                buttonLabel.displayHeight > availableLabelHeightPx + 0.5) &&
+            cssFontSizePx > 13
+        ) {
+            cssFontSizePx -= 1;
+            dpiConfigurator.setCssFontSize(buttonLabel, cssFontSizePx);
+        }
+        buttonContainer.setName("cascade-ui-button");
+        buttonContainer.setData("buttonWidthPx", pixelWidth);
+        buttonContainer.setData("buttonHeightPx", pixelHeight);
+        buttonLabel.setName("cascade-ui-button-label");
         const buttonZone = scene.add.zone(0, 0, pixelWidth, pixelHeight).setOrigin(0, 0);
         buttonZone.setInteractive({ useHandCursor: true });
         const focusHandle = UiKeyboardFocus.register(scene, {
