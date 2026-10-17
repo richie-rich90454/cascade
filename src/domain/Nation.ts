@@ -66,6 +66,33 @@ export class Nation extends GameEntity {
         return this.treasury;
     }
 
+    public restoreMutableState(state: {
+        treasury: number;
+        manpower: number;
+        legitimacy: number;
+        stability: number;
+        capitalProvinceIdentifier: string;
+        controlledProvinceIdentifiers: string[];
+        alliedNationIdentifiers: string[];
+        nationsAtWarWithIdentifiers: string[];
+        primaryColorHex: string;
+        accentColorHex: string;
+    }): void {
+        this.treasury = state.treasury;
+        this.manpower = state.manpower;
+        this.legitimacy = state.legitimacy;
+        this.stability = state.stability;
+        this.capitalProvinceIdentifier = state.capitalProvinceIdentifier;
+        this.controlledProvinceIdentifiers.clear();
+        state.controlledProvinceIdentifiers.forEach((identifier) => this.controlledProvinceIdentifiers.add(identifier));
+        this.alliedNationIdentifiers.clear();
+        state.alliedNationIdentifiers.forEach((identifier) => this.alliedNationIdentifiers.add(identifier));
+        this.nationsAtWarWithIdentifiers.clear();
+        state.nationsAtWarWithIdentifiers.forEach((identifier) => this.nationsAtWarWithIdentifiers.add(identifier));
+        this.primaryColorHex = state.primaryColorHex;
+        this.accentColorHex = state.accentColorHex;
+    }
+
     public getManpower(): number {
         return this.manpower;
     }
