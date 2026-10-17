@@ -7,7 +7,6 @@ import { ResourceType } from "../../types/ResourceType";
 import { SuggestedSkill } from "../../types/SuggestedSkill";
 import { ThematicFocus } from "../../types/ThematicFocus";
 import { WorldState1900 } from "../WorldState1900";
-import { CommunistRevolutionEvent } from "./events/CommunistRevolutionEvent";
 import { PoliticalCrisisEvent } from "./events/PoliticalCrisisEvent";
 import { MexicanRevolutionPath } from "./paths/MexicanRevolutionPath";
 import { OttomanCollapsePath } from "./paths/OttomanCollapsePath";
@@ -46,7 +45,6 @@ export class ScenarioOne extends Scenario {
             new QingCollapsePath(),
             new MexicanRevolutionPath(),
             new PoliticalCrisisEvent(),
-            new CommunistRevolutionEvent(),
         ];
     }
 
@@ -71,11 +69,11 @@ export class ScenarioOne extends Scenario {
     }
 
     public override getDurationInMinutes(): number {
-        return 45;
+        return 30;
     }
 
     public override getTurnCount(): number {
-        return 12;
+        return 6;
     }
 
     public override getThematicFocus(): ThematicFocus {
@@ -100,10 +98,38 @@ export class ScenarioOne extends Scenario {
 
     public override getBriefingParagraphs(): string[] {
         return [
-            "In 1900 the West dominated the global political order. Land-based empires such as the Ottoman, Russian, and Qing ruled subject peoples across three continents, while maritime empires such as the British and French carried European power to every ocean. The older land-based empires already showed the strain of competition with industrial powers that could outproduce and outgun them.",
-            "Internal and external factors combined to weaken these empires. Inside their borders, ethnic and religious nationalism, fiscal crisis, and resistance to reform eroded the authority of old dynasties. From outside, military defeat, unequal treaties, and the economic penetration of great-power capital stripped away sovereignty piece by piece.",
-            "Across the world, states and peoples challenged the existing political and social order. In Mexico, the fraudulent election of 1910 set off a revolution that would remake the state. In Russia, the revolution of 1905 forced the tsar to promise a duma. In China, the dynasty fell in 1911. In the Balkans, new nations broke away from the Ottoman Empire.",
-            "Your task across four perspectives is to identify the internal and external factors that produced these changes, to trace how short-term crises grew out of long-term strains, and to mark what changed and what persisted as the old empires gave way to new states.",
+            "In 1900, industrial powers competed for territory, influence, and markets while older land-based empires faced debt, military pressure, and demands for political change. Mexico faced a separate but connected struggle over dictatorship, land, and political rights.",
+            "Across six stops—1900, 1905, 1908, 1910, 1911, and 1914—you will read two primary sources, make five policy choices, trace four chains of causation, and explain continuity and change. Historical events are documented; policy choices and their immediate game consequences are alternate-history practice.",
+        ];
+    }
+
+    public getPerspectiveBriefingSections(): Array<{ heading: string; paragraph: string }> {
+        return [
+            {
+                heading: "Ottoman Empire · 1908",
+                paragraph:
+                    "European creditors controlled important Ottoman revenues after the Public Debt Administration was established in 1881. Territorial losses and nationalist movements challenged imperial authority. The Committee of Union and Progress restored the constitution in 1908, but constitutional reform did not resolve the empire’s fiscal and political crises.",
+            },
+            {
+                heading: "Russian Empire · 1905",
+                paragraph:
+                    "Defeat in the Russo-Japanese War, Bloody Sunday, strikes, and mutiny pushed Nicholas II to issue the October Manifesto. It promised civil liberties and a Duma, while the Fundamental Laws of 1906 preserved extensive imperial power. Peasant land hunger and uneven industrialization remained unresolved.",
+            },
+            {
+                heading: "Mexico · 1910",
+                paragraph:
+                    "Porfirio Díaz’s long rule promoted investment and growth while concentrating land and limiting political competition. After the fraudulent 1910 election, Francisco Madero’s Plan of San Luis Potosí called for revolt. Peasants, workers, and regional leaders pursued aims that went beyond Madero’s moderate program.",
+            },
+            {
+                heading: "Qing China · 1911",
+                paragraph:
+                    "Unequal treaties, indemnities after the Boxer Uprising, fiscal strain, and resistance to reform weakened Qing authority. Railway nationalization protests and the Wuchang Uprising helped turn regional opposition into the Xinhai Revolution. The dynasty fell in 1911; a republic followed in 1912.",
+            },
+            {
+                heading: "A connected world · 1900–1914",
+                paragraph:
+                    "Imperial rivalry, nationalism, and military alliances linked local crises to global politics. The assassination of Archduke Franz Ferdinand in Sarajevo on June 28, 1914, helped trigger a July crisis and the First World War. The Bolshevik Revolution belongs to 1917 and is outside this scenario’s 1900–1914 event sequence.",
+            },
         ];
     }
 
@@ -315,18 +341,10 @@ export class ScenarioOne extends Scenario {
             new ScenarioEventRecord(
                 6,
                 "assassination_at_sarajevo",
-                "TROOPS FIRE IN MEXICO CITY: MADERO'S REVOLUTION BEGINS",
+                "SARAJEVO: ARCHDUKE FRANZ FERDINAND IS ASSASSINATED",
                 "newspaper_masthead_default",
-                "MEX",
+                "AUT",
                 "event_assassination_sarajevo",
-            ),
-            new ScenarioEventRecord(
-                12,
-                "russian_revolution",
-                "PETROGRAD FALLS TO THE BOLSHEVIKS",
-                "newspaper_masthead_ussr",
-                "RUS",
-                "event_russian_revolution",
             ),
         ];
     }
@@ -644,6 +662,18 @@ export class ScenarioOne extends Scenario {
     public override evaluateVictory(gameState: GameState): ScenarioEvaluationResult {
         const flagStatus = this.collectFlagStatus(gameState, [
             {
+                flagIdentifier: "source_s1_analyzed_october_manifesto",
+                flagDescription: "Correctly analyzed the October Manifesto as a primary source",
+            },
+            {
+                flagIdentifier: "source_s1_analyzed_madero_plan_of_san_luis_potosi",
+                flagDescription: "Correctly analyzed the Plan of San Luis Potosí as a primary source",
+            },
+            {
+                flagIdentifier: "event_s1_sarajevo_read",
+                flagDescription: "Read the documented Sarajevo dispatch of 1914",
+            },
+            {
                 flagIdentifier: "causal_chain_s1_ottoman_complete",
                 flagDescription: "Ottoman causal chain correctly ordered (three internal and three external factors)",
             },
@@ -668,6 +698,17 @@ export class ScenarioOne extends Scenario {
                 flagDescription: "Contextualization paragraph awarded three points or higher",
             },
         ]);
-        return this.buildEvaluationResult(1, flagStatus.satisfiedCriteria, flagStatus.unmetCriteria, 6, 0);
+        const decisions = this.getDecisionRecords();
+        const completedDecisionCount = decisions.filter((decision) =>
+            decision.options.some((option) => gameState.isScenarioFlagSet(option.resultingFlagIdentifier)),
+        ).length;
+        const satisfiedCriteria = [...flagStatus.satisfiedCriteria];
+        const unmetCriteria = [...flagStatus.unmetCriteria];
+        if (completedDecisionCount === decisions.length) {
+            satisfiedCriteria.push("Made all five policy choices across the dated chapters");
+        } else {
+            unmetCriteria.push(`Make all five policy choices (${completedDecisionCount} of ${decisions.length} complete)`);
+        }
+        return this.buildEvaluationResult(1, satisfiedCriteria, unmetCriteria, 10, 0);
     }
 }
