@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { prefersReducedMotion } from "../core/AccessibilityPreferences";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 
@@ -121,14 +122,14 @@ export class TitleCardComponent extends Phaser.GameObjects.Container {
         maximumHeightPx: number,
         minimumFontSizePx: number,
     ): void {
-        let currentFontSizePx = Number.parseFloat(String(textObject.style.fontSize));
-        const minimumInternalFontSizePx = minimumFontSizePx / Math.max(0.1, textObject.scaleX);
+        const dpiConfigurator = HighDpiConfigurator.getInstance();
+        let currentFontSizePx = dpiConfigurator.getCssFontSize(textObject);
         while (
             (textObject.displayWidth > maximumWidthPx || textObject.displayHeight > maximumHeightPx) &&
-            currentFontSizePx > minimumInternalFontSizePx
+            currentFontSizePx > minimumFontSizePx
         ) {
-            currentFontSizePx = Math.max(minimumInternalFontSizePx, currentFontSizePx - 2);
-            textObject.setFontSize(currentFontSizePx);
+            currentFontSizePx = Math.max(minimumFontSizePx, currentFontSizePx - 2);
+            dpiConfigurator.setCssFontSize(textObject, currentFontSizePx);
         }
     }
 }
