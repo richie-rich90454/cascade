@@ -10,6 +10,7 @@ import { FontFamilies } from "../managers/FontManager";
 import { SourceAnalysisComponent } from "../ui/SourceAnalysisComponent";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
 
 export class SourceAnalysisScene extends Phaser.Scene {
@@ -101,21 +102,32 @@ export class SourceAnalysisScene extends Phaser.Scene {
         this.sourcePanelWidthPx = this.isCompactLayout
             ? Math.max(160, screenWidth - 24)
             : Phaser.Math.Clamp(Math.floor(screenWidth * 0.32), 320, 438);
-        this.analysisPanelLeftX = this.isCompactLayout
-            ? 12
-            : this.sourcePanelLeftX + this.sourcePanelWidthPx + 12;
+        this.analysisPanelLeftX = this.isCompactLayout ? 12 : this.sourcePanelLeftX + this.sourcePanelWidthPx + 12;
         this.analysisPanelTopY = this.isCompactLayout ? this.sourcePanelTopY + 124 : this.sourcePanelTopY;
-        this.analysisPanelWidthPx = Math.max(160, screenWidth - this.analysisPanelLeftX - (this.isCompactLayout ? 12 : 16));
+        this.analysisPanelWidthPx = Math.max(
+            160,
+            screenWidth - this.analysisPanelLeftX - (this.isCompactLayout ? 12 : 16),
+        );
         const sourcePanelHeight = Math.max(96, screenHeight - this.sourcePanelTopY - panelBottomInset);
         const analysisPanelHeight = Math.max(120, screenHeight - this.analysisPanelTopY - panelBottomInset);
         this.analysisViewportHeightPx = Math.max(96, analysisPanelHeight - 56);
         this.add.rectangle(0, 0, screenWidth, screenHeight, UiPalette.NEAR_BLACK_LEATHER).setOrigin(0, 0);
-        const sourceHeaderBand = this.add.rectangle(0, 0, screenWidth, headerHeight, UiPalette.DARK_OLIVE).setOrigin(0, 0);
+        const sourceHeaderBand = this.add
+            .rectangle(0, 0, screenWidth, headerHeight, UiPalette.DARK_OLIVE)
+            .setOrigin(0, 0);
         sourceHeaderBand.setDepth(UiPalette.UI_DEPTH_TOOLTIP + 100);
         const isVeryNarrow = screenWidth < 360;
         const titleLeftX = isVeryNarrow ? 12 : screenWidth < 600 ? 160 : 0;
-        const titleWidth = isVeryNarrow ? screenWidth - 24 : screenWidth < 600 ? screenWidth - titleLeftX - 12 : screenWidth - 24;
-        const titleCenterX = isVeryNarrow ? screenWidth / 2 : screenWidth < 600 ? titleLeftX + titleWidth / 2 : screenWidth / 2;
+        const titleWidth = isVeryNarrow
+            ? screenWidth - 24
+            : screenWidth < 600
+              ? screenWidth - titleLeftX - 12
+              : screenWidth - 24;
+        const titleCenterX = isVeryNarrow
+            ? screenWidth / 2
+            : screenWidth < 600
+              ? titleLeftX + titleWidth / 2
+              : screenWidth / 2;
         const sourceHeaderTitle = UiPanelFactory.createSectionHeader(
             this,
             titleCenterX,
@@ -127,7 +139,9 @@ export class SourceAnalysisScene extends Phaser.Scene {
         sourceHeaderTitle.setWordWrapWidth(titleWidth, true);
         sourceHeaderTitle.setAlign("center");
         sourceHeaderTitle.setDepth(UiPalette.UI_DEPTH_TOOLTIP + 102);
-        const backButtonWidth = isVeryNarrow ? Math.min(180, screenWidth - 24) : Math.min(144, screenWidth < 600 ? 136 : 160);
+        const backButtonWidth = isVeryNarrow
+            ? Math.min(180, screenWidth - 24)
+            : Math.min(144, screenWidth < 600 ? 136 : 160);
         const backToMapButton = UiPanelFactory.createBrassButton(
             this,
             12,
@@ -136,7 +150,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
             44,
             "BACK TO MAP",
             () => {
-            this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(this.scenarioNumber));
+                this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(this.scenarioNumber));
             },
         );
         backToMapButton.setDepth(UiPalette.UI_DEPTH_TOOLTIP + 102);
@@ -178,29 +192,35 @@ export class SourceAnalysisScene extends Phaser.Scene {
             );
             this.sourceMaskGraphics.setVisible(false);
         }
-        this.analysisScrollHint = this.add.text(screenWidth - 24, screenHeight - 18, "SCROLL TO READ · PAGE UP / DOWN", {
-            fontFamily: FontFamilies.TYPEWRITER_BODY,
-            fontSize: "12px",
-            color: UiPalette.PARCHMENT_CSS,
-            backgroundColor: UiPalette.NEAR_BLACK_LEATHER_CSS,
-            padding: { x: 6, y: 3 },
-        });
+        this.analysisScrollHint = this.add.text(
+            screenWidth - 24,
+            screenHeight - 18,
+            "SCROLL TO READ · PAGE UP / DOWN",
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: "12px",
+                color: UiPalette.PARCHMENT_CSS,
+                backgroundColor: UiPalette.NEAR_BLACK_LEATHER_CSS,
+                padding: { x: 6, y: 3 },
+            },
+        );
         this.analysisScrollHint.setOrigin(1, 1);
         this.analysisScrollHint.setVisible(false);
-        this.sourceScrollHint = !this.isCompactLayout && this.getScenarioSources().length > 1
-            ? this.add.text(
-                  this.sourcePanelLeftX + this.sourcePanelWidthPx - 14,
-                  this.sourcePanelTopY + sourcePanelHeight - 12,
-                  "SCROLL SOURCES · WHEEL OR PAGE UP / DOWN",
-                  {
-                      fontFamily: FontFamilies.TYPEWRITER_BODY,
-                      fontSize: "11px",
-                      color: UiPalette.PARCHMENT_CSS,
-                      backgroundColor: UiPalette.NEAR_BLACK_LEATHER_CSS,
-                      padding: { x: 5, y: 3 },
-                  },
-              )
-            : null;
+        this.sourceScrollHint =
+            !this.isCompactLayout && this.getScenarioSources().length > 1
+                ? this.add.text(
+                      this.sourcePanelLeftX + this.sourcePanelWidthPx - 14,
+                      this.sourcePanelTopY + sourcePanelHeight - 12,
+                      "SCROLL SOURCES · WHEEL OR PAGE UP / DOWN",
+                      {
+                          fontFamily: FontFamilies.TYPEWRITER_BODY,
+                          fontSize: "11px",
+                          color: UiPalette.PARCHMENT_CSS,
+                          backgroundColor: UiPalette.NEAR_BLACK_LEATHER_CSS,
+                          padding: { x: 5, y: 3 },
+                      },
+                  )
+                : null;
         this.sourceScrollHint?.setOrigin(1, 1);
         this.sourceScrollHint?.setVisible(false);
         const sourceFooterCover = this.add
@@ -413,15 +433,25 @@ export class SourceAnalysisScene extends Phaser.Scene {
         _deltaX: number,
         deltaY: number,
     ): void {
-        if (!this.isCompactLayout && pointer.x >= this.sourcePanelLeftX && pointer.x <= this.sourcePanelLeftX + this.sourcePanelWidthPx) {
+        const pointerPosition = UiScrollInput.getCssPointerPosition(pointer);
+        const sourceViewportTopPx = this.sourcePanelTopY + 74;
+        if (
+            !this.isCompactLayout &&
+            pointerPosition.x >= this.sourcePanelLeftX &&
+            pointerPosition.x <= this.sourcePanelLeftX + this.sourcePanelWidthPx &&
+            pointerPosition.y >= sourceViewportTopPx &&
+            pointerPosition.y <= sourceViewportTopPx + this.sourceViewportHeightPx
+        ) {
             this.lastScrollRegion = "sources";
-            this.scrollSourcesBy(deltaY);
+            this.scrollSourcesBy(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.sourceViewportHeightPx));
         } else if (
-            pointer.x >= this.analysisPanelLeftX &&
-            pointer.x <= this.analysisPanelLeftX + this.analysisPanelWidthPx
+            pointerPosition.x >= this.analysisPanelLeftX &&
+            pointerPosition.x <= this.analysisPanelLeftX + this.analysisPanelWidthPx &&
+            pointerPosition.y >= this.analysisPanelTopY &&
+            pointerPosition.y <= this.analysisPanelTopY + this.analysisViewportHeightPx
         ) {
             this.lastScrollRegion = "analysis";
-            this.scrollAnalysisBy(deltaY);
+            this.scrollAnalysisBy(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.analysisViewportHeightPx));
         }
     }
 
