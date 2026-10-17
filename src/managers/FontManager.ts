@@ -1,12 +1,12 @@
 export class FontFamilies {
-    public static readonly GOTHIC: string = '"Palatino Linotype", "Book Antiqua", Georgia, serif';
-    public static readonly DISPLAY_SERIF: string = '"Segoe UI", Arial, sans-serif';
-    public static readonly BODY_SERIF: string = '"Segoe UI", Arial, sans-serif';
-    public static readonly TYPEWRITER_HEADER: string = '"Segoe UI", Arial, sans-serif';
-    public static readonly TYPEWRITER_BODY: string = 'Consolas, "Courier New", monospace';
-    public static readonly SMALL_CAPS: string = '"Segoe UI", Arial, sans-serif';
+    public static readonly GOTHIC: string = '"EB Garamond", Georgia, serif';
+    public static readonly DISPLAY_SERIF: string = '"EB Garamond", Georgia, serif';
+    public static readonly BODY_SERIF: string = '"Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    public static readonly TYPEWRITER_HEADER: string = '"Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    public static readonly TYPEWRITER_BODY: string = '"Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    public static readonly SMALL_CAPS: string = '"Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
 
-    public static readonly ALL_FAMILY_NAMES: string[] = ["Segoe UI", "Arial", "Consolas", "Georgia"];
+    public static readonly ALL_FAMILY_NAMES: string[] = ["Noto Sans", "Noto Sans SC", "EB Garamond"];
 
     public static getFontFamilyForRole(fontRole: string): string {
         switch (fontRole) {
