@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { SceneKeys } from "../core/SceneKeys";
 import { TeacherSettings } from "../core/TeacherSettings";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
@@ -11,6 +12,7 @@ import { TitleCardComponent } from "../ui/TitleCardComponent";
 import { FlowCursor } from "../ui/UiFlowLayout";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 
 export class ScenarioSelectionPayload {
     public readonly scenarioNumber: number;
@@ -88,7 +90,13 @@ export class ScenarioBriefingScene extends Phaser.Scene {
             .setOrigin(0, 0.5);
         scenarioHeading.setVisible(screenWidth >= 280);
         if (scenarioHeading.displayHeight > 52) {
-            scenarioHeading.setFontSize(Math.max(15, Math.floor(Number.parseFloat(String(scenarioHeading.style.fontSize)) * (52 / scenarioHeading.displayHeight))));
+            const fittedCssFontSizePx = HighDpiConfigurator.fitCssFontSize(
+                HighDpiConfigurator.getInstance().getCssFontSize(scenarioHeading),
+                scenarioHeading.displayWidth,
+                scenarioHeadingWidth,
+                15,
+            );
+            HighDpiConfigurator.getInstance().setCssFontSize(scenarioHeading, fittedCssFontSizePx);
         }
 
         const panelLeftX = Math.min(40, Math.max(12, Math.floor(screenWidth * 0.04)));
@@ -219,7 +227,15 @@ export class ScenarioBriefingScene extends Phaser.Scene {
                 );
                 contextCursor.placeText(
                     fullContextContainer,
-                    UiPanelFactory.createBodyText(this, 0, 0, contentWrapWidth - 8, section.paragraph, 17, UiPalette.PARCHMENT_CSS),
+                    UiPanelFactory.createBodyText(
+                        this,
+                        0,
+                        0,
+                        contentWrapWidth - 8,
+                        section.paragraph,
+                        17,
+                        UiPalette.PARCHMENT_CSS,
+                    ),
                     14,
                 );
             }
@@ -259,10 +275,13 @@ export class ScenarioBriefingScene extends Phaser.Scene {
                     fullContextContainer.setVisible(isFullContextVisible);
                     contextToggleButton.each((child: Phaser.GameObjects.GameObject) => {
                         if (child instanceof Phaser.GameObjects.Text) {
-                            child.setText(isFullContextVisible ? "HIDE FULL HISTORICAL CONTEXT" : "OPEN FULL HISTORICAL CONTEXT");
+                            child.setText(
+                                isFullContextVisible ? "HIDE FULL HISTORICAL CONTEXT" : "OPEN FULL HISTORICAL CONTEXT",
+                            );
                         }
                     });
-                    this.briefingContentHeightPx = contextTopY + (isFullContextVisible ? contextCursor.getCurrentY() : 0) + 36;
+                    this.briefingContentHeightPx =
+                        contextTopY + (isFullContextVisible ? contextCursor.getCurrentY() : 0) + 36;
                     if (isFullContextVisible) {
                         this.scrollBriefingBy(contextCursor.getCurrentY());
                     } else {
@@ -373,12 +392,12 @@ export class ScenarioBriefingScene extends Phaser.Scene {
     }
 
     private handleBriefingWheel(
-        _pointer: Phaser.Input.Pointer,
+        pointer: Phaser.Input.Pointer,
         _currentlyOver: Phaser.GameObjects.GameObject[],
         _deltaX: number,
         deltaY: number,
     ): void {
-        this.scrollBriefingBy(deltaY);
+        this.scrollBriefingBy(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.briefingViewportHeightPx));
     }
 
     private scrollBriefingBy(distancePx: number): void {
