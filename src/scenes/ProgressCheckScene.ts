@@ -11,6 +11,7 @@ import { FontFamilies } from "../managers/FontManager";
 import { StudentTextEntryField } from "../ui/QuickwriteComponent";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 
 export class ProgressCheckScene extends Phaser.Scene {
     private getProgressCheckContentWidth(): number {
@@ -76,13 +77,13 @@ export class ProgressCheckScene extends Phaser.Scene {
         this.input.on(
             "wheel",
             (
-                _pointer: Phaser.Input.Pointer,
+                pointer: Phaser.Input.Pointer,
                 _currentlyOver: Phaser.GameObjects.GameObject[],
                 _deltaX: number,
                 deltaY: number,
                 _deltaZ: number,
             ) => {
-                this.handleWheelScroll(deltaY);
+                this.handleWheelScroll(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.scale.height));
             },
         );
 
@@ -109,7 +110,7 @@ export class ProgressCheckScene extends Phaser.Scene {
         if (this.contentContainer === null) {
             return;
         }
-        this.scrollOffsetY -= deltaY * 0.5;
+        this.scrollOffsetY -= deltaY;
         this.applyScrollClamp();
     }
 
