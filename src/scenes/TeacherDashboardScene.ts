@@ -8,6 +8,7 @@ import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { AssessmentManager } from "../managers/AssessmentManager";
 import { UiPalette } from "../ui/UiPalette";
 import { UiPanelFactory } from "../ui/UiPanelFactory";
+import { UiScrollInput } from "../ui/UiScrollInput";
 
 export class TeacherDashboardScene extends Phaser.Scene {
     private static readonly CONTENT_BASE_Y: number = 170;
@@ -59,13 +60,20 @@ export class TeacherDashboardScene extends Phaser.Scene {
         this.input.on(
             "wheel",
             (
-                _pointer: Phaser.Input.Pointer,
+                pointer: Phaser.Input.Pointer,
                 _currentlyOver: Phaser.GameObjects.GameObject[],
                 _deltaX: number,
                 deltaY: number,
                 _deltaZ: number,
             ) => {
-                this.handleWheelScroll(deltaY);
+                const pointerPosition = UiScrollInput.getCssPointerPosition(pointer);
+                if (
+                    pointerPosition.y < TeacherDashboardScene.CONTENT_BASE_Y ||
+                    pointerPosition.y > this.scale.height - TeacherDashboardScene.BOTTOM_FEEDBACK_RESERVE_PX
+                ) {
+                    return;
+                }
+                this.handleWheelScroll(UiScrollInput.getWheelDeltaPx(pointer, deltaY, this.scale.height));
             },
         );
     }
@@ -412,7 +420,7 @@ export class TeacherDashboardScene extends Phaser.Scene {
         if (this.contentContainer === null) {
             return;
         }
-        this.scrollOffsetY -= deltaY * 0.5;
+        this.scrollOffsetY -= deltaY;
         this.applyScrollClamp();
     }
 
