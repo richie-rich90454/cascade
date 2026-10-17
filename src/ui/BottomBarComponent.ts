@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { EventBus, GameEventTypes, NavigationRequestedPayload } from "../core/EventBus";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
@@ -71,8 +72,9 @@ export class BottomBarComponent extends Phaser.GameObjects.Container {
         this.turnTextObject.setWordWrapWidth(leftTextWidth, true);
         this.phaseTextObject.setWordWrapWidth(leftTextWidth, true);
         if (width < 760) {
-            this.turnTextObject.setFontSize(width < 420 ? 13 : 15);
-            this.phaseTextObject.setFontSize(width < 420 ? 11 : 13);
+            const dpiConfigurator = HighDpiConfigurator.getInstance();
+            dpiConfigurator.setCssFontSize(this.turnTextObject, width < 420 ? 13 : 15);
+            dpiConfigurator.setCssFontSize(this.phaseTextObject, width < 420 ? 12 : 13);
         }
         const journalButton = UiPanelFactory.createBrassButton(
             scene,
