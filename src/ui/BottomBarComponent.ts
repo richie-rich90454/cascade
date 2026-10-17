@@ -8,9 +8,19 @@ import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
 export class BottomBarComponent extends Phaser.GameObjects.Container {
     private readonly turnTextObject: Phaser.GameObjects.Text;
     private readonly phaseTextObject: Phaser.GameObjects.Text;
+    private readonly usesChapterProgress: boolean;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+    constructor(
+        scene: Phaser.Scene,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        showOptionalStrategyTools: boolean = true,
+        usesChapterProgress: boolean = false,
+    ) {
         super(scene, x, y);
+        this.usesChapterProgress = usesChapterProgress;
         scene.add.existing(this);
         this.setDepth(UiPalette.UI_DEPTH_PANEL);
 
@@ -43,62 +53,82 @@ export class BottomBarComponent extends Phaser.GameObjects.Container {
             color: UiPalette.AGED_PARCHMENT_CSS,
         });
         playLoopText.setOrigin(0, 0.5);
+        playLoopText.setVisible(width >= 1100);
         this.add(playLoopText);
 
         const buttonHeightPx = 32;
         const buttonTopY = (height - buttonHeightPx) / 2;
-        const menuButtonLeftX = width - 16 - 90;
-        const focusTreeButtonLeftX = menuButtonLeftX - 10 - 130;
-        const ledgerButtonLeftX = focusTreeButtonLeftX - 10 - 110;
-        const journalButtonLeftX = ledgerButtonLeftX - 10 - 110;
+        const showWideStrategyTools = showOptionalStrategyTools && width >= 760;
+        const menuButtonWidth = Math.min(90, Math.max(72, width * 0.22));
+        const journalButtonWidth = width < 420 ? Math.min(104, Math.max(84, width * 0.28)) : 110;
+        const menuButtonLeftX = width - 12 - menuButtonWidth;
+        const focusTreeButtonLeftX = menuButtonLeftX - 8 - 130;
+        const ledgerButtonLeftX = focusTreeButtonLeftX - 8 - 110;
+        const journalButtonLeftX = showWideStrategyTools
+            ? ledgerButtonLeftX - 8 - 110
+            : menuButtonLeftX - 8 - journalButtonWidth;
+        const leftTextWidth = Math.max(70, journalButtonLeftX - 24);
+        this.turnTextObject.setWordWrapWidth(leftTextWidth, true);
+        this.phaseTextObject.setWordWrapWidth(leftTextWidth, true);
+        if (width < 760) {
+            this.turnTextObject.setFontSize(width < 420 ? 13 : 15);
+            this.phaseTextObject.setFontSize(width < 420 ? 11 : 13);
+        }
         const journalButton = UiPanelFactory.createBrassButton(
             scene,
             journalButtonLeftX,
             buttonTopY,
-            110,
+            journalButtonWidth,
             buttonHeightPx,
             "JOURNAL",
             () => this.publishNavigationRequest("journal"),
-        );
-        const ledgerButton = UiPanelFactory.createBrassButton(
-            scene,
-            ledgerButtonLeftX,
-            buttonTopY,
-            110,
-            buttonHeightPx,
-            "LEDGER",
-            () => this.publishNavigationRequest("ledger"),
-        );
-        const focusTreeButton = UiPanelFactory.createBrassButton(
-            scene,
-            focusTreeButtonLeftX,
-            buttonTopY,
-            130,
-            buttonHeightPx,
-            "FOCUS TREE",
-            () => this.publishNavigationRequest("focus_tree"),
         );
         const menuButton = UiPanelFactory.createBrassButton(
             scene,
             menuButtonLeftX,
             buttonTopY,
-            90,
+            menuButtonWidth,
             buttonHeightPx,
             "MENU",
             () => this.publishNavigationRequest("menu"),
         );
         this.add(journalButton);
-        this.add(ledgerButton);
-        this.add(focusTreeButton);
+        if (showWideStrategyTools) {
+            const ledgerButton = UiPanelFactory.createBrassButton(
+                scene,
+                ledgerButtonLeftX,
+                buttonTopY,
+                110,
+                buttonHeightPx,
+                "LEDGER",
+                () => this.publishNavigationRequest("ledger"),
+            );
+            const focusTreeButton = UiPanelFactory.createBrassButton(
+                scene,
+                focusTreeButtonLeftX,
+                buttonTopY,
+                130,
+                buttonHeightPx,
+                "FOCUS TREE",
+                () => this.publishNavigationRequest("focus_tree"),
+            );
+            this.add(ledgerButton);
+            this.add(focusTreeButton);
+        }
         this.add(menuButton);
     }
 
     public setTurnDisplay(turnNumber: number, totalTurnCount: number): void {
-        this.turnTextObject.setText(`Turn ${turnNumber} of ${totalTurnCount}`);
+        const progressLabel = this.usesChapterProgress ? "Chapter" : "Turn";
+        this.turnTextObject.setText(`${progressLabel} ${turnNumber} of ${totalTurnCount}`);
     }
 
     public setPhaseDisplay(phaseDisplayName: string): void {
-        this.phaseTextObject.setText(`Current step: ${phaseDisplayName}`);
+        this.phaseTextObject.setText(
+            this.usesChapterProgress || this.phaseTextObject.scene.scale.width < 760
+                ? phaseDisplayName
+                : `Current step: ${phaseDisplayName}`,
+        );
     }
 
     private publishNavigationRequest(destinationSceneKey: string): void {
