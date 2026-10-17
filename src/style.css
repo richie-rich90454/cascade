@@ -13,12 +13,12 @@
     --color-aged-parchment: #d4c29a;
     --color-deep-parchment: #8b7355;
 
-    --font-gothic: "Palatino Linotype", "Book Antiqua", Georgia, serif;
-    --font-display-serif: "Segoe UI", Arial, sans-serif;
-    --font-body-serif: "Segoe UI", Arial, sans-serif;
-    --font-typewriter-header: "Segoe UI", Arial, sans-serif;
-    --font-typewriter-body: Consolas, "Courier New", monospace;
-    --font-small-caps: "Segoe UI", Arial, sans-serif;
+    --font-gothic: "EB Garamond", Georgia, serif;
+    --font-display-serif: "EB Garamond", Georgia, serif;
+    --font-body-serif: "Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+    --font-typewriter-header: "Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+    --font-typewriter-body: "Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+    --font-small-caps: "Noto Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
 }
 
 * {
@@ -45,6 +45,112 @@ body {
 
 #cascade-game-root canvas {
     display: block;
+}
+
+#cascade-game-root canvas:focus-visible {
+    outline: 3px solid var(--color-highlight-brass);
+    outline-offset: -4px;
+}
+
+.profile-dialog-backdrop {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgb(9 13 16 / 82%);
+}
+
+.profile-dialog {
+    width: min(30rem, 100%);
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+    color: #f2e8d5;
+    background: #252c32;
+    border: 1px solid #c9a961;
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 55%), inset 0 0 0 3px rgb(201 169 97 / 12%);
+}
+
+.profile-dialog h2 {
+    margin: 0;
+    color: #f0d88e;
+    font: 600 1.5rem/1.2 var(--font-display-serif);
+    text-wrap: balance;
+}
+
+.profile-dialog p {
+    margin: 0;
+    color: #e3dccd;
+    font: 400 1rem/1.5 var(--font-body-serif);
+}
+
+.profile-dialog label {
+    color: #f2e8d5;
+    font: 600 0.9rem/1.4 var(--font-small-caps);
+    letter-spacing: 0.04em;
+}
+
+.profile-dialog input {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 0.8rem;
+    color: #171b20;
+    background: #f2e8d5;
+    border: 2px solid #8b7355;
+    border-radius: 2px;
+    font: 500 1rem/1.2 var(--font-body-serif);
+}
+
+.profile-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.profile-dialog-actions button {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.85rem;
+    color: #f2e8d5;
+    background: #374148;
+    border: 1px solid #a5aeb3;
+    border-radius: 2px;
+    font: 600 0.82rem/1.2 var(--font-small-caps);
+    letter-spacing: 0.035em;
+    cursor: pointer;
+}
+
+.profile-dialog-actions button[type="submit"] {
+    color: #171b20;
+    background: #e5cc8a;
+    border-color: #f1dfa9;
+}
+
+.profile-dialog-actions button.danger {
+    background: #8b1a1a;
+    border-color: #edb8ad;
+}
+
+.profile-dialog input:focus-visible,
+.profile-dialog-actions button:focus-visible {
+    outline: 3px solid #f0d88e;
+    outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+    .profile-dialog {
+        padding: 1.15rem;
+    }
+
+    .profile-dialog-actions {
+        flex-direction: column-reverse;
+    }
+
+    .profile-dialog-actions button {
+        width: 100%;
+    }
 }
 
 ::selection {
