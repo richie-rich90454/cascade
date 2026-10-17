@@ -27,6 +27,19 @@ export class IntelligenceManager {
         return this.analysisResultsBySourceIdentifier.size;
     }
 
+    public createSnapshot(): Array<[string, boolean]> {
+        return Array.from(this.analysisResultsBySourceIdentifier.entries());
+    }
+
+    public restoreSnapshot(results: Array<[string, boolean]>): void {
+        this.analysisResultsBySourceIdentifier.clear();
+        for (const [sourceIdentifier, wasCorrect] of results) {
+            if (typeof sourceIdentifier === "string" && typeof wasCorrect === "boolean") {
+                this.analysisResultsBySourceIdentifier.set(sourceIdentifier, wasCorrect);
+            }
+        }
+    }
+
     public getCorrectlyAnalyzedSourceCount(): number {
         let correctlyAnalyzedSourceCount = 0;
         for (const wasAnalysisCorrect of this.analysisResultsBySourceIdentifier.values()) {
