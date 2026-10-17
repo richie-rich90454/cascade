@@ -3,6 +3,8 @@ import Phaser from "phaser";
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { TeacherSettings } from "../core/TeacherSettings";
+import { getTextScale, setTextScale } from "../core/AccessibilityPreferences";
+import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 
@@ -124,12 +126,26 @@ export class SettingsScene extends Phaser.Scene {
         UiPanelFactory.createBrassButton(this, 40, 385, 240, 44, "FULLSCREEN", () => {
             this.toggleFullscreen();
         });
+        const textScaleDisplay = this.add.text(320, 407, `TEXT SIZE · ${Math.round(getTextScale() * 100)}%`, {
+            fontFamily: FontFamilies.BODY_SERIF,
+            fontSize: "16px",
+            color: UiPalette.PARCHMENT_CSS,
+        });
+        textScaleDisplay.setOrigin(0, 0.5);
+        UiPanelFactory.createBrassButton(this, 490, 385, 72, 44, "A−", () => {
+            setTextScale(getTextScale() - 0.1);
+            this.scene.restart();
+        });
+        UiPanelFactory.createBrassButton(this, 570, 385, 72, 44, "A+", () => {
+            setTextScale(getTextScale() + 0.1);
+            this.scene.restart();
+        });
         UiPanelFactory.createTypewriterText(
             this,
             40,
             445,
             720,
-            "For larger text, use your browser's zoom controls: Ctrl and plus, or Command and plus on Mac.",
+            "Adjust all game text with A− and A+. Browser zoom also works for the whole interface.",
         );
     }
 
@@ -188,6 +204,7 @@ export class SettingsScene extends Phaser.Scene {
                     "CURRICULUM  Unit alignment references the College Board AP World History: Modern Course and Exam Description (effective Fall 2026). Cascade is independent and is not endorsed by College Board.",
                     "SOFTWARE  Phaser 4.2.1 (MIT License); TypeScript 5.9.3 (Apache License 2.0); Vite 8.3.4 (MIT License).",
                     "HISTORICAL TEXTS  Source cards identify the named author, work, and date. Short edited extracts and contextual summaries may have translation or edition rights held by their respective publishers; Cascade does not claim a blanket license for those works.",
+                    "TYPE  Noto Sans and EB Garamond are provided by Google Fonts under the SIL Open Font License 1.1. Font source and license links are listed in the project credits document.",
                     "Open the project credits document for source links, license references, and the local GPL text.",
                     "AP® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, this website.",
                 ].join("\n\n"),
