@@ -55,10 +55,35 @@ function runGameLogicSelfCheck(): void {
         gameState.getResourceQuantity(ResourceType.LEGITIMACY) === 45,
         "scenario one must seed legitimacy at 45",
     );
+    assertCondition(scenarioOne.getTurnCount() === 6, "scenario one must use a 1900 setup and five dated chapters");
+    assertCondition(scenarioOne.getDurationInMinutes() === 30, "scenario one must target a 25 to 30 minute playthrough");
+    assertCondition(
+        scenarioOne.getScenarioEventSchedule().length === 1 &&
+            scenarioOne.getScenarioEventSchedule()[0].eventIdentifier === "assassination_at_sarajevo" &&
+            scenarioOne.getScenarioEventSchedule()[0].turnNumber === 6,
+        "scenario one must end its documented event schedule with Sarajevo in 1914",
+    );
+    assertCondition(
+        !scenarioOne.getScenarioEventSchedule().some((event) => event.eventIdentifier === "russian_revolution"),
+        "the 1917 Bolshevik event must stay outside the 1900 to 1914 scenario schedule",
+    );
+    assertCondition(
+        scenarioOne.getPerspectiveBriefingSections().length === 5,
+        "scenario one must present four state perspectives and their shared global context",
+    );
 
     const initialEvaluation = scenarioOne.evaluateVictory(gameState);
     assertCondition(!initialEvaluation.isVictory, "scenario one must not be won before any flags are set");
 
+    gameState.setScenarioFlag("source_s1_analyzed_october_manifesto");
+    gameState.setScenarioFlag("source_s1_analyzed_madero_plan_of_san_luis_potosi");
+    gameState.setScenarioFlag("event_s1_sarajevo_read");
+    for (const decision of scenarioOne.getDecisionRecords()) {
+        const firstOption = decision.options[0];
+        if (firstOption !== undefined) {
+            gameState.setScenarioFlag(firstOption.resultingFlagIdentifier);
+        }
+    }
     gameState.setScenarioFlag("causal_chain_s1_ottoman_complete");
     gameState.setScenarioFlag("causal_chain_s1_russian_complete");
     gameState.setScenarioFlag("causal_chain_s1_qing_complete");
@@ -71,8 +96,8 @@ function runGameLogicSelfCheck(): void {
     );
     gameState.setScenarioFlag("contextualization_s1_scored");
     const victoryEvaluation = scenarioOne.evaluateVictory(gameState);
-    assertCondition(victoryEvaluation.isVictory, "scenario one must be won when all six criteria are met");
-    assertCondition(victoryEvaluation.earnedScore === 6, "scenario one victory must award six of six criteria");
+    assertCondition(victoryEvaluation.isVictory, "scenario one must be won when all ten learning criteria are met");
+    assertCondition(victoryEvaluation.earnedScore === 10, "scenario one victory must award ten of ten criteria");
 
     const assessmentManager = AssessmentManager.getInstance();
     const scenarioOneRubricItems = Rubrics.getRubricItemsForScenario(1);
