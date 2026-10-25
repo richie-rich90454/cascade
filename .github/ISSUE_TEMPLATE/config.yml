@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+    - name: Read the support guide
+      url: https://github.com/richie-rich90454/cascade/blob/main/SUPPORT.md
+      about: Find setup help, save information, and safe bug-reporting guidance.
+    - name: Check credits and reuse terms
+      url: https://github.com/richie-rich90454/cascade/blob/main/docs/credits-and-licenses.md
+      about: Review third-party attributions and the current project-code license status.
