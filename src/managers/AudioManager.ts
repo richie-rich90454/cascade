@@ -126,7 +126,7 @@ export class AudioManager {
             return;
         }
         this.currentMusicAssetIdentifier = musicAssetIdentifier;
-        this.midiManager.playSequence(parsedSequence, shouldLoop, 0.85);
+        this.midiManager.playSequence(parsedSequence, shouldLoop, 0.98);
     }
 
     public stopMusic(): void {
