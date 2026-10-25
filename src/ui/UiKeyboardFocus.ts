@@ -9,10 +9,7 @@ interface KeyboardFocusableControl {
 export class UiKeyboardFocus {
     private static readonly managers = new WeakMap<Phaser.Scene, SceneKeyboardFocusManager>();
 
-    public static register(
-        scene: Phaser.Scene,
-        control: KeyboardFocusableControl,
-    ): { focus: () => void } {
+    public static register(scene: Phaser.Scene, control: KeyboardFocusableControl): { focus: () => void } {
         let manager = UiKeyboardFocus.managers.get(scene);
         if (manager === undefined) {
             manager = new SceneKeyboardFocusManager(scene);
@@ -100,7 +97,12 @@ class SceneKeyboardFocusManager {
 
     private isControlVisible(control: KeyboardFocusableControl): boolean {
         let currentContainer: Phaser.GameObjects.Container | null = control.container;
+        const visitedContainers = new Set<Phaser.GameObjects.Container>();
         while (currentContainer !== null) {
+            if (visitedContainers.has(currentContainer)) {
+                return false;
+            }
+            visitedContainers.add(currentContainer);
             if (!currentContainer.active || !currentContainer.visible) {
                 return false;
             }
@@ -129,4 +131,3 @@ class SceneKeyboardFocusManager {
         this.focusedControl?.setFocused(true);
     }
 }
-
