@@ -132,7 +132,7 @@ export class ProgressCheckScene extends Phaser.Scene {
                 40,
                 0,
                 this.getProgressCheckContentWidth(),
-                "Select a mode above to begin the Personal Progress Check for Unit 7.",
+                "Choose multiple choice, short answer, or document-based practice. Each response includes feedback and a suggested next review step.",
             ),
         );
         this.contentHeightPx = 30;
