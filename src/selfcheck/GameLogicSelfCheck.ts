@@ -7,6 +7,7 @@ import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { ScenarioOne } from "../domain/scenarios/ScenarioOne";
 import { AssessmentManager } from "../managers/AssessmentManager";
 import { ResourceType } from "../types/ResourceType";
+import { formatUiDisplayCase } from "../ui/UiTextCase";
 
 function assertCondition(condition: boolean, failureMessage: string): void {
     if (!condition) {
@@ -15,6 +16,19 @@ function assertCondition(condition: boolean, failureMessage: string): void {
 }
 
 function runGameLogicSelfCheck(): void {
+    assertCondition(
+        formatUiDisplayCase("CAMPAIGN PROGRESS") === "Campaign Progress",
+        "all-caps interface labels must render in readable title case",
+    );
+    assertCondition(
+        formatUiDisplayCase("AP WORLD HISTORY UNIT 7") === "Advanced Placement World History Unit 7",
+        "student-facing academic shorthand must be expanded in readable interface copy",
+    );
+    assertCondition(
+        formatUiDisplayCase("LOCAL PROFILE · STUDENT · CAMPAIGN SAVED") === "Local Profile · Student · Campaign Saved",
+        "all-caps phrases must be normalized even when used in mixed-case interface contexts",
+    );
+
     const scenarioRegistry = ScenarioRegistry.getInstance();
     assertCondition(scenarioRegistry.getAllScenarios().length === 10, "registry must contain exactly ten scenarios");
     for (let scenarioNumber = 1; scenarioNumber <= 10; scenarioNumber++) {
@@ -56,7 +70,10 @@ function runGameLogicSelfCheck(): void {
         "scenario one must seed legitimacy at 45",
     );
     assertCondition(scenarioOne.getTurnCount() === 6, "scenario one must use a 1900 setup and five dated chapters");
-    assertCondition(scenarioOne.getDurationInMinutes() === 30, "scenario one must target a 25 to 30 minute playthrough");
+    assertCondition(
+        scenarioOne.getDurationInMinutes() === 30,
+        "scenario one must target a 25 to 30 minute playthrough",
+    );
     assertCondition(
         scenarioOne.getScenarioEventSchedule().length === 1 &&
             scenarioOne.getScenarioEventSchedule()[0].eventIdentifier === "assassination_at_sarajevo" &&
