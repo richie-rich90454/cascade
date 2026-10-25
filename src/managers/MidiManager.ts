@@ -322,7 +322,7 @@ export class MidiManager {
         }
         const noteFrequencyHertz = 440 * Math.pow(2, (parsedNote.midiNoteNumber - 69) / 12);
         const gainEnvelope = this.audioContext.createGain();
-        const notePeakGain = (parsedNote.velocity / 127) * 0.12;
+        const notePeakGain = (parsedNote.velocity / 127) * 0.16;
         gainEnvelope.gain.setValueAtTime(0.0001, absoluteStartSeconds);
         gainEnvelope.gain.linearRampToValueAtTime(notePeakGain, absoluteStartSeconds + 0.02);
         gainEnvelope.gain.exponentialRampToValueAtTime(0.0001, absoluteStartSeconds + parsedNote.durationSeconds);
