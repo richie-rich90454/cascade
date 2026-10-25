@@ -5,6 +5,7 @@ export class MultipleChoiceQuestion {
     public readonly answerOptions: string[];
     public readonly correctAnswerIndex: number;
     public readonly rationaleText: string;
+    private readonly incorrectAnswerFeedback: readonly string[];
 
     constructor(
         questionIdentifier: string,
@@ -13,6 +14,7 @@ export class MultipleChoiceQuestion {
         answerOptions: string[],
         correctAnswerIndex: number,
         rationaleText: string,
+        incorrectAnswerFeedback: readonly string[] = [],
     ) {
         this.questionIdentifier = questionIdentifier;
         this.cedTopicCode = cedTopicCode;
@@ -20,10 +22,20 @@ export class MultipleChoiceQuestion {
         this.answerOptions = answerOptions;
         this.correctAnswerIndex = correctAnswerIndex;
         this.rationaleText = rationaleText;
+        this.incorrectAnswerFeedback = incorrectAnswerFeedback;
     }
 
     public isAnswerCorrect(selectedAnswerIndex: number): boolean {
         return selectedAnswerIndex === this.correctAnswerIndex;
+    }
+
+    public getResponseFeedback(selectedAnswerIndex: number): string {
+        const incorrectAnswerIndex =
+            selectedAnswerIndex < this.correctAnswerIndex ? selectedAnswerIndex : selectedAnswerIndex - 1;
+        return this.isAnswerCorrect(selectedAnswerIndex)
+            ? this.rationaleText
+            : (this.incorrectAnswerFeedback[incorrectAnswerIndex] ??
+                  "This choice does not match the question's time period or historical focus. Compare it with the evidence in the strongest answer.");
     }
 }
 
@@ -82,6 +94,11 @@ export class ProgressCheckBank {
             ],
             0,
             "The Qing collapse combined internal crisis (revolts, reform failures) with external pressure (imperialism, the railway issue), making it the best fit.",
+            [
+                "British expansion happened after the First World War and did not explain the Qing collapse.",
+                "German unification happened in 1871, before the question's 1900 starting point.",
+                "The League of Nations was created after the Qing dynasty had already fallen; it was not an empire.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_02",
@@ -95,6 +112,11 @@ export class ProgressCheckBank {
             ],
             0,
             "The revolution began with contested politics around the 1910 election and broad resentment of the Díaz regime.",
+            [
+                "Mexico had been independent from Spain for decades; a Spanish invasion did not cause the revolution.",
+                "The Ottoman collapse occurred in a different region and does not explain Mexico's domestic revolution.",
+                "The Mexican Revolution began before the First World War ended, so this reverses the chronology.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_03",
@@ -108,6 +130,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Western dominance rested on industrial and military superiority and expansive maritime empires.",
+            [
+                "The United Nations was founded after the Second World War, decades after the period in question.",
+                "The League of Nations was formed after the First World War and does not explain Western power in 1900.",
+                "Russia and Japan did not divide the world, and this does not account for Western industrial and naval power.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_04",
@@ -121,6 +148,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Binding commitments turned the Sarajevo crisis into continental mobilization within weeks.",
+            [
+                "European states expanded their armies before 1914; alliance commitments increased the risk of escalation.",
+                "The alliances were military agreements, not a permanent parliament with shared lawmaking.",
+                "Colonial competition continued and added to tensions; the alliances did not end it.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_05",
@@ -134,6 +166,11 @@ export class ProgressCheckBank {
             ],
             0,
             "The Balkan contests over territory and influence fed great-power tensions before 1914.",
+            [
+                "The United States' later rise did not drive the Balkan contests of 1912–1913.",
+                "Nationalism remained powerful in the Balkans; it did not decline.",
+                "Collective security was a postwar idea and did not successfully resolve Balkan rivalries before 1914.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_06",
@@ -147,6 +184,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Postwar settlements dissolved old empires and created new states and mandates across Europe and the Middle East.",
+            [
+                "Germany lost territory after the war; its empire did not expand westward.",
+                "Italy unified in the nineteenth century, before the First World War.",
+                "Britain was not annexed by France; the option describes an event that never occurred.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_07",
@@ -160,6 +202,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Total war describes the mobilization of whole societies, including the home front and colonial resources.",
+            [
+                "Total war describes the depth of mobilization, not participation by every country on Earth.",
+                "The war's duration alone does not explain how governments mobilized entire societies.",
+                "Mass conscription, civilian labor, and colonial troops mean the war was not fought only by professionals.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_08",
@@ -173,6 +220,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Propaganda shaped popular opinion and recruitment, including efforts aimed at colonial populations.",
+            [
+                "Wartime propaganda persuaded and mobilized audiences; it was not designed to provide neutral reporting.",
+                "Propaganda could support recruitment, but it did not replace conscription.",
+                "Diplomatic negotiations were not propaganda's primary purpose during the war.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_09",
@@ -186,6 +238,11 @@ export class ProgressCheckBank {
             ],
             0,
             "New industrial technologies added to the destructiveness of the war without quickly breaking the stalemate.",
+            [
+                "These weapons increased destruction, while trench warfare kept the conflict from ending quickly.",
+                "Industrial powers produced new weapons at scale; they did not avoid weapons production.",
+                "Tanks and aircraft did not immediately end trench warfare in 1915.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_10",
@@ -199,6 +256,11 @@ export class ProgressCheckBank {
             ],
             0,
             "The plans collectivized agriculture and industrialized under coercion, with devastating human costs.",
+            [
+                "The plans sharply expanded state direction and collectivization instead of private enterprise.",
+                "Foreign investment was not the basis of Soviet planning; the state directed production.",
+                "The plans prioritized rapid heavy industrialization rather than abolishing heavy industry.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_11",
@@ -212,6 +274,11 @@ export class ProgressCheckBank {
             ],
             0,
             "The New Deal expanded federal regulation, relief, and public works in response to the Depression.",
+            [
+                "Collectivization was a Soviet policy; the New Deal was an American response to the Depression.",
+                "The New Deal was not fascist corporatism; it expanded federal relief and regulation in a democracy.",
+                "The New Deal expanded government action, rather than restoring unrestricted laissez-faire.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_12",
@@ -225,6 +292,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Corporatism subordinated labor and capital to state goals while preserving private ownership.",
+            [
+                "Corporatist governments directed the economy; they did not remove the state from economic life.",
+                "Total collectivization describes a different economic model; corporatism generally preserved private ownership.",
+                "Independent unions were suppressed, not protected as free organizations.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_13",
@@ -238,6 +310,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Imperial states held or expanded holdings, including through mandates and conquest, while facing rising resistance.",
+            [
+                "Most colonies did not gain independence between the wars; imperial rule continued.",
+                "The League of Nations oversaw mandates but did not end imperial rivalry or colonial rule.",
+                "Colonies were not generally transferred to the United States; European and Japanese empires remained.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_14",
@@ -251,6 +328,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Mandates passed to Britain, France, Japan, and others as legalized imperial administration after 1919.",
+            [
+                "Mandates remained under outside administration; they were not fully independent governments.",
+                "Germany did not regain its colonies after the war; former territories were redistributed as mandates.",
+                "Britain, France, and other powers also held mandates; they were not all assigned to Japan.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_15",
@@ -264,6 +346,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Organized nationalism and labor resistance grew across imperial territories between the wars.",
+            [
+                "These organizations challenged colonial rule, but British rule had not ended across the empire by 1939.",
+                "The examples are anti-imperial movements in India and West Africa, not evidence about communism in Europe.",
+                "Congress organizing and strikes challenged colonial rule rather than supporting its continuation.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_16",
@@ -277,6 +364,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Versailles grievances, reparations, and instability fed later revisionism.",
+            [
+                "The League of Nations was not a world government and did not eliminate international conflict.",
+                "The settlement restricted some militaries, especially Germany's, but did not abolish all European armies.",
+                "German leaders continued to contest the settlement; it did not satisfy all German demands.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_17",
@@ -290,6 +382,11 @@ export class ProgressCheckBank {
             ],
             0,
             "The Depression weakened confidence in democracy and boosted fascist and militarist movements.",
+            [
+                "The Depression brought mass unemployment and hardship; it did not immediately solve them.",
+                "Economic crisis intensified competition over markets and resources rather than ending it.",
+                "The crisis weakened collective security and encouraged aggressive states instead of strengthening it.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_18",
@@ -303,6 +400,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Nazi ideology and rearmament are central to explanations of the war's onset.",
+            [
+                "Collective security sought to deter aggression; Nazi expansion challenged it.",
+                "Nationalism remained a powerful force in Nazi Germany and other states.",
+                "The League of Nations lacked effective enforcement and did not grow stronger under Hitler.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_19",
@@ -316,6 +418,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Both wars mobilized entire societies; the second extended and intensified that mobilization.",
+            [
+                "The First World War involved conscription and colonial troops, not only professional armies.",
+                "Governments used propaganda extensively during the First World War as well.",
+                "Colonial subjects served in and supported the First World War, including on European fronts.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_20",
@@ -329,6 +436,11 @@ export class ProgressCheckBank {
             ],
             0,
             "New technologies and strategies produced mass civilian casualties.",
+            [
+                "The war accelerated military research and spending; it did not produce a rapid decline.",
+                "Propaganda remained central to wartime mobilization and public messaging.",
+                "Conscription continued in many countries; it did not end everywhere.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_21",
@@ -342,6 +454,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Fascist and communist regimes mobilized societies through ideology and terror, extending the war's reach into daily life.",
+            [
+                "Authoritarian and democratic states fought in the Second World War; it was not a war of democracies alone.",
+                "Governments used propaganda heavily in the Second World War.",
+                "The conflict spread across Europe, Asia, Africa, and the oceans; it was not confined to one continent.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_22",
@@ -355,6 +472,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Extremist regimes' ideology and state apparatus produced systematic destruction of targeted populations.",
+            [
+                "Mass atrocities were organized by people and institutions; they were not natural disasters.",
+                "The United Nations did not exist until 1945, and its collapse cannot explain atrocities across the century.",
+                "Victims were targeted through coercion and state violence, not voluntary migration.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_23",
@@ -368,6 +490,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Atrocities occurred across different regimes and periods, targeting populations by ethnicity, class, or politics.",
+            [
+                "Twentieth-century atrocities occurred before, during, and after the Second World War.",
+                "Perpetrators, methods, and settings differed; treating them as identical hides important history.",
+                "Some atrocities grew from earlier conflicts and state policies, so historical context matters.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_24",
@@ -381,6 +508,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Relative significance requires weighing multiple causal factors and qualifying claims by context.",
+            [
+                "A single-cause explanation misses how factors interacted and varied by place and time.",
+                "One source cannot represent the range of evidence needed to evaluate multiple conflicts.",
+                "Causes differed by context; historians should compare them rather than assume they were identical.",
+            ],
         ),
         new MultipleChoiceQuestion(
             "pc_mc_25",
@@ -394,6 +526,11 @@ export class ProgressCheckBank {
             ],
             0,
             "Science and technology reshaped every field, including the means of warfare, with consequences beyond their designers' intentions.",
+            [
+                "Advances changed industry, medicine, communication, transportation, and warfare, not entertainment alone.",
+                "Military technology directly shaped how wars were fought and the harm they caused.",
+                "Technology did not prevent totalitarianism; states also used modern systems to expand control.",
+            ],
         ),
     ];
 
