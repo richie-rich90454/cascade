@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 
+import { getTextScale, setTextScale } from "../core/AccessibilityPreferences";
 import { GameSession } from "../core/GameSession";
 import { SceneKeys } from "../core/SceneKeys";
 import { TeacherSettings } from "../core/TeacherSettings";
-import { getTextScale, setTextScale } from "../core/AccessibilityPreferences";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
