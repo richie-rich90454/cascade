@@ -302,11 +302,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
         const isCompactLayout = screenWidth < 1100;
+        const isUltraNarrowPhone = screenWidth < 360;
         const isShortViewport = screenHeight < 600;
         const contentLeftX = isCompactLayout ? 16 : 24;
         const contentRightInset = this.areInformationPanelsOpen ? (isCompactLayout ? 356 : 344) : 24;
         const contentRightX = screenWidth - contentRightInset;
         const contentWidth = Math.max(120, Math.min(screenWidth - contentLeftX - 12, contentRightX - contentLeftX));
+        const mapTopY = isUltraNarrowPhone ? 150 : 96;
         const phaseCardHeight = isShortViewport
             ? this.scenarioNumber === 1
                 ? screenWidth < 460
@@ -327,7 +329,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 ? 216
                 : 84;
         const phaseCardTopY = screenHeight - 64 - phaseCardHeight - 4;
-        const rightColumnTopY = 96;
+        const rightColumnTopY = mapTopY;
         const rightColumnBottomY = screenHeight - 64;
         const rightColumnHeight = rightColumnBottomY - rightColumnTopY;
         const rightPanelWidth = Math.min(324, Math.max(160, screenWidth - 24));
@@ -335,9 +337,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         return {
             map: new LayoutRect(
                 contentLeftX,
-                96,
+                mapTopY,
                 contentWidth,
-                Math.max(isShortViewport ? 48 : 80, phaseCardTopY - 96 - 8),
+                Math.max(isShortViewport ? 48 : 80, phaseCardTopY - mapTopY - 8),
             ),
             questTracker: new LayoutRect(rightPanelLeftX, rightColumnTopY, rightPanelWidth, rightColumnHeight),
             contextPanel: new LayoutRect(rightPanelLeftX, rightColumnTopY, rightPanelWidth, rightColumnHeight),
@@ -480,14 +482,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
             )
             .setOrigin(1, 0);
         mapHudContainer.add(this.historicalMapYearLabel);
-        const mapHudFontSize = mapPixelWidth < 360 ? "11px" : mapPixelWidth < 620 ? "12px" : "14px";
+        const mapHudFontSize = mapPixelWidth < 360 ? "12px" : mapPixelWidth < 620 ? "13px" : "14px";
         const mapHudTextWidth = Math.max(96, mapPixelWidth - 36);
         const mapInstructions = this.add.text(
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 95 : 58),
             this.scenarioNumber === 1
                 ? mapPixelWidth < 400
-                    ? "Markers inspect · chapter card gives next action"
+                    ? "Tap a marker to inspect"
                     : mapPixelWidth < 620
                       ? "Markers inspect · chapter buttons make policy choices"
                       : "Map markers inspect history · chapter buttons make policy choices"
@@ -511,7 +513,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 125 : 25),
             mapPixelWidth < 400
-                ? "Disputed area is approximate"
+                ? "Hatched area is approximate"
                 : mapPixelWidth < 620
                   ? "Disputed territory · hatched"
                   : "Disputed territory · hatched area is approximate",
@@ -741,11 +743,16 @@ export class ScenarioPlayScene extends Phaser.Scene {
             this.scenario?.getScenarioResourceCodes(),
         );
         const isNarrowPhone = screenWidth < 460;
+        const isUltraNarrowPhone = screenWidth < 360;
         const shortLandscapeWithRoom = screenHeight < 600 && !isNarrowPhone;
-        const phoneControlWidth = 92;
+        const phoneControlWidth = isUltraNarrowPhone ? (screenWidth - 32) / 2 : 92;
         const phoneControlGap = 8;
-        const phoneControlLeftX = screenWidth - phoneControlWidth * 2 - phoneControlGap;
-        const scenarioHeaderWidth = isNarrowPhone ? Math.max(104, screenWidth - 216) : 560;
+        const phoneControlLeftX = isUltraNarrowPhone ? 12 : screenWidth - phoneControlWidth * 2 - phoneControlGap;
+        const scenarioHeaderWidth = isUltraNarrowPhone
+            ? screenWidth - 16
+            : isNarrowPhone
+              ? Math.max(104, screenWidth - 216)
+              : 560;
         const scenarioHeaderComponent = new ScenarioHeaderComponent(this, 8, 52, scenarioHeaderWidth);
         if (this.scenario !== null) {
             scenarioHeaderComponent.setScenario(this.scenario);
@@ -796,24 +803,37 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.contextPanelBlockingZone = contextPanelBlockingZone;
         const mapModesButtonWidth = isNarrowPhone ? phoneControlWidth : 176;
         const objectivesButtonWidth = isNarrowPhone ? phoneControlWidth : 190;
-        const mobileControlsTopY = 54;
+        const mobileControlsTopY = isUltraNarrowPhone ? 100 : 54;
+        const mobileControlHeight = isUltraNarrowPhone ? 42 : 38;
+        const mapModesButtonX = isUltraNarrowPhone
+            ? phoneControlLeftX
+            : isNarrowPhone
+              ? phoneControlLeftX
+              : shortLandscapeWithRoom
+                ? screenWidth - 382
+                : 8;
+        const objectivesButtonX = isUltraNarrowPhone
+            ? phoneControlLeftX + phoneControlWidth + phoneControlGap
+            : isNarrowPhone
+              ? phoneControlLeftX + phoneControlWidth + phoneControlGap
+              : screenWidth - 198;
         this.mapModesToggleButton = UiPanelFactory.createBrassButton(
             this,
-            isNarrowPhone ? phoneControlLeftX : shortLandscapeWithRoom ? screenWidth - 382 : 8,
+            mapModesButtonX,
             isNarrowPhone || shortLandscapeWithRoom ? mobileControlsTopY : 144,
             mapModesButtonWidth,
-            38,
-            "Show map modes",
+            mobileControlHeight,
+            isNarrowPhone ? "Map modes" : "Show map modes",
             () => this.setMapModesPanelOpen(!this.isMapModesPanelOpen),
         );
         this.mapModesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
         this.objectivesToggleButton = UiPanelFactory.createBrassButton(
             this,
-            isNarrowPhone ? phoneControlLeftX + phoneControlWidth + phoneControlGap : screenWidth - 198,
+            objectivesButtonX,
             mobileControlsTopY,
             objectivesButtonWidth,
-            38,
-            "Show objectives",
+            mobileControlHeight,
+            isNarrowPhone ? "Learning goals" : "Show objectives",
             () => this.setInformationPanelsOpen(!this.areInformationPanelsOpen),
         );
         this.objectivesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
@@ -839,7 +859,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private setMapModesPanelOpen(isOpen: boolean): void {
         this.isMapModesPanelOpen = isOpen;
         this.leftSidebarComponent?.setVisible(isOpen);
-        const buttonLabel = isOpen ? "Hide map modes" : "Show map modes";
+        const buttonLabel = isOpen ? (this.scale.width < 460 ? "Hide modes" : "Hide map modes") : "Show map modes";
         this.mapModesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
             if (child instanceof Phaser.GameObjects.Text) {
                 child.setText(buttonLabel);
