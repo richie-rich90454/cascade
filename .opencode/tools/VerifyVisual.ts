@@ -86,13 +86,59 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
             window.localStorage.setItem("cascade.tutorial.seen", "true");
             window.localStorage.setItem("cascade.onboarding.seen", "true");
         });
+        const navigationStartedAtMs = Date.now();
         await browserPage.goto(`http://localhost:${DEVELOPMENT_SERVER_PORT}/`, { waitUntil: "load", timeout: 60000 });
-        await new Promise((resolveDelay) => setTimeout(resolveDelay, 12000));
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScenes: (active: boolean) => Array<{ scene: { key: string } }> } };
+                    }
+                ).cascadeGame;
+                return (
+                    gameInstance?.scene.getScenes(true).some((activeScene) => activeScene.scene.key === "main_menu") ??
+                    false
+                );
+            },
+            { timeout: 10000 },
+        );
+        console.log(`VerifyVisual: main menu ready in ${Date.now() - navigationStartedAtMs} ms.`);
 
         const captureScreenshot = async (fileName: string): Promise<void> => {
             const screenshotPath = join(OUTPUT_DIRECTORY_PATH, fileName);
             await browserPage.screenshot({ path: screenshotPath });
             screenshotPaths.push(screenshotPath);
+        };
+        const assertNoAllCapsUiText = async (sceneKey: string): Promise<void> => {
+            const allCapsText = await browserPage.evaluate((targetSceneKey: string) => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene(targetSceneKey);
+                if (scene === undefined) return null;
+                const pendingObjects = [...scene.children.list] as any[];
+                const foundText: string[] = [];
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || object.visible === false || object.active === false) continue;
+                    if (typeof object.text === "string") {
+                        const text = object.text.trim();
+                        if (/[A-Z]/.test(text) && text === text.toLocaleUpperCase("en")) {
+                            foundText.push(text);
+                        }
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return foundText;
+            }, sceneKey);
+            if (allCapsText === null) {
+                throw new Error(`The browser regression loop could not inspect the ${sceneKey} screen.`);
+            }
+            if (allCapsText.length > 0) {
+                throw new Error(`${sceneKey} contains all-caps UI text: ${allCapsText.join(" | ")}`);
+            }
         };
         const switchToSingleScene = async (sceneKey: string, data?: unknown): Promise<void> => {
             await browserPage.evaluate(
@@ -122,6 +168,7 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         };
 
         await captureScreenshot("01-main-menu.png");
+        await assertNoAllCapsUiText("main_menu");
 
         await switchToSingleScene("campaign_selector");
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 2000));
@@ -236,6 +283,7 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await browserPage.mouse.wheel({ deltaY: -900 });
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
         await captureScreenshot("02-campaign-selector.png");
+        await assertNoAllCapsUiText("campaign_selector");
 
         await browserPage.mouse.click(270, 230);
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 1800));
@@ -256,6 +304,7 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         }
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 5600));
         await captureScreenshot("03-scenario-briefing.png");
+        await assertNoAllCapsUiText("scenario_briefing");
         await browserPage.mouse.move(720, 450);
         await browserPage.mouse.wheel({ deltaY: 700 });
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
@@ -298,10 +347,12 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
             throw new Error("Clicking Begin Scenario did not open the scenario play scene.");
         }
         await captureScreenshot("04-scenario-play.png");
+        await assertNoAllCapsUiText("scenario_play");
 
         await browserPage.mouse.click(1262, 439);
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 2200));
         await captureScreenshot("05-scenario-play-next-step.png");
+        await assertNoAllCapsUiText("scenario_play");
         const scenarioButtonMetrics = await browserPage.evaluate(() => {
             const gameInstance = (
                 window as unknown as {
@@ -359,34 +410,6 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                 `Scenario play button label is too small or clipped: ${JSON.stringify(clippedScenarioButton)}`,
             );
         }
-
-        const trackerDebugState = await browserPage.evaluate(() => {
-            const gameInstance = (
-                window as unknown as {
-                    cascadeGame?: {
-                        scene: {
-                            getScene: (key: string) => {
-                                questTrackerComponent?: {
-                                    panelHeight: number;
-                                    contentContainer: { list: unknown[] };
-                                    requiredObjectives: unknown[];
-                                    recommendedObjectives: unknown[];
-                                };
-                            };
-                        };
-                    };
-                }
-            ).cascadeGame;
-            const playScene = gameInstance?.scene.getScene("scenario_play");
-            const tracker = playScene?.questTrackerComponent;
-            return {
-                panelHeight: tracker?.panelHeight ?? -1,
-                contentChildCount: tracker?.contentContainer.list.length ?? -1,
-                requiredCount: tracker?.requiredObjectives.length ?? -1,
-                recommendedCount: tracker?.recommendedObjectives.length ?? -1,
-            };
-        });
-        console.log(`VerifyVisual tracker debug: ${JSON.stringify(trackerDebugState)}`);
 
         const dpiState = await browserPage.evaluate(() => {
             const gameCanvasElement = document.querySelector("canvas");
