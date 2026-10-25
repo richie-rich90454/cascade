@@ -263,16 +263,14 @@ export class LocalProfileManager {
         try {
             const legacy = JSON.parse(legacyValue) as unknown;
             if (isRecord(legacy)) {
+                const migratedAssessment = this.parseAssessmentSnapshot(legacy);
+                if (migratedAssessment === null) {
+                    this.recoveryMessage =
+                        "An older assessment save could not be validated. The original data was preserved.";
+                    return;
+                }
                 const defaultProfile = this.store.profiles[0];
-                defaultProfile.assessment = {
-                    journalEntries: Array.isArray(legacy.journalEntries) ? legacy.journalEntries : [],
-                    latestVictoryFlagsByScenarioNumber: Array.isArray(legacy.latestVictoryFlagsByScenarioNumber)
-                        ? legacy.latestVictoryFlagsByScenarioNumber
-                        : [],
-                    topicAttemptsByCedTopicCode: isRecord(legacy.topicAttemptsByCedTopicCode)
-                        ? (legacy.topicAttemptsByCedTopicCode as AssessmentSnapshot["topicAttemptsByCedTopicCode"])
-                        : {},
-                };
+                defaultProfile.assessment = migratedAssessment;
                 this.recoveryMessage =
                     "Your previous journal and assessment records were moved to the default profile.";
             }
@@ -309,7 +307,7 @@ export class LocalProfileManager {
     }
 
     private isValidProfile(value: unknown): value is StudentProfile {
-        if (!isRecord(value) || !isRecord(value.assessment)) {
+        if (!isRecord(value)) {
             return false;
         }
         return (
@@ -318,11 +316,64 @@ export class LocalProfileManager {
             value.displayName.length > 0 &&
             typeof value.createdAtIsoTimestamp === "string" &&
             typeof value.updatedAtIsoTimestamp === "string" &&
-            Array.isArray(value.assessment.journalEntries) &&
-            Array.isArray(value.assessment.latestVictoryFlagsByScenarioNumber) &&
-            isRecord(value.assessment.topicAttemptsByCedTopicCode) &&
+            this.parseAssessmentSnapshot(value.assessment) !== null &&
             (value.campaign === null || this.isValidCampaign(value.campaign))
         );
+    }
+
+    private parseAssessmentSnapshot(value: unknown): AssessmentSnapshot | null {
+        if (
+            !isRecord(value) ||
+            !Array.isArray(value.journalEntries) ||
+            !Array.isArray(value.latestVictoryFlagsByScenarioNumber) ||
+            !isRecord(value.topicAttemptsByCedTopicCode)
+        ) {
+            return null;
+        }
+        const journalEntries = value.journalEntries;
+        const latestVictoryFlags = value.latestVictoryFlagsByScenarioNumber;
+        const topicAttempts = value.topicAttemptsByCedTopicCode;
+        const isValidScenarioNumber = (scenarioNumber: unknown): scenarioNumber is number =>
+            typeof scenarioNumber === "number" &&
+            Number.isInteger(scenarioNumber) &&
+            scenarioNumber >= 1 &&
+            scenarioNumber <= 10;
+        if (
+            !journalEntries.every(
+                (entry) =>
+                    isRecord(entry) &&
+                    typeof entry.entryIdentifier === "string" &&
+                    isValidScenarioNumber(entry.scenarioNumber) &&
+                    typeof entry.turnNumber === "number" &&
+                    Number.isInteger(entry.turnNumber) &&
+                    entry.turnNumber >= 1 &&
+                    typeof entry.entryCategory === "string" &&
+                    typeof entry.promptText === "string" &&
+                    typeof entry.responseText === "string" &&
+                    typeof entry.recordedAtIsoTimestamp === "string" &&
+                    Number.isFinite(Date.parse(entry.recordedAtIsoTimestamp)),
+            ) ||
+            !latestVictoryFlags.every(
+                (entry) =>
+                    Array.isArray(entry) &&
+                    entry.length === 2 &&
+                    isValidScenarioNumber(entry[0]) &&
+                    typeof entry[1] === "boolean",
+            ) ||
+            Object.values(topicAttempts).some(
+                (signal) =>
+                    !isRecord(signal) ||
+                    typeof signal.correct !== "number" ||
+                    !Number.isInteger(signal.correct) ||
+                    signal.correct < 0 ||
+                    typeof signal.attempted !== "number" ||
+                    !Number.isInteger(signal.attempted) ||
+                    signal.attempted < signal.correct,
+            )
+        ) {
+            return null;
+        }
+        return structuredClone(value) as unknown as AssessmentSnapshot;
     }
 
     private isValidCampaign(value: unknown): value is CampaignSaveData {
@@ -343,14 +394,41 @@ export class LocalProfileManager {
             );
         const isValidStringList = (item: unknown): item is string[] =>
             Array.isArray(item) && item.every((value) => typeof value === "string");
+        const nationRecords = Array.isArray(gameState.nations) ? gameState.nations : [];
+        const provinceRecords = Array.isArray(gameState.provinces) ? gameState.provinces : [];
+        const unitRecords = Array.isArray(gameState.units) ? gameState.units : [];
+        const identifiersFromRecords = (records: unknown[]): Set<string> =>
+            new Set(
+                records
+                    .filter(isRecord)
+                    .map((record) => record.identifier)
+                    .filter((identifier): identifier is string => typeof identifier === "string"),
+            );
+        const nationIdentifiers = identifiersFromRecords(nationRecords);
+        const provinceIdentifiers = identifiersFromRecords(provinceRecords);
+        const unitIdentifiers = identifiersFromRecords(unitRecords);
+        const hasUniqueKnownIdentifiers = (identifiers: string[], knownIdentifiers: Set<string>): boolean =>
+            new Set(identifiers).size === identifiers.length &&
+            identifiers.every((identifier) => knownIdentifiers.has(identifier));
+        const supportedPhaseCodes = new Set([
+            "briefing",
+            "intelligence",
+            "decision",
+            "resolution",
+            "event",
+            "debrief",
+            "journal",
+        ]);
         const isValidGameState =
             gameState.version === 1 &&
             typeof gameState.scenarioIdentifier === "string" &&
             Number.isInteger(gameState.turnNumber) &&
             typeof gameState.playerNationIdentifier === "string" &&
+            (gameState.playerNationIdentifier === "" || nationIdentifiers.has(gameState.playerNationIdentifier)) &&
             isValidResourceRecord &&
             isValidStringList(gameState.scenarioFlags) &&
             Array.isArray(gameState.nations) &&
+            nationIdentifiers.size === gameState.nations.length &&
             gameState.nations.every(
                 (nation) =>
                     isRecord(nation) &&
@@ -362,15 +440,24 @@ export class LocalProfileManager {
                     typeof nation.primaryColorHex === "string" &&
                     typeof nation.accentColorHex === "string" &&
                     isValidStringList(nation.controlledProvinceIdentifiers) &&
+                    hasUniqueKnownIdentifiers(nation.controlledProvinceIdentifiers, provinceIdentifiers) &&
                     isValidStringList(nation.alliedNationIdentifiers) &&
-                    isValidStringList(nation.nationsAtWarWithIdentifiers),
+                    hasUniqueKnownIdentifiers(nation.alliedNationIdentifiers, nationIdentifiers) &&
+                    !nation.alliedNationIdentifiers.includes(nation.identifier) &&
+                    isValidStringList(nation.nationsAtWarWithIdentifiers) &&
+                    hasUniqueKnownIdentifiers(nation.nationsAtWarWithIdentifiers, nationIdentifiers) &&
+                    !nation.nationsAtWarWithIdentifiers.includes(nation.identifier) &&
+                    (nation.capitalProvinceIdentifier === "" ||
+                        provinceIdentifiers.has(nation.capitalProvinceIdentifier)),
             ) &&
             Array.isArray(gameState.provinces) &&
+            provinceIdentifiers.size === gameState.provinces.length &&
             gameState.provinces.every(
                 (province) =>
                     isRecord(province) &&
                     typeof province.identifier === "string" &&
                     typeof province.ownerNationIdentifier === "string" &&
+                    nationIdentifiers.has(province.ownerNationIdentifier) &&
                     typeof province.victoryPointValue === "number" &&
                     Number.isFinite(province.victoryPointValue) &&
                     typeof province.isCapital === "boolean" &&
@@ -378,14 +465,24 @@ export class LocalProfileManager {
                     Number.isFinite(province.supplyValue),
             ) &&
             Array.isArray(gameState.units) &&
+            unitIdentifiers.size === gameState.units.length &&
             gameState.units.every(
                 (unit) =>
                     isRecord(unit) &&
                     typeof unit.identifier === "string" &&
                     typeof unit.stationedProvinceIdentifier === "string" &&
+                    provinceIdentifiers.has(unit.stationedProvinceIdentifier) &&
+                    typeof unit.strengthValue === "number" &&
+                    typeof unit.organizationValue === "number" &&
+                    typeof unit.experienceValue === "number" &&
                     [unit.strengthValue, unit.organizationValue, unit.experienceValue].every(
                         (number) => typeof number === "number" && Number.isFinite(number),
-                    ),
+                    ) &&
+                    unit.strengthValue >= 0 &&
+                    unit.strengthValue <= 100 &&
+                    unit.organizationValue >= 0 &&
+                    unit.organizationValue <= 100 &&
+                    unit.experienceValue >= 0,
             );
         return (
             value.version === 1 &&
@@ -406,11 +503,13 @@ export class LocalProfileManager {
             Number.isInteger(value.turnManager.turnNumber) &&
             value.turnManager.turnNumber >= 1 &&
             typeof value.turnManager.phaseCode === "string" &&
+            supportedPhaseCodes.has(value.turnManager.phaseCode) &&
             value.turnManager.isActive === true &&
             value.turnManager.turnNumber === gameState.turnNumber &&
             typeof value.playProgress.phaseIndex === "number" &&
             Number.isInteger(value.playProgress.phaseIndex) &&
             value.playProgress.phaseIndex >= 0 &&
+            value.playProgress.phaseIndex < 7 &&
             typeof value.playProgress.walkthroughEnabled === "boolean" &&
             typeof value.playProgress.walkthroughPaused === "boolean" &&
             typeof value.playProgress.walkthroughStep === "number" &&
