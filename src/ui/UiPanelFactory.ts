@@ -4,6 +4,7 @@ import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { FontFamilies } from "../managers/FontManager";
 import { UiKeyboardFocus } from "./UiKeyboardFocus";
 import { UiPalette } from "./UiPalette";
+import { formatUiDisplayCase } from "./UiTextCase";
 
 export class PanelVariant {
     public static readonly LEATHER = new PanelVariant("leather", UiPalette.DARK_OLIVE, UiPalette.DEEP_BRASS);
@@ -95,7 +96,7 @@ export class UiPanelFactory {
             }
         };
         redrawButton(UiPalette.MID_OLIVE);
-        const buttonLabel = scene.add.text(pixelWidth / 2, pixelHeight / 2, buttonLabelText, {
+        const buttonLabel = scene.add.text(pixelWidth / 2, pixelHeight / 2, formatUiDisplayCase(buttonLabelText), {
             fontFamily: FontFamilies.DISPLAY_SERIF,
             fontSize: "16px",
             fontStyle: "bold",
@@ -167,7 +168,7 @@ export class UiPanelFactory {
         fontSizePx: number = 20,
         textColorCss: string = UiPalette.HIGHLIGHT_BRASS_CSS,
     ): Phaser.GameObjects.Text {
-        return scene.add.text(x, y, headerText, {
+        return scene.add.text(x, y, formatUiDisplayCase(headerText), {
             fontFamily: FontFamilies.DISPLAY_SERIF,
             fontSize: `${fontSizePx}px`,
             color: textColorCss,
@@ -183,7 +184,7 @@ export class UiPanelFactory {
         fontSizePx: number = 16,
         textColorCss: string = UiPalette.PARCHMENT_CSS,
     ): Phaser.GameObjects.Text {
-        return scene.add.text(x, y, bodyText, {
+        return scene.add.text(x, y, formatUiDisplayCase(bodyText), {
             fontFamily: FontFamilies.BODY_SERIF,
             fontSize: `${fontSizePx}px`,
             color: textColorCss,
@@ -201,7 +202,7 @@ export class UiPanelFactory {
         fontSizePx: number = 15,
         textColorCss: string = UiPalette.AGED_PARCHMENT_CSS,
     ): Phaser.GameObjects.Text {
-        return scene.add.text(x, y, typewriterText, {
+        return scene.add.text(x, y, formatUiDisplayCase(typewriterText), {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: `${fontSizePx}px`,
             color: textColorCss,
@@ -225,7 +226,7 @@ export class UiPanelFactory {
         badgeGraphics.fillRect(0, 0, estimatedWidthPx, 24);
         badgeGraphics.lineStyle(1, UiPalette.HIGHLIGHT_BRASS, 0.85);
         badgeGraphics.strokeRect(0.5, 0.5, estimatedWidthPx - 1, 23);
-        const badgeLabel = scene.add.text(estimatedWidthPx / 2, 12, badgeLabelText, {
+        const badgeLabel = scene.add.text(estimatedWidthPx / 2, 12, formatUiDisplayCase(badgeLabelText), {
             fontFamily: FontFamilies.SMALL_CAPS,
             fontSize: "14px",
             color: textColorCss,
