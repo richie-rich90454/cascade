@@ -25,7 +25,7 @@ export class BootScene extends Phaser.Scene {
         const screenCenterX = this.scale.width / 2;
         const screenCenterY = this.scale.height / 2;
         this.add
-            .text(screenCenterX, screenCenterY - 80, "CASCADE", {
+            .text(screenCenterX, screenCenterY - 80, "Cascade", {
                 fontFamily: FontFamilies.GOTHIC,
                 fontSize: "56px",
                 color: UiPalette.HIGHLIGHT_BRASS_CSS,
@@ -58,29 +58,12 @@ export class BootScene extends Phaser.Scene {
     }
 
     private static isRuntimePriorityAsset(assetIdentifier: string): boolean {
-        if (assetIdentifier.startsWith("tile_")) {
-            return false;
-        }
-        if (assetIdentifier.startsWith("counter_")) {
-            return false;
-        }
-        if (/_alt_0\d$/.test(assetIdentifier)) {
-            return false;
-        }
-        if (/^pattern_.*_v0\d$/.test(assetIdentifier)) {
-            return false;
-        }
-        if (
-            assetIdentifier.endsWith("_wide") ||
-            assetIdentifier.endsWith("_tall") ||
-            assetIdentifier.endsWith("_small")
-        ) {
-            return false;
-        }
-        if (/^scenario_\d+_icon_banner$/.test(assetIdentifier)) {
-            return false;
-        }
-        return true;
+        return (
+            assetIdentifier === "cascade_world_atlas_hero" ||
+            /^world_map_\d+$/.test(assetIdentifier) ||
+            (assetIdentifier.startsWith("event_") && !/_(wide|small|tall)$/.test(assetIdentifier)) ||
+            /^newspaper_masthead_[a-z0-9_]+$/.test(assetIdentifier)
+        );
     }
 
     private async runBootSequence(
@@ -100,7 +83,7 @@ export class BootScene extends Phaser.Scene {
                 .filter((rasterEntry) => BootScene.isRuntimePriorityAsset(rasterEntry.assetIdentifier));
             const devicePixelRatioForTextureLoading = HighDpiConfigurator.getInstance().getDevicePixelRatio();
             const allImageEntryCount = svgEntries.length + rasterEntries.length;
-            loadingStatusText.setText("Queueing artwork... 0 of " + allImageEntryCount);
+            loadingStatusText.setText("Preparing artwork... 0 of " + allImageEntryCount);
             let queuedEntryCount = 0;
             for (const svgEntry of svgEntries) {
                 this.load.svg(
@@ -112,7 +95,7 @@ export class BootScene extends Phaser.Scene {
                     },
                 );
                 queuedEntryCount += 1;
-                loadingStatusText.setText("Queueing artwork... " + queuedEntryCount + " of " + allImageEntryCount);
+                loadingStatusText.setText("Preparing artwork... " + queuedEntryCount + " of " + allImageEntryCount);
             }
             for (const rasterEntry of rasterEntries) {
                 this.load.image(
@@ -120,7 +103,7 @@ export class BootScene extends Phaser.Scene {
                     rasterEntry.relativeFilePath,
                 );
                 queuedEntryCount += 1;
-                loadingStatusText.setText("Queueing artwork... " + queuedEntryCount + " of " + allImageEntryCount);
+                loadingStatusText.setText("Preparing artwork... " + queuedEntryCount + " of " + allImageEntryCount);
             }
             if (allImageEntryCount > 0) {
                 loadingStatusText.setText("Loading artwork...");
