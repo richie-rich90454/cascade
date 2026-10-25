@@ -531,6 +531,36 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         if (!sourceAnalysisScrolled) {
             throw new Error("Mouse wheel did not scroll the source-analysis panel.");
         }
+        await activateUiButton("source_analysis", "A colonial administration ceding independence");
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("source_analysis");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (
+                        object.visible !== false &&
+                        object.active !== false &&
+                        typeof object.text === "string" &&
+                        object.text.includes("Not yet. Recheck the author's point of view")
+                    ) {
+                        return true;
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            },
+            { timeout: 10000 },
+        );
         await activateUiButton("source_analysis", "An autocracy granting limited reform");
         await browserPage.waitForFunction(
             () => {
@@ -550,7 +580,9 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                     if (object.visible === false || object.active === false) continue;
                     if (
                         typeof object.text === "string" &&
-                        object.text.includes("Correct. This source is reliable for this question.")
+                        object.text.includes(
+                            "Correct. You connected evidence in the document to the broader historical pattern.",
+                        )
                     ) {
                         return true;
                     }
@@ -590,6 +622,72 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         if (!nextPolicyDecisionVisible) {
             throw new Error("A correct source analysis did not unlock the next policy decision.");
         }
+        await activateUiButton("scenario_play", "Open Policy Decision");
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("scenario_play");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (
+                        object.visible !== false &&
+                        object.active !== false &&
+                        typeof object.text === "string" &&
+                        object.text.includes("Choose a policy")
+                    ) {
+                        return true;
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            },
+            { timeout: 10000 },
+        );
+        await captureScreenshot("06-policy-decision.png");
+        await assertSceneButtonsFit("scenario_play");
+        await activateUiButton("scenario_play", "Show the reasoning guide");
+        await activateUiButton("scenario_play", "Next lens");
+        await activateUiButton("scenario_play", "Back to policy choices");
+        await activateUiButton("scenario_play", "Defend the October Manifesto");
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("scenario_play");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (
+                        object.visible !== false &&
+                        object.active !== false &&
+                        typeof object.text === "string" &&
+                        object.text.includes("Your alternate-history outcome")
+                    ) {
+                        return true;
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            },
+            { timeout: 10000 },
+        );
+        await captureScreenshot("07-policy-outcome.png");
         const scenarioButtonMetrics = await browserPage.evaluate(() => {
             const gameInstance = (
                 window as unknown as {
@@ -666,7 +764,7 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await waitForActiveScene("main_menu");
         await captureScreenshot("06-mobile-main-menu.png");
         await assertSceneButtonsFit("main_menu");
-        await activateUiButton("main_menu", "Start a Campaign");
+        await activateUiButton("main_menu", "Choose a Campaign");
         await waitForActiveScene("campaign_selector");
         await captureScreenshot("07-mobile-campaign-selector.png");
         await assertNoAllCapsUiText("campaign_selector");
@@ -680,6 +778,84 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await waitForActiveScene("scenario_play");
         await captureScreenshot("09-mobile-scenario-play.png");
         await assertNoAllCapsUiText("scenario_play");
+        await assertSceneButtonsFit("scenario_play");
+        await activateUiButton("scenario_play", "Begin 1905 Chapter");
+        await activateUiButton("scenario_play", "Analyze the October Manifesto");
+        await waitForActiveScene("source_analysis");
+        await captureScreenshot("12-mobile-source-analysis.png");
+        await assertNoAllCapsUiText("source_analysis");
+        await assertSceneButtonsFit("source_analysis");
+        await activateUiButton("source_analysis", "An autocracy granting limited reform");
+        await activateUiButton("source_analysis", "Back to map");
+        await waitForActiveScene("scenario_play");
+        await activateUiButton("scenario_play", "Open Policy Decision");
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("scenario_play");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (
+                        object.visible !== false &&
+                        object.active !== false &&
+                        typeof object.text === "string" &&
+                        object.text.includes("Choose a policy")
+                    ) {
+                        return true;
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            },
+            { timeout: 10000 },
+        );
+        await captureScreenshot("13-mobile-policy-decision.png");
+        await assertSceneButtonsFit("scenario_play");
+        await activateUiButton("scenario_play", "Show the reasoning guide");
+        await activateUiButton("scenario_play", "Next lens");
+        await activateUiButton("scenario_play", "Next lens");
+        await activateUiButton("scenario_play", "Next lens");
+        await activateUiButton("scenario_play", "Back to policy choices");
+        await activateUiButton("scenario_play", "Defend the October Manifesto");
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("scenario_play");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (
+                        object.visible !== false &&
+                        object.active !== false &&
+                        typeof object.text === "string" &&
+                        object.text.includes("Your alternate-history outcome")
+                    ) {
+                        return true;
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            },
+            { timeout: 10000 },
+        );
+        await captureScreenshot("14-mobile-policy-outcome.png");
         await assertSceneButtonsFit("scenario_play");
 
         browserPage = await browserInstance.newPage();
@@ -777,6 +953,76 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await captureScreenshot("11-small-phone-scenario-play.png");
         await assertNoAllCapsUiText("scenario_play");
         await assertSceneButtonsFit("scenario_play");
+        const advancedToPolicyChapter = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScene: (key: string) => { advancePowderKegChapter?: () => void } } };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("scenario_play");
+            if (typeof scene?.advancePowderKegChapter !== "function") return false;
+            scene.advancePowderKegChapter();
+            return true;
+        });
+        if (!advancedToPolicyChapter) {
+            throw new Error("The small-phone policy decision flow could not advance to the next chapter.");
+        }
+        await activateUiButton("scenario_play", "Open Policy Decision");
+        await browserPage.waitForFunction(
+            () => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("scenario_play");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (
+                        object.visible !== false &&
+                        object.active !== false &&
+                        typeof object.text === "string" &&
+                        object.text.includes("Choose a policy")
+                    ) {
+                        return true;
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            },
+            { timeout: 10000 },
+        );
+        await captureScreenshot("15-small-phone-policy-decision.png");
+        await assertSceneButtonsFit("scenario_play");
+        await browserPage.mouse.move(160, 360);
+        await browserPage.mouse.wheel({ deltaY: 500 });
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 200));
+        const decisionPanelScrollOffset = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                }
+            ).cascadeGame;
+            const pendingObjects = [...(gameInstance?.scene.getScene("scenario_play").children.list ?? [])] as any[];
+            const visitedObjects = new Set<any>();
+            while (pendingObjects.length > 0) {
+                const object = pendingObjects.pop();
+                if (!object || visitedObjects.has(object)) continue;
+                visitedObjects.add(object);
+                if (typeof object.scrollOffsetPx === "number") return object.scrollOffsetPx;
+                if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+            }
+            return 0;
+        });
+        if (decisionPanelScrollOffset <= 0) {
+            throw new Error("The small-phone policy decision panel did not scroll to its choices.");
+        }
+        await captureScreenshot("16-small-phone-policy-decision-scrolled.png");
 
         const dpiState = await browserPage.evaluate(() => {
             const gameCanvasElement = document.querySelector("canvas");
