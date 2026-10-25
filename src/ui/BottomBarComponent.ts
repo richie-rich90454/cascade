@@ -75,11 +75,11 @@ export class BottomBarComponent extends Phaser.GameObjects.Container {
             ? ledgerButtonLeftX - 8 - 110
             : menuButtonLeftX - 8 - journalButtonWidth;
         const leftTextWidth = Math.max(70, journalButtonLeftX - 24);
-        this.turnTextObject.setWordWrapWidth(leftTextWidth, true);
-        this.phaseTextObject.setWordWrapWidth(leftTextWidth, true);
+        const dpiConfigurator = HighDpiConfigurator.getInstance();
+        dpiConfigurator.setCssWordWrapWidth(this.turnTextObject, leftTextWidth, true);
+        dpiConfigurator.setCssWordWrapWidth(this.phaseTextObject, leftTextWidth, true);
         if (width < 760) {
-            const dpiConfigurator = HighDpiConfigurator.getInstance();
-            dpiConfigurator.setCssFontSize(this.turnTextObject, width < 420 ? 13 : 15);
+            dpiConfigurator.setCssFontSize(this.turnTextObject, width < 360 ? 12 : width < 420 ? 13 : 15);
             dpiConfigurator.setCssFontSize(this.phaseTextObject, width < 420 ? 12 : 13);
         }
         const journalButton = UiPanelFactory.createBrassButton(
