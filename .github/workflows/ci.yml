@@ -1,0 +1,43 @@
+name: Quality checks
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    quality:
+        name: Validate Cascade
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Check out the repository
+              uses: actions/checkout@v6
+
+            - name: Install the pinned runtime and dependencies
+              uses: pnpm/setup@v3
+              with:
+                  require-lockfile: true
+
+            - name: Check formatting
+              run: pnpm run format:check
+
+            - name: Check TypeScript
+              run: pnpm run typecheck
+
+            - name: Check game logic
+              run: pnpm run selfcheck
+
+            - name: Check asset manifest
+              run: pnpm run assets:verify
+
+            - name: Build the production game
+              run: pnpm run build
