@@ -12,6 +12,8 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
     private readonly panelWidth: number;
     private readonly modelAnswerTexts: Phaser.GameObjects.Text[] = [];
     private readonly sourcingHintTexts: Phaser.GameObjects.Text[] = [];
+    private readonly revealButtonTexts: Phaser.GameObjects.Text[] = [];
+    private readonly analysisOptionButtons: Phaser.GameObjects.Container[] = [];
     private contentHeightPx: number = 0;
 
     private rationaleTextObject: Phaser.GameObjects.Text | null = null;
@@ -33,6 +35,8 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         this.removeAll(true);
         this.modelAnswerTexts.length = 0;
         this.sourcingHintTexts.length = 0;
+        this.revealButtonTexts.length = 0;
+        this.analysisOptionButtons.length = 0;
         this.rationaleTextObject = null;
         this.hasAnsweredAnalysisQuestion = false;
         const titleTextObject = UiPanelFactory.createSectionHeader(
@@ -53,13 +57,14 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
             UiPalette.AGED_PARCHMENT_CSS,
         );
         this.add(originTextObject);
-        const sourceTypeTextObject = this.scene.add.text(16, 66, primarySource.sourceType, {
+        const sourceTypeTopY = 46 + originTextObject.displayHeight + 8;
+        const sourceTypeTextObject = this.scene.add.text(16, sourceTypeTopY, primarySource.sourceType, {
             fontFamily: FontFamilies.SMALL_CAPS,
             fontSize: "12px",
             color: UiPalette.HIGHLIGHT_BRASS_CSS,
         });
         this.add(sourceTypeTextObject);
-        const excerptTopY = 92;
+        const excerptTopY = sourceTypeTopY + sourceTypeTextObject.displayHeight + 12;
         const excerptTextObject = this.scene.add.text(26, excerptTopY + 12, primarySource.excerptText, {
             fontFamily: FontFamilies.BODY_SERIF,
             fontStyle: "italic",
@@ -81,7 +86,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         this.add(excerptFrameGraphics);
         this.add(excerptTextObject);
         let cursorY = excerptTopY + excerptTextObject.displayHeight + 40;
-        const promptLabels = ["POINT OF VIEW", "PURPOSE", "HISTORICAL SITUATION", "AUDIENCE", "LIMITATIONS"];
+        const promptLabels = ["Point of view", "Purpose", "Historical situation", "Audience", "Limitations"];
         const promptHints = [
             "Who created it, and what position shaped the account?",
             "What result did the author want?",
@@ -106,7 +111,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
             );
         }
         cursorY += 6;
-        const analysisHeaderTextObject = this.scene.add.text(16, cursorY, "Analysis Question", {
+        const analysisHeaderTextObject = this.scene.add.text(16, cursorY, "Check your reading", {
             fontFamily: FontFamilies.SMALL_CAPS,
             fontSize: "14px",
             color: UiPalette.HIGHLIGHT_BRASS_CSS,
@@ -141,6 +146,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
                 },
             );
             this.add(optionButton);
+            this.analysisOptionButtons.push(optionButton);
             optionY += 50;
         }
         this.rationaleTextObject = UiPanelFactory.createBodyText(
@@ -168,7 +174,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         promptTopY: number,
     ): number {
         const promptContentWidth = Math.max(180, this.panelWidth - 32);
-        const isNarrowPrompt = promptContentWidth < 280;
+        const isNarrowPrompt = promptContentWidth < 430;
         const revealButtonWidth = isNarrowPrompt
             ? promptContentWidth
             : Math.min(210, Math.max(112, Math.floor(promptContentWidth * 0.46)));
@@ -218,15 +224,19 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         const revealButton = UiPanelFactory.createBrassButton(
             this.scene,
             this.panelWidth - 16 - revealButtonWidth,
-            isNarrowPrompt ? promptTopY + promptHeight - 30 : promptTopY - 4,
+            isNarrowPrompt ? promptTopY + promptHeight - 34 : promptTopY - 4,
             revealButtonWidth,
-            isNarrowPrompt ? 26 : 28,
-            "SHOW MODEL ANSWER",
+            isNarrowPrompt ? 30 : 32,
+            "Show model answer",
             () => {
                 this.handleRevealClicked(promptIndex);
             },
         );
         this.add(revealButton);
+        const revealButtonLabel = revealButton.getByName("cascade-ui-button-label");
+        if (revealButtonLabel instanceof Phaser.GameObjects.Text) {
+            this.revealButtonTexts.push(revealButtonLabel);
+        }
         return promptTopY + promptHeight + 6;
     }
 
@@ -235,6 +245,7 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         const shouldShowAnswer = !modelAnswerTextObject.visible;
         modelAnswerTextObject.setVisible(shouldShowAnswer);
         this.sourcingHintTexts[promptIndex]?.setVisible(!shouldShowAnswer);
+        this.revealButtonTexts[promptIndex]?.setText(shouldShowAnswer ? "Hide model answer" : "Show model answer");
     }
 
     private handleAnalysisAnswer(
@@ -247,8 +258,8 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         if (this.hasAnsweredAnalysisQuestion) {
             return;
         }
-        this.hasAnsweredAnalysisQuestion = true;
         const wasAnalysisCorrect = primarySource.isAnalysisAnswerCorrect(selectedOptionIndex);
+        this.hasAnsweredAnalysisQuestion = wasAnalysisCorrect;
         intelligenceManager.recordSourceAnalysisResult(primarySource.sourceIdentifier, wasAnalysisCorrect);
         if (scenarioNumber === 1 && wasAnalysisCorrect) {
             gameState.setScenarioFlag(`source_s1_analyzed_${primarySource.sourceIdentifier}`);
@@ -259,9 +270,14 @@ export class SourceAnalysisComponent extends Phaser.GameObjects.Container {
         if (this.rationaleTextObject !== null) {
             const correctOptionText = primarySource.analysisOptions[primarySource.correctAnalysisOptionIndex];
             const verdictText = wasAnalysisCorrect
-                ? "Correct. This source is reliable for this question."
-                : "Not yet. Review the reasoning below, then return to the chapter card and try this source again.";
-            this.rationaleTextObject.setText(verdictText + " The strongest answer is: " + correctOptionText);
+                ? "Correct. You connected evidence in the document to the broader historical pattern."
+                : "Not yet. Recheck the author's point of view and the historical situation, then try another answer. Reveal a model answer above if you need a hint.";
+            this.rationaleTextObject.setText(
+                wasAnalysisCorrect ? `${verdictText} Strongest answer: ${correctOptionText}` : verdictText,
+            );
+        }
+        if (wasAnalysisCorrect) {
+            this.analysisOptionButtons.forEach((optionButton) => optionButton.setVisible(false));
         }
         EventBus.getInstance().publish(
             GameEventTypes.SOURCE_ANALYZED,
