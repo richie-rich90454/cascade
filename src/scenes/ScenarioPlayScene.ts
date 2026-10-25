@@ -205,8 +205,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
                   ? 1
                   : sessionScenario.getScenarioNumber();
         const savedProgress = GameSession.getInstance().getPlayProgress();
-        this.phaseIndex =
+        const requestedPhaseIndex =
             typeof selectionPayload.phaseIndex === "number" ? selectionPayload.phaseIndex : savedProgress.phaseIndex;
+        this.phaseIndex = Number.isInteger(requestedPhaseIndex)
+            ? Phaser.Math.Clamp(requestedPhaseIndex, 0, TurnPhaseLabel.PHASE_LABELS.length - 1)
+            : 0;
         this.lastConsequenceText = "";
         this.provinceTilesByProvinceIdentifier = new Map<string, Phaser.GameObjects.Arc>();
         this.historicalMapImage = null;
