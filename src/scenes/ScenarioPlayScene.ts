@@ -48,8 +48,8 @@ import { TelegramPopupComponent } from "../ui/TelegramPopupComponent";
 import { TerritorialHoldingsChartComponent } from "../ui/TerritorialHoldingsChartComponent";
 import { TestimonyPanelComponent } from "../ui/TestimonyPanelComponent";
 import { TopBarComponent } from "../ui/TopBarComponent";
-import { UiPalette } from "../ui/UiPalette";
 import { UiKeyboardFocus } from "../ui/UiKeyboardFocus";
+import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
 import { ScrollRegion, UiPointerRouting } from "../ui/UiPointerRouting";
 import { ScenarioSelectionPayload } from "./ScenarioBriefingScene";
@@ -300,13 +300,20 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenHeight = this.scale.height;
         const isCompactLayout = screenWidth < 1100;
         const contentLeftX = isCompactLayout ? 24 : 140;
-        const contentRightX = screenWidth < 820
-            ? screenWidth - 24
-            : screenWidth - (isCompactLayout ? 356 : 344);
+        const contentRightX = screenWidth < 820 ? screenWidth - 24 : screenWidth - (isCompactLayout ? 356 : 344);
         const contentWidth = Math.max(120, Math.min(screenWidth - contentLeftX - 12, contentRightX - contentLeftX));
-        const phaseCardHeight = this.scenarioNumber === 1
-            ? (screenWidth < 460 ? 272 : isCompactLayout ? 232 : this.isPhaseDetailsExpanded ? 232 : 164)
-            : this.isPhaseDetailsExpanded ? 216 : 84;
+        const phaseCardHeight =
+            this.scenarioNumber === 1
+                ? screenWidth < 460
+                    ? 272
+                    : isCompactLayout
+                      ? 232
+                      : this.isPhaseDetailsExpanded
+                        ? 232
+                        : 164
+                : this.isPhaseDetailsExpanded
+                  ? 216
+                  : 84;
         const phaseCardTopY = screenHeight - 64 - phaseCardHeight - 4;
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
@@ -411,7 +418,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             .text(
                 mapPixelWidth - 18,
                 14,
-                mapPixelWidth < 620 ? `DOCUMENTED · ${historicalMapYear}` : `DOCUMENTED BORDERS · ${historicalMapYear}`,
+                mapPixelWidth < 620 ? `Documented · ${historicalMapYear}` : `Documented borders · ${historicalMapYear}`,
                 {
                     fontFamily: FontFamilies.TYPEWRITER_BODY,
                     fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -429,15 +436,15 @@ export class ScenarioPlayScene extends Phaser.Scene {
             mapPixelHeight - (mapPixelWidth < 620 ? 95 : 58),
             this.scenarioNumber === 1
                 ? mapPixelWidth < 400
-                    ? "MARKERS INSPECT · CHAPTER CARD GIVES NEXT ACTION"
+                    ? "Markers inspect · chapter card gives next action"
                     : mapPixelWidth < 620
-                    ? "MARKERS INSPECT · CHAPTER BUTTONS MAKE POLICY CHOICES"
-                    : "MAP MARKERS INSPECT HISTORY · CHAPTER BUTTONS MAKE POLICY CHOICES"
+                      ? "Markers inspect · chapter buttons make policy choices"
+                      : "Map markers inspect history · chapter buttons make policy choices"
                 : mapPixelWidth < 400
-                  ? "DRAG TO PAN · WHEEL TO ZOOM · SELECT"
+                  ? "Drag to pan · wheel to zoom · select"
                   : mapPixelWidth < 620
-                    ? "DRAG · SCROLL · SELECT"
-                  : "DRAG TO PAN · SCROLL TO ZOOM · SELECT A MARKER",
+                    ? "Drag · scroll · select"
+                    : "Drag to pan · scroll to zoom · select a marker",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapHudFontSize,
@@ -452,10 +459,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             18,
             mapPixelHeight - (mapPixelWidth < 620 ? 125 : 25),
             mapPixelWidth < 400
-                ? "DISPUTED AREA IS APPROXIMATE"
+                ? "Disputed area is approximate"
                 : mapPixelWidth < 620
-                  ? "DISPUTED TERRITORY · HATCHED"
-                  : "DISPUTED TERRITORY · HATCHED AREA IS APPROXIMATE",
+                  ? "Disputed territory · hatched"
+                  : "Disputed territory · hatched area is approximate",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapHudFontSize,
@@ -471,10 +478,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             18,
             48,
             mapPixelWidth < 400
-                ? "TIBET · CHINA ADMINISTRATION BY 1960"
+                ? "Tibet · China administration by 1960"
                 : mapPixelWidth < 620
-                ? "TIBET · CHINESE ADMINISTRATION BY 1960"
-                : "TIBET · ADMINISTERED BY THE PEOPLE'S REPUBLIC OF CHINA BY 1960 · 1951 ACCOUNTS DIFFER",
+                  ? "Tibet · Chinese administration by 1960"
+                  : "Tibet · administered by the People's Republic of China by 1960 · 1951 accounts differ",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapHudFontSize,
@@ -496,10 +503,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
             18,
             82,
             mapPixelWidth < 400
-                ? "TAIWAN · CHINA COLOR GROUP FROM 1945"
+                ? "Taiwan · China color group from 1945"
                 : mapPixelWidth < 620
-                ? "TAIWAN · SAME COLOR GROUP SINCE 1945 · REPUBLIC OF CHINA GOVERNMENT"
-                : "TAIWAN · SAME COLOR GROUP FROM 1945 · GOVERNED BY REPUBLIC OF CHINA · CLAIMED BY PEOPLE'S REPUBLIC OF CHINA",
+                  ? "Taiwan · same color group since 1945 · Republic of China government"
+                  : "Taiwan · same color group from 1945 · governed by Republic of China · claimed by People's Republic of China",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: mapHudFontSize,
@@ -529,7 +536,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             }),
         );
         mapHudContainer.add(
-            UiPanelFactory.createBrassButton(this, mapPixelWidth - 86, zoomControlTopY, 78, 38, "WORLD", () => {
+            UiPanelFactory.createBrassButton(this, mapPixelWidth - 86, zoomControlTopY, 78, 38, "World", () => {
                 this.mapCameraController?.resetToOverview();
             }),
         );
@@ -726,7 +733,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
     private setMapModesPanelOpen(isOpen: boolean): void {
         this.isMapModesPanelOpen = isOpen;
         this.leftSidebarComponent?.setVisible(isOpen);
-        const buttonLabel = isOpen ? "HIDE MAP MODES" : "SHOW MAP MODES";
+        const buttonLabel = isOpen ? "Hide map modes" : "Show map modes";
         this.mapModesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
             if (child instanceof Phaser.GameObjects.Text) {
                 child.setText(buttonLabel);
@@ -739,7 +746,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.questTrackerComponent?.setVisible(isOpen);
         this.rightSidebarComponent?.setVisible(false);
         this.contextPanelBlockingZone?.setVisible(false);
-        const buttonLabel = "SHOW OBJECTIVES";
+        const buttonLabel = "Show objectives";
         this.objectivesToggleButton?.setVisible(!isOpen);
         this.objectivesToggleButton?.each((child: Phaser.GameObjects.GameObject) => {
             if (child instanceof Phaser.GameObjects.Text) {
@@ -960,22 +967,24 @@ export class ScenarioPlayScene extends Phaser.Scene {
               ? `WALKTHROUGH PAUSED · STEP ${guideStepNumber} OF 15`
               : `GUIDED STEP ${guideStepNumber} OF 15`;
         const chapterHeader = UiPanelFactory.createSectionHeader(
-                this,
-                18,
-                10,
-                `CHAPTER ${turnNumber} OF ${session.getTotalTurnCount()} · ${chapterTitle.toUpperCase()}${isCompact ? ` · ${guideStateLabel}` : ""}`,
-                isCompact ? 14 : 17,
-            );
+            this,
+            18,
+            10,
+            `CHAPTER ${turnNumber} OF ${session.getTotalTurnCount()} · ${chapterTitle.toUpperCase()}${isCompact ? ` · ${guideStateLabel}` : ""}`,
+            isCompact ? 14 : 17,
+        );
         chapterHeader.setWordWrapWidth(chapterCardWidth - 36, true);
         phasePanel.add(chapterHeader);
         const isNarrowPhone = this.scale.width < 460;
-        const summaryText = isNarrowPhone && turnNumber === 1
-            ? "Map markers inspect historical locations. Select the highlighted chapter button to begin."
-            : action?.instruction ??
-            (turnNumber >= session.getTotalTurnCount()
-                ? "The chapter activities are complete. Open the final debrief to review your evidence and finish the scenario."
-                : `All required activities for ${chapterTitle} are complete. Advance to the next dated chapter when you are ready.`);
-        const actionTitle = action?.title ??
+        const summaryText =
+            isNarrowPhone && turnNumber === 1
+                ? "Map markers inspect historical locations. Select the highlighted chapter button to begin."
+                : (action?.instruction ??
+                  (turnNumber >= session.getTotalTurnCount()
+                      ? "The chapter activities are complete. Open the final debrief to review your evidence and finish the scenario."
+                      : `All required activities for ${chapterTitle} are complete. Advance to the next dated chapter when you are ready.`));
+        const actionTitle =
+            action?.title ??
             (turnNumber >= session.getTotalTurnCount() ? "Review your evidence" : "Chapter activities complete");
         phasePanel.add(
             UiPanelFactory.createBodyText(
@@ -1019,7 +1028,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
             );
         }
 
-        const actionLabel = action?.buttonLabel ??
+        const actionLabel =
+            action?.buttonLabel ??
             (turnNumber >= session.getTotalTurnCount()
                 ? "OPEN FINAL DEBRIEF"
                 : `CONTINUE TO ${this.getPowderKegChapterTitle(turnNumber + 1).toUpperCase()}`);
@@ -1045,12 +1055,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (progress.walkthroughEnabled && !progress.walkthroughPaused && action !== null) {
             const spotlight = this.add.graphics();
             spotlight.lineStyle(3, UiPalette.HIGHLIGHT_BRASS, 1);
-            spotlight.strokeRect(
-                actionButtonX - 4,
-                actionButtonY - 4,
-                actionButtonWidth + 8,
-                52,
-            );
+            spotlight.strokeRect(actionButtonX - 4, actionButtonY - 4, actionButtonWidth + 8, 52);
             this.phaseCardContainer?.add(spotlight);
         }
 
@@ -1066,7 +1071,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
                     session.setPlayProgress({
                         ...currentProgress,
                         walkthroughEnabled: true,
-                        walkthroughPaused: currentProgress.walkthroughEnabled ? !currentProgress.walkthroughPaused : false,
+                        walkthroughPaused: currentProgress.walkthroughEnabled
+                            ? !currentProgress.walkthroughPaused
+                            : false,
                         walkthroughStep: this.getPowderKegGuideStep(),
                     });
                     this.renderPhaseCard();
@@ -1134,7 +1141,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (turnNumber === 1) {
             return {
                 title: "Start the first dated chapter",
-                instruction: "Use the map to inspect locations if you like. The map markers show historical locations; the highlighted button starts the first learning chapter.",
+                instruction:
+                    "Use the map to inspect locations if you like. The map markers show historical locations; the highlighted button starts the first learning chapter.",
                 buttonLabel: "BEGIN 1905 CHAPTER",
                 activate: () => this.advancePowderKegChapter(),
             };
@@ -1153,13 +1161,18 @@ export class ScenarioPlayScene extends Phaser.Scene {
                       activate: () =>
                           this.scene.start(
                               SceneKeys.SOURCE_ANALYSIS,
-                              new ScenarioSelectionPayload(this.scenarioNumber, SceneKeys.SCENARIO_PLAY, undefined, sourceIdentifier),
+                              new ScenarioSelectionPayload(
+                                  this.scenarioNumber,
+                                  SceneKeys.SCENARIO_PLAY,
+                                  undefined,
+                                  sourceIdentifier,
+                              ),
                           ),
                   };
         const decisionTask = (decisionIdentifier: string) => {
-            const decision = this.scenario?.getDecisionRecords().find(
-                (candidate) => candidate.decisionIdentifier === decisionIdentifier,
-            );
+            const decision = this.scenario
+                ?.getDecisionRecords()
+                .find((candidate) => candidate.decisionIdentifier === decisionIdentifier);
             if (decision === undefined || this.isPowderKegDecisionComplete(decision)) {
                 return null;
             }
@@ -1171,24 +1184,36 @@ export class ScenarioPlayScene extends Phaser.Scene {
             };
         };
         const chainTask = (chainIdentifier: string) => {
-            const chain = this.scenario?.getCausalChainDefinitions().find(
-                (candidate) => candidate.chainIdentifier === chainIdentifier,
-            );
+            const chain = this.scenario
+                ?.getCausalChainDefinitions()
+                .find((candidate) => candidate.chainIdentifier === chainIdentifier);
             if (chain === undefined || state.isScenarioFlagSet(`${chainIdentifier}_complete`)) {
                 return null;
             }
             return {
                 title: `Order causes: ${chain.chainTitle}`,
-                instruction: "Sort the causes into long-term, intermediate, and short-term factors. Use the historical dates and evidence in the cards, then confirm your reasoning.",
+                instruction:
+                    "Sort the causes into long-term, intermediate, and short-term factors. Use the historical dates and evidence in the cards, then confirm your reasoning.",
                 buttonLabel: "OPEN CAUSAL ANALYSIS",
                 activate: () => this.openCausalChainsOverlay(chainIdentifier),
             };
         };
 
-        const chapterActions: Record<number, Array<ReturnType<typeof sourceTask> | ReturnType<typeof decisionTask> | ReturnType<typeof chainTask>>> = {
-            2: [sourceTask("october_manifesto", "the October Manifesto"), decisionTask("s1_decision_russian"), chainTask("causal_chain_s1_russian")],
+        const chapterActions: Record<
+            number,
+            Array<ReturnType<typeof sourceTask> | ReturnType<typeof decisionTask> | ReturnType<typeof chainTask>>
+        > = {
+            2: [
+                sourceTask("october_manifesto", "the October Manifesto"),
+                decisionTask("s1_decision_russian"),
+                chainTask("causal_chain_s1_russian"),
+            ],
             3: [decisionTask("s1_decision_ottoman"), chainTask("causal_chain_s1_ottoman")],
-            4: [sourceTask("madero_plan_of_san_luis_potosi", "the Plan of San Luis Potosí"), decisionTask("s1_decision_mexico"), chainTask("causal_chain_s1_mexican")],
+            4: [
+                sourceTask("madero_plan_of_san_luis_potosi", "the Plan of San Luis Potosí"),
+                decisionTask("s1_decision_mexico"),
+                chainTask("causal_chain_s1_mexican"),
+            ],
             5: [decisionTask("s1_decision_qing"), chainTask("causal_chain_s1_qing")],
             6: [decisionTask("s1_decision_great_war")],
         };
@@ -1199,13 +1224,14 @@ export class ScenarioPlayScene extends Phaser.Scene {
             }
         }
         if (turnNumber === 6) {
-            const sarajevoDispatch = this.scenario?.getScenarioEventSchedule().find(
-                (eventRecord) => eventRecord.eventIdentifier === "assassination_at_sarajevo",
-            );
+            const sarajevoDispatch = this.scenario
+                ?.getScenarioEventSchedule()
+                .find((eventRecord) => eventRecord.eventIdentifier === "assassination_at_sarajevo");
             if (sarajevoDispatch !== undefined && !state.isScenarioFlagSet("event_s1_sarajevo_read")) {
                 return {
                     title: "Read the documented 1914 Sarajevo dispatch",
-                    instruction: "Read the dated newspaper report, then compare the documented event with the policy path you created. The assassination happened in 1914; it is not a player-created outcome.",
+                    instruction:
+                        "Read the dated newspaper report, then compare the documented event with the policy path you created. The assassination happened in 1914; it is not a player-created outcome.",
                     buttonLabel: "READ THE 1914 DISPATCH",
                     activate: () => {
                         state.setScenarioFlag("event_s1_sarajevo_read");
@@ -1222,7 +1248,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (turnNumber === 6 && !state.isScenarioFlagSet("continuity_chart_s1_complete")) {
             return {
                 title: "Complete the continuity and change activity",
-                instruction: "Sort the timeline markers to explain what changed and what continued from 1900 to 1924. The chart includes later events for comparison, clearly outside this scenario’s event window.",
+                instruction:
+                    "Sort the timeline markers to explain what changed and what continued from 1900 to 1924. The chart includes later events for comparison, clearly outside this scenario’s event window.",
                 buttonLabel: "OPEN CONTINUITY CHART",
                 activate: () => this.openContinuityChartOverlay(),
             };
@@ -1230,7 +1257,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (turnNumber === 6 && !state.isScenarioFlagSet("contextualization_s1_scored")) {
             return {
                 title: "Write the final contextualization response",
-                instruction: "Open the debrief, answer the short-answer prompts, and write a paragraph connecting the crises to broader imperial competition and political change.",
+                instruction:
+                    "Open the debrief, answer the short-answer prompts, and write a paragraph connecting the crises to broader imperial competition and political change.",
                 buttonLabel: "WRITE FINAL RESPONSE",
                 activate: () => this.scene.start(SceneKeys.DEBRIEF, new ScenarioSelectionPayload(this.scenarioNumber)),
             };
@@ -1239,7 +1267,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
     }
 
     private isPowderKegDecisionComplete(decision: DecisionRecord): boolean {
-        return decision.options.some((option) => GameSession.getInstance().getGameState().isScenarioFlagSet(option.resultingFlagIdentifier));
+        return decision.options.some((option) =>
+            GameSession.getInstance().getGameState().isScenarioFlagSet(option.resultingFlagIdentifier),
+        );
     }
 
     private getPowderKegGuideStep(): number {
@@ -1247,8 +1277,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const state = session.getGameState();
         let completedActions = session.getCurrentTurnNumber() > 1 ? 1 : 0;
         completedActions += session.getIntelligenceManager().getCorrectlyAnalyzedSourceCount();
-        completedActions += this.scenario?.getDecisionRecords().filter((decision) => this.isPowderKegDecisionComplete(decision)).length ?? 0;
-        completedActions += this.scenario?.getCausalChainDefinitions().filter((chain) => state.isScenarioFlagSet(`${chain.chainIdentifier}_complete`)).length ?? 0;
+        completedActions +=
+            this.scenario?.getDecisionRecords().filter((decision) => this.isPowderKegDecisionComplete(decision))
+                .length ?? 0;
+        completedActions +=
+            this.scenario
+                ?.getCausalChainDefinitions()
+                .filter((chain) => state.isScenarioFlagSet(`${chain.chainIdentifier}_complete`)).length ?? 0;
         completedActions += state.isScenarioFlagSet("continuity_chart_s1_complete") ? 1 : 0;
         completedActions += state.isScenarioFlagSet("contextualization_s1_scored") ? 1 : 0;
         completedActions += state.isScenarioFlagSet("event_s1_sarajevo_read") ? 1 : 0;
@@ -1558,7 +1593,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const layoutRects = this.getLayoutRects();
         const mapPixelWidth = Math.min(layoutRects.map.width, layoutRects.map.height * 2);
         this.historicalMapYearLabel.setText(
-            mapPixelWidth < 620 ? `DOCUMENTED · ${year}` : `DOCUMENTED BORDERS · ${year}`,
+            mapPixelWidth < 620 ? `Documented · ${year}` : `Documented borders · ${year}`,
         );
         this.disputedMapLegendText?.setVisible(true);
         this.tibetHistoryNoteText?.setVisible(year >= 1960);
