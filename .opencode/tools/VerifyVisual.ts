@@ -260,6 +260,56 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                 );
             }
         };
+        const assertChapterGuidanceDoesNotOverlap = async (): Promise<void> => {
+            const chapterLayout = await browserPage.evaluate(() => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("scenario_play");
+                if (scene === undefined) return null;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                let actionTitle: { top: number; bottom: number } | null = null;
+                let summary: { top: number; bottom: number } | null = null;
+                let primaryAction: { top: number; bottom: number } | null = null;
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (object.name === "scenario-chapter-action-title" || object.name === "scenario-chapter-summary") {
+                        const bounds = object.getBounds();
+                        const verticalBounds = { top: bounds.y, bottom: bounds.y + bounds.height };
+                        if (object.name === "scenario-chapter-action-title") actionTitle = verticalBounds;
+                        else summary = verticalBounds;
+                    }
+                    if (object.name === "cascade-ui-button" && Array.isArray(object.list)) {
+                        const label = object.list.find((child: any) => typeof child?.text === "string")?.text ?? "";
+                        if (typeof label === "string" && /open|begin|continue|review/i.test(label)) {
+                            const bounds = object.getBounds();
+                            primaryAction = { top: bounds.y, bottom: bounds.y + bounds.height };
+                        }
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return { actionTitle, summary, primaryAction };
+            });
+            if (
+                chapterLayout === null ||
+                chapterLayout.actionTitle === null ||
+                chapterLayout.summary === null ||
+                chapterLayout.primaryAction === null
+            ) {
+                throw new Error("The guided chapter layout did not expose its title, instruction, and main action.");
+            }
+            if (
+                chapterLayout.actionTitle.bottom > chapterLayout.summary.top + 1 ||
+                chapterLayout.summary.bottom > chapterLayout.primaryAction.top + 1
+            ) {
+                throw new Error(`Guided chapter instructions overlap: ${JSON.stringify(chapterLayout)}.`);
+            }
+        };
         const activateUiButton = async (sceneKey: string, labelPart: string): Promise<void> => {
             const activated = await browserPage.evaluate(
                 (target: { sceneKey: string; labelPart: string }) => {
@@ -302,6 +352,139 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
 
         await captureScreenshot("01-main-menu.png");
         await assertNoAllCapsUiText("main_menu");
+
+        await activateUiButton("main_menu", "Progress check");
+        await waitForActiveScene("progress_check");
+        await assertNoAllCapsUiText("progress_check");
+        await assertSceneButtonsFit("progress_check");
+        await activateUiButton("progress_check", "Quick review · 3 questions");
+        await browserPage.waitForFunction(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: {
+                            getScene: (key: string) => {
+                                currentMultipleChoiceQuestions?: unknown[];
+                                currentMultipleChoiceQuestionIndex?: number;
+                            };
+                        };
+                    };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("progress_check");
+            return (
+                scene?.currentMultipleChoiceQuestions?.length === 3 && scene.currentMultipleChoiceQuestionIndex === 0
+            );
+        });
+        const answerPositionAudit = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: {
+                            getScene: (key: string) => {
+                                currentMultipleChoiceQuestions?: Array<{
+                                    questionIdentifier: string;
+                                    correctAnswerIndex: number;
+                                }>;
+                                answerOptionIndexesByQuestionIdentifier?: Map<string, number[]>;
+                            };
+                        };
+                    };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("progress_check");
+            const questions = scene?.currentMultipleChoiceQuestions ?? [];
+            const positions = questions.map((question) =>
+                (scene?.answerOptionIndexesByQuestionIdentifier?.get(question.questionIdentifier) ?? []).indexOf(
+                    question.correctAnswerIndex,
+                ),
+            );
+            return { questionCount: questions.length, positions };
+        });
+        if (
+            answerPositionAudit.questionCount !== 3 ||
+            answerPositionAudit.positions.some((position) => position < 0) ||
+            new Set(answerPositionAudit.positions).size !== answerPositionAudit.positions.length
+        ) {
+            throw new Error("Quick review did not present three questions with varied correct-answer positions.");
+        }
+        for (let questionIndex = 0; questionIndex < 3; questionIndex += 1) {
+            const incorrectOptionText = await browserPage.evaluate(() => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: {
+                            scene: {
+                                getScene: (key: string) => {
+                                    currentMultipleChoiceQuestions?: Array<{
+                                        questionIdentifier: string;
+                                        correctAnswerIndex: number;
+                                        answerOptions: string[];
+                                    }>;
+                                    currentMultipleChoiceQuestionIndex?: number;
+                                    answerOptionIndexesByQuestionIdentifier?: Map<string, number[]>;
+                                };
+                            };
+                        };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("progress_check");
+                const question = scene?.currentMultipleChoiceQuestions?.[scene.currentMultipleChoiceQuestionIndex ?? 0];
+                if (question === undefined) return null;
+                const optionOrder =
+                    scene?.answerOptionIndexesByQuestionIdentifier?.get(question.questionIdentifier) ?? [];
+                const incorrectIndex = optionOrder.find((optionIndex) => optionIndex !== question.correctAnswerIndex);
+                return incorrectIndex === undefined ? null : question.answerOptions[incorrectIndex];
+            });
+            if (incorrectOptionText === null) {
+                throw new Error(`Quick review question ${questionIndex + 1} has no incorrect option to check.`);
+            }
+            await activateUiButton("progress_check", incorrectOptionText);
+            await browserPage.waitForFunction(() => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene("progress_check");
+                if (scene === undefined) return false;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (typeof object.text === "string" && object.text.includes("Why it misses:")) return true;
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return false;
+            });
+            if (questionIndex === 0) {
+                await captureScreenshot("02-quick-review-feedback.png");
+            }
+            await activateUiButton("progress_check", "Next question");
+        }
+        await browserPage.waitForFunction(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("progress_check");
+            const pendingObjects = [...(scene?.children.list ?? [])] as any[];
+            const visitedObjects = new Set<any>();
+            while (pendingObjects.length > 0) {
+                const object = pendingObjects.pop();
+                if (!object || visitedObjects.has(object)) continue;
+                visitedObjects.add(object);
+                if (typeof object.text === "string" && object.text.includes("Quick review complete.")) return true;
+                if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+            }
+            return false;
+        });
+        await captureScreenshot("03-quick-review-results.png");
+        await activateUiButton("progress_check", "Back to practice menu");
+        await activateUiButton("progress_check", "Back to menu");
+        await waitForActiveScene("main_menu");
 
         await switchToSingleScene("campaign_selector");
         await new Promise((resolveDelay) => setTimeout(resolveDelay, 2000));
@@ -764,6 +947,98 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await waitForActiveScene("main_menu");
         await captureScreenshot("06-mobile-main-menu.png");
         await assertSceneButtonsFit("main_menu");
+        await activateUiButton("main_menu", "Progress check");
+        await waitForActiveScene("progress_check");
+        await assertSceneButtonsFit("progress_check");
+        await activateUiButton("progress_check", "Document based (1)");
+        await browserPage.waitForFunction(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: { getScene: (key: string) => { children: { list: unknown[] } } };
+                    };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("progress_check");
+            const pendingObjects = [...(scene?.children.list ?? [])] as any[];
+            const visitedObjects = new Set<any>();
+            while (pendingObjects.length > 0) {
+                const object = pendingObjects.pop();
+                if (!object || visitedObjects.has(object)) continue;
+                visitedObjects.add(object);
+                if (object.name === "progress-check-document-card") return true;
+                if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+            }
+            return false;
+        });
+        await assertSceneButtonsFit("progress_check");
+        const documentCardLayout = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scale: { width: number; height: number };
+                        scene: { getScene: (key: string) => { children: { list: unknown[] } } };
+                    };
+                }
+            ).cascadeGame;
+            const scene = gameInstance?.scene.getScene("progress_check");
+            if (gameInstance === undefined || scene === undefined) return null;
+            const pendingObjects = [...scene.children.list] as any[];
+            const visitedObjects = new Set<any>();
+            const cards: Array<{ left: number; right: number; width: number }> = [];
+            while (pendingObjects.length > 0) {
+                const object = pendingObjects.pop();
+                if (!object || visitedObjects.has(object)) continue;
+                visitedObjects.add(object);
+                if (object.name === "progress-check-document-card") {
+                    const bounds = object.getBounds();
+                    cards.push({ left: bounds.x, right: bounds.x + bounds.width, width: bounds.width });
+                }
+                if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+            }
+            const progressScene = scene as any;
+            return {
+                viewportWidth: gameInstance.scale.width,
+                cards,
+                hasScrollHint: progressScene.scrollHintTextObject?.visible === true,
+                contentHeight: progressScene.contentHeightPx ?? 0,
+                contentViewportHeight: gameInstance.scale.height - (progressScene.contentBaseY ?? 0) - 48,
+                containerY: progressScene.contentContainer?.y ?? 0,
+            };
+        });
+        if (
+            documentCardLayout === null ||
+            documentCardLayout.cards.length < 2 ||
+            documentCardLayout.cards.some(
+                (card) => card.left < -1 || card.right > documentCardLayout.viewportWidth + 1,
+            ) ||
+            !documentCardLayout.hasScrollHint ||
+            documentCardLayout.contentHeight <= documentCardLayout.contentViewportHeight
+        ) {
+            throw new Error(
+                `The phone document activity did not fit and expose its scroll state: ${JSON.stringify(documentCardLayout)}.`,
+            );
+        }
+        await captureScreenshot("17-mobile-progress-check-documents.png");
+        await browserPage.mouse.move(160, 420);
+        await browserPage.mouse.wheel({ deltaY: 500 });
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 150));
+        const documentScrollMoved = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: { getScene: (key: string) => { contentContainer?: { y: number } | null } };
+                    };
+                }
+            ).cascadeGame;
+            return gameInstance?.scene.getScene("progress_check").contentContainer?.y ?? 0;
+        });
+        if (documentScrollMoved >= documentCardLayout.containerY) {
+            throw new Error("The phone document activity did not scroll to reveal more source material.");
+        }
+        await captureScreenshot("18-mobile-progress-check-scrolled.png");
+        await activateUiButton("progress_check", "Back to menu");
+        await waitForActiveScene("main_menu");
         await activateUiButton("main_menu", "Choose a Campaign");
         await waitForActiveScene("campaign_selector");
         await captureScreenshot("07-mobile-campaign-selector.png");
@@ -953,6 +1228,7 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
         await captureScreenshot("11-small-phone-scenario-play.png");
         await assertNoAllCapsUiText("scenario_play");
         await assertSceneButtonsFit("scenario_play");
+        await assertChapterGuidanceDoesNotOverlap();
         const advancedToPolicyChapter = await browserPage.evaluate(() => {
             const gameInstance = (
                 window as unknown as {
