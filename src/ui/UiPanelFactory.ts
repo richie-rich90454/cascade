@@ -39,26 +39,8 @@ export class UiPanelFactory {
         const panelGraphics = scene.add.graphics();
         panelGraphics.fillStyle(panelVariant.fillColor, 1);
         panelGraphics.fillRect(0, 0, pixelWidth, pixelHeight);
-        panelGraphics.fillStyle(0x11171c, 0.72);
-        panelGraphics.fillRect(0, 0, pixelWidth, 4);
-        panelGraphics.fillStyle(0x11171c, 0.32);
-        panelGraphics.fillRect(0, pixelHeight - 3, pixelWidth, 3);
-        panelGraphics.fillStyle(panelVariant.borderColor, 0.88);
-        panelGraphics.fillRect(1, 4, 3, Math.max(0, pixelHeight - 8));
-        panelGraphics.lineStyle(1, panelVariant.borderColor, 0.94);
-        panelGraphics.strokeRect(1, 1, pixelWidth - 2, pixelHeight - 2);
-        panelGraphics.lineStyle(1, UiPalette.FIELD_GRAY, 0.32);
-        panelGraphics.strokeRect(5, 5, Math.max(0, pixelWidth - 10), Math.max(0, pixelHeight - 10));
-        panelGraphics.fillStyle(0x11171c, 0.82);
-        panelGraphics.fillCircle(8, 8, 2.4);
-        panelGraphics.fillCircle(pixelWidth - 8, 8, 2.4);
-        panelGraphics.fillCircle(8, pixelHeight - 8, 2.4);
-        panelGraphics.fillCircle(pixelWidth - 8, pixelHeight - 8, 2.4);
-        panelGraphics.fillStyle(UiPalette.BRIGHT_BRASS, 0.76);
-        panelGraphics.fillCircle(8, 8, 1);
-        panelGraphics.fillCircle(pixelWidth - 8, 8, 1);
-        panelGraphics.fillCircle(8, pixelHeight - 8, 1);
-        panelGraphics.fillCircle(pixelWidth - 8, pixelHeight - 8, 1);
+        panelGraphics.lineStyle(1.25, panelVariant.borderColor, 0.92);
+        panelGraphics.strokeRect(0.5, 0.5, Math.max(0, pixelWidth - 1), Math.max(0, pixelHeight - 1));
         panelContainer.add(panelGraphics);
         panelContainer.setDepth(depthLevel);
         panelContainer.setSize(pixelWidth, pixelHeight);
@@ -90,10 +72,6 @@ export class UiPanelFactory {
                 1,
             );
             buttonGraphics.strokeRect(1, 1, pixelWidth - 2, pixelHeight - 2);
-            if (isKeyboardFocused) {
-                buttonGraphics.lineStyle(2, UiPalette.HIGHLIGHT_BRASS, 1);
-                buttonGraphics.strokeRect(4, 4, pixelWidth - 8, pixelHeight - 8);
-            }
         };
         redrawButton(UiPalette.MID_OLIVE);
         const buttonLabel = scene.add.text(pixelWidth / 2, pixelHeight / 2, formatUiDisplayCase(buttonLabelText), {
@@ -115,7 +93,7 @@ export class UiPanelFactory {
             cssFontSizePx = initialFittedFontSizePx;
             dpiConfigurator.setCssFontSize(buttonLabel, cssFontSizePx);
         }
-        buttonLabel.setWordWrapWidth(availableLabelWidth * dpiConfigurator.getDevicePixelRatio(), true);
+        dpiConfigurator.setCssWordWrapWidth(buttonLabel, availableLabelWidth, true);
         buttonLabel.setOrigin(0.5, 0.5);
         const availableLabelHeightPx = Math.max(16, pixelHeight - 2);
         while (
