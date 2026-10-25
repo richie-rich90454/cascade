@@ -70,7 +70,9 @@ body {
     color: #f2e8d5;
     background: #252c32;
     border: 1px solid #c9a961;
-    box-shadow: 0 1rem 3rem rgb(0 0 0 / 55%), inset 0 0 0 3px rgb(201 169 97 / 12%);
+    box-shadow:
+        0 1rem 3rem rgb(0 0 0 / 55%),
+        inset 0 0 0 3px rgb(201 169 97 / 12%);
 }
 
 .profile-dialog h2 {
