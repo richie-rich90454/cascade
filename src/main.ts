@@ -17,10 +17,11 @@ import { ProgressCheckScene } from "./scenes/ProgressCheckScene";
 import { ScenarioBriefingScene } from "./scenes/ScenarioBriefingScene";
 import { ScenarioPlayScene } from "./scenes/ScenarioPlayScene";
 import { SettingsScene } from "./scenes/SettingsScene";
-import { StudentProfilesScene } from "./scenes/StudentProfilesScene";
 import { SourceAnalysisScene } from "./scenes/SourceAnalysisScene";
+import { StudentProfilesScene } from "./scenes/StudentProfilesScene";
 import { TeacherDashboardScene } from "./scenes/TeacherDashboardScene";
 import { WarScoreScene } from "./scenes/WarScoreScene";
+import { installUiTextCasePatch } from "./ui/UiTextCase";
 
 const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
     // Scroll panels use Phaser geometry masks, which Phaser 4 supports only in Canvas.
@@ -62,6 +63,7 @@ const cascadeGameConfiguration: Phaser.Types.Core.GameConfig = {
     ],
 };
 
+installUiTextCasePatch(Phaser);
 HighDpiConfigurator.getInstance().installHighDpiTextPatch();
 
 export const cascadeGame = new Phaser.Game(cascadeGameConfiguration);
