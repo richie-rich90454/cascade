@@ -457,7 +457,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
             this.currentScenarioNumber === 1
                 ? this.showAllScenarioOneObjectives
                     ? "Required activities. The chapter panel shows the next action."
-                    : "Your next action is the highlighted chapter button below the map."
+                    : "Begin the highlighted chapter below. These bars track required learning activities."
                 : "Select a task to open it, or start the next objective for a guided route.",
             {
                 fontFamily: FontFamilies.BODY_SERIF,
@@ -536,37 +536,34 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
                 total: synthesisObjectives.length,
             },
         ];
-        let rowOffsetY = startY + 16;
+        let rowOffsetY = startY + 12;
         for (const group of groups) {
-            const card = this.scene.add.container(12, rowOffsetY);
-            const cardHeight = 57;
-            const cardGraphics = this.scene.add.graphics();
-            cardGraphics.fillStyle(UiPalette.MID_OLIVE, 0.86);
-            cardGraphics.fillRect(0, 0, rowWidth - 12, cardHeight);
-            cardGraphics.lineStyle(1, UiPalette.FIELD_GRAY, 0.7);
-            cardGraphics.strokeRect(0.5, 0.5, rowWidth - 13, cardHeight - 1);
-            card.add(cardGraphics);
-            const label = this.scene.add.text(12, 8, formatUiDisplayCase(group.label), {
-                fontFamily: FontFamilies.SMALL_CAPS,
-                fontSize: "13px",
+            const row = this.scene.add.container(12, rowOffsetY);
+            const rowContentWidth = rowWidth - 24;
+            const label = this.scene.add.text(0, 0, formatUiDisplayCase(group.label), {
+                fontFamily: FontFamilies.BODY_SERIF,
+                fontSize: "14px",
                 color: UiPalette.PARCHMENT_CSS,
+                wordWrap: { width: Math.max(96, rowContentWidth - 76), useAdvancedWrap: true },
             });
-            const count = this.scene.add.text(rowWidth - 36, 8, `${group.completed} / ${group.total}`, {
+            const count = this.scene.add.text(rowContentWidth, 0, `${group.completed} of ${group.total}`, {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: "13px",
                 color: UiPalette.HIGHLIGHT_BRASS_CSS,
             });
             count.setOrigin(1, 0);
-            card.add([label, count]);
             const progressTrack = this.scene.add.graphics();
             progressTrack.fillStyle(UiPalette.NEAR_BLACK_LEATHER, 1);
-            progressTrack.fillRect(12, 34, rowWidth - 38, 8);
+            progressTrack.fillRect(0, 28, rowContentWidth, 5);
             const progressRatio = group.total > 0 ? group.completed / group.total : 0;
             progressTrack.fillStyle(UiPalette.BRIGHT_BRASS, 1);
-            progressTrack.fillRect(12, 34, Math.max(0, (rowWidth - 38) * progressRatio), 8);
-            card.add(progressTrack);
-            this.contentContainer.add(card);
-            rowOffsetY += cardHeight + 8;
+            progressTrack.fillRect(0, 28, Math.max(0, rowContentWidth * progressRatio), 5);
+            const divider = this.scene.add.graphics();
+            divider.lineStyle(1, UiPalette.FIELD_GRAY, 0.35);
+            divider.lineBetween(0, 43, rowContentWidth, 43);
+            row.add([label, count, progressTrack, divider]);
+            this.contentContainer.add(row);
+            rowOffsetY += 52;
         }
         return rowOffsetY;
     }
