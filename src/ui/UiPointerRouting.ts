@@ -25,7 +25,9 @@ export class UiPointerRouting {
     private static readonly registeredScrollRegions: ScrollRegion[] = [];
 
     public static registerScrollRegion(scrollRegion: ScrollRegion): void {
-        UiPointerRouting.registeredScrollRegions.push(scrollRegion);
+        if (!UiPointerRouting.registeredScrollRegions.includes(scrollRegion)) {
+            UiPointerRouting.registeredScrollRegions.push(scrollRegion);
+        }
     }
 
     public static unregisterScrollRegion(scrollRegion: ScrollRegion): void {
