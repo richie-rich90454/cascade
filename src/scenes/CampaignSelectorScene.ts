@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { GameSession } from "../core/GameSession";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { SceneKeys } from "../core/SceneKeys";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import type { CampaignDefinition } from "../domain/ScenarioRegistry";
@@ -60,7 +61,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             screenWidth < 360 ? 17 : screenWidth < 520 ? 21 : isCompactHeader ? 28 : 34,
         );
         headerText.setOrigin(0.5, 0);
-        headerText.setWordWrapWidth(titleSafeWidth, true);
+        HighDpiConfigurator.getInstance().setCssWordWrapWidth(headerText, titleSafeWidth, true);
         headerText.setAlign("center");
         const campaignGuidance = this.add.text(
             screenCenterX,
@@ -217,7 +218,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
             scenario.getScenarioTitle(),
             17,
         );
-        titleText.setWordWrapWidth(cardInnerWidthPx, true);
+        HighDpiConfigurator.getInstance().setCssWordWrapWidth(titleText, cardInnerWidthPx, true);
         panelContainer.add(titleText);
         const subtitleText = this.add.text(
             CampaignSelectorScene.CARD_INNER_MARGIN_PX,
