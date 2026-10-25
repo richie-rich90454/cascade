@@ -45,6 +45,15 @@ export class TeacherDashboardScene extends Phaser.Scene {
         UiPanelFactory.createBrassButton(this, 24, 24, 200, 40, "BACK TO MENU", () => {
             this.scene.start(SceneKeys.MAIN_MENU);
         });
+        UiPanelFactory.createTypewriterText(
+            this,
+            40,
+            78,
+            Math.max(200, this.scale.width - 80),
+            "Review topic and skill progress to choose what students should revisit. Export summaries for follow-up.",
+            14,
+            UiPalette.PARCHMENT_CSS,
+        );
         GameSession.getInstance().getAudioManager().playMusicTrack("menu_teacher");
 
         this.rebuildDashboardContent();
