@@ -38,6 +38,14 @@ export class HighDpiConfigurator {
         textObject.setFontSize(cssFontSizePx * this.devicePixelRatioValue * getTextScale());
     }
 
+    public setCssWordWrapWidth(
+        textObject: Phaser.GameObjects.Text,
+        cssWidthPx: number,
+        useAdvancedWrap: boolean = false,
+    ): void {
+        textObject.setWordWrapWidth(cssWidthPx * this.devicePixelRatioValue, useAdvancedWrap);
+    }
+
     public static toCssPixelValue(devicePixelValue: number, devicePixelRatio: number): number {
         if (!Number.isFinite(devicePixelRatio) || devicePixelRatio <= 0) {
             return devicePixelValue;
