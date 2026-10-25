@@ -201,7 +201,10 @@ export class AssessmentManager {
                 signal.correct >= 0 &&
                 signal.attempted >= signal.correct
             ) {
-                this.topicAttemptsByCedTopicCode.set(topicCode, { correct: signal.correct, attempted: signal.attempted });
+                this.topicAttemptsByCedTopicCode.set(topicCode, {
+                    correct: signal.correct,
+                    attempted: signal.attempted,
+                });
             }
         }
     }
