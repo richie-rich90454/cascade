@@ -6,7 +6,7 @@
 
 ## A clear first session
 
-Start at the main menu, choose **Start a Campaign**, then select **The Powder Keg**. Its guided first scenario takes about 25–30 minutes. The walkthrough points to the next useful action and can be paused, skipped, or replayed.
+Start at the main menu, choose **Choose a campaign**, then select **The Powder Keg**. Its guided first scenario takes about 25–30 minutes. The walkthrough points to the next useful action and can be paused, skipped, or replayed.
 
 The learning loop is simple:
 
@@ -22,6 +22,7 @@ The learning loop is simple:
 - Play ten connected scenarios covering AP World History Unit 7 topics and learning objectives.
 - Explore historical SVG map snapshots from 1900 through 2010. Map markers identify scenario locations; historical borders are approximate and documented.
 - Analyze primary sources, make strategic choices, trace causes, and write short historical arguments.
+- Use a three-question quick review that revisits topics you have not practiced or may need to strengthen.
 - Continue a campaign with named student profiles and saves stored in the current browser.
 - Review topic and skill progress in the student journal and teacher dashboard.
 - Use keyboard controls, adjustable text size, visible focus, and reduced-motion settings.
@@ -61,7 +62,7 @@ pnpm run assets:verify
 pnpm run build
 ```
 
-The browser flow can be checked with `pnpm run verify:visual`. It uses a local Edge or Chrome executable; set `CASCADE_BROWSER_EXECUTABLE_PATH` to its full path if the browser is not in the default Edge location. The check captures the main menu, campaign selector, briefing, and guided scenario, and reports browser console errors.
+The browser flow can be checked with `pnpm run verify:visual`. It uses a local Edge or Chrome executable; set `CASCADE_BROWSER_EXECUTABLE_PATH` to its full path if the browser is not in the default Edge location. The check exercises the campaign path, source analysis and retry, policy reasoning and outcomes, responsive layouts, and reports browser console errors.
 
 ## Project structure
 
