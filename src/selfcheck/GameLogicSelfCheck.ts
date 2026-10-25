@@ -1,7 +1,7 @@
 import { GameSession } from "../core/GameSession";
 import { GameState } from "../core/GameState";
 import { CED_UNIT_SEVEN_TOPICS, getCedUnitSevenCoverageIssues } from "../data/CedUnitSevenCoverage";
-import { ProgressCheckBank } from "../data/ProgressCheckBank";
+import { MultipleChoiceQuestion, ProgressCheckBank } from "../data/ProgressCheckBank";
 import { Rubrics } from "../data/Rubrics";
 import { getWorldProvinceCoordinate } from "../data/WorldProvinceGeography";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
@@ -18,6 +18,39 @@ function assertCondition(condition: boolean, failureMessage: string): void {
 }
 
 function runGameLogicSelfCheck(): void {
+    for (const question of ProgressCheckBank.getAllMultipleChoiceQuestions()) {
+        assertCondition(
+            question.correctAnswerIndex >= 0 && question.correctAnswerIndex < question.answerOptions.length,
+            `${question.questionIdentifier} must point to an existing correct answer`,
+        );
+        for (let answerIndex = 0; answerIndex < question.answerOptions.length; answerIndex += 1) {
+            if (question.isAnswerCorrect(answerIndex)) {
+                continue;
+            }
+            const feedback = question.getResponseFeedback(answerIndex);
+            assertCondition(
+                feedback.length > 24 && !feedback.startsWith("This choice does not match the question's time"),
+                `${question.questionIdentifier} must explain why distractor ${answerIndex + 1} misses the question`,
+            );
+        }
+    }
+    const questionWithMiddleCorrectAnswer = new MultipleChoiceQuestion(
+        "selfcheck_middle_correct_answer",
+        "7.1",
+        "Which option is historically grounded?",
+        ["First distractor", "Second distractor", "Correct answer", "Third distractor"],
+        2,
+        "The correct answer fits the evidence.",
+        ["First distractor feedback.", "Second distractor feedback.", "Third distractor feedback."],
+    );
+    assertCondition(
+        questionWithMiddleCorrectAnswer.getResponseFeedback(0) === "First distractor feedback." &&
+            questionWithMiddleCorrectAnswer.getResponseFeedback(1) === "Second distractor feedback." &&
+            questionWithMiddleCorrectAnswer.getResponseFeedback(2) === "The correct answer fits the evidence." &&
+            questionWithMiddleCorrectAnswer.getResponseFeedback(3) === "Third distractor feedback.",
+        "distractor explanations must follow answers even when the correct answer is not first",
+    );
+
     assertCondition(
         formatUiDisplayCase("CAMPAIGN PROGRESS") === "Campaign Progress",
         "all-caps interface labels must render in readable title case",
