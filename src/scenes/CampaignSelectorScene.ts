@@ -17,7 +17,8 @@ export class CampaignSelectorScene extends Phaser.Scene {
     private static readonly CARD_ROW_VERTICAL_GAP_PX = 18;
     private static readonly CONTENT_SIDE_MARGIN_PX = 40;
     private static readonly CARD_INNER_MARGIN_PX = 14;
-    private static readonly HEADER_HEIGHT_PX = 76;
+    private static readonly STANDARD_HEADER_HEIGHT_PX = 100;
+    private static readonly COMPACT_HEADER_HEIGHT_PX = 132;
 
     private campaignContentContainer: Phaser.GameObjects.Container | null;
     private campaignContentHeightPx: number;
@@ -32,7 +33,10 @@ export class CampaignSelectorScene extends Phaser.Scene {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
         const isCompactHeader = screenWidth < 900;
-        const headerHeight = screenWidth < 520 ? 104 : CampaignSelectorScene.HEADER_HEIGHT_PX;
+        const headerHeight =
+            screenWidth < 520
+                ? CampaignSelectorScene.COMPACT_HEADER_HEIGHT_PX
+                : CampaignSelectorScene.STANDARD_HEADER_HEIGHT_PX;
         const background = this.add
             .rectangle(0, 0, screenWidth, screenHeight, UiPalette.NEAR_BLACK_LEATHER)
             .setOrigin(0, 0);
@@ -58,9 +62,22 @@ export class CampaignSelectorScene extends Phaser.Scene {
         headerText.setOrigin(0.5, 0);
         headerText.setWordWrapWidth(titleSafeWidth, true);
         headerText.setAlign("center");
+        const campaignGuidance = this.add.text(
+            screenCenterX,
+            screenWidth < 520 ? 76 : isCompactHeader ? 76 : 64,
+            "Begin with The Powder Keg. Complete each scenario to unlock the next.",
+            {
+                fontFamily: FontFamilies.BODY_SERIF,
+                fontSize: screenWidth < 360 ? "11px" : "13px",
+                color: UiPalette.PARCHMENT_CSS,
+                wordWrap: { width: screenWidth - 32, useAdvancedWrap: true },
+                align: "center",
+            },
+        );
+        campaignGuidance.setOrigin(0.5, 0);
         const scrollHint =
             screenWidth < 520
-                ? this.add.text(screenCenterX, headerHeight - 14, "SCROLL · MOUSE WHEEL OR PAGE UP / DOWN", {
+                ? this.add.text(screenCenterX, headerHeight - 14, "Scroll · mouse wheel or Page Up / Down", {
                       fontFamily: FontFamilies.TYPEWRITER_BODY,
                       fontSize: screenWidth < 360 ? "10px" : "11px",
                       color: UiPalette.PARCHMENT_CSS,
@@ -70,7 +87,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
                 : this.add.text(
                       screenWidth - 16,
                       isCompactHeader ? 58 : 32,
-                      "SCROLL TO EXPLORE · MOUSE WHEEL OR PAGE UP / DOWN",
+                      "Scroll to explore · mouse wheel or Page Up / Down",
                       {
                           fontFamily: FontFamilies.TYPEWRITER_BODY,
                           fontSize: isCompactHeader ? "11px" : "13px",
@@ -81,6 +98,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
         background.setDepth(-100);
         headerBackground.setDepth(1001);
         headerText.setDepth(1002);
+        campaignGuidance.setDepth(1002);
         backButton.setDepth(1002);
         scrollHint.setDepth(1002);
         GameSession.getInstance().getAudioManager().playMusicTrack("menu_campaign");
@@ -216,7 +234,7 @@ export class CampaignSelectorScene extends Phaser.Scene {
         const focusLabel = this.add.text(
             CampaignSelectorScene.CARD_INNER_MARGIN_PX,
             subtitleText.y + subtitleText.displayHeight + 10,
-            `THEMATIC FOCUS  ·  ${scenario.getThematicFocus().getDisplayName()}`,
+            `Thematic focus · ${scenario.getThematicFocus().getDisplayName()}`,
             {
                 fontFamily: FontFamilies.SMALL_CAPS,
                 fontSize: "13px",
@@ -291,7 +309,10 @@ export class CampaignSelectorScene extends Phaser.Scene {
         deltaY: number,
     ): void {
         const pointerPosition = UiScrollInput.getCssPointerPosition(pointer);
-        const headerHeightPx = this.scale.width < 520 ? 104 : CampaignSelectorScene.HEADER_HEIGHT_PX;
+        const headerHeightPx =
+            this.scale.width < 520
+                ? CampaignSelectorScene.COMPACT_HEADER_HEIGHT_PX
+                : CampaignSelectorScene.STANDARD_HEADER_HEIGHT_PX;
         if (pointerPosition.y < headerHeightPx) {
             return;
         }
