@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import type { GameState } from "../core/GameState";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { PrimarySources } from "../data/PrimarySources";
 import type { Scenario } from "../domain/scenarios/Scenario";
 import { FontFamilies } from "../managers/FontManager";
@@ -74,7 +75,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         this.add(blockingZone);
 
         const headerText = UiPanelFactory.createSectionHeader(scene, 16, 12, "CAMPAIGN PROGRESS", 13);
-        headerText.setWordWrapWidth(Math.max(96, width - 176), true);
+        HighDpiConfigurator.getInstance().setCssWordWrapWidth(headerText, Math.max(96, width - 176), true);
         this.add(headerText);
         this.add(UiPanelFactory.createBrassButton(scene, width - 144, 8, 128, 34, "HIDE OBJECTIVES", onHideRequested));
         this.progressLabelText = scene.add.text(width - 16, 60, "", {
