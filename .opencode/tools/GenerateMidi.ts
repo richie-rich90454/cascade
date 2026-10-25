@@ -372,11 +372,17 @@ class StandardMidiFileWriter {
     }
 
     private static appendVariableLengthQuantity(byteAccumulator: number[], unsignedValue: number): void {
+        if (!Number.isInteger(unsignedValue) || unsignedValue < 0 || unsignedValue > 0x0fffffff) {
+            throw new Error("A MIDI variable-length quantity must be an integer from 0 through 268435455.");
+        }
         const variableLengthBytes: number[] = [unsignedValue & 0x7f];
         let remainingValue = unsignedValue >>> 7;
-        while (remainingValue > 0) {
+        for (let byteIndex = 1; remainingValue > 0 && byteIndex < 4; byteIndex += 1) {
             variableLengthBytes.unshift((remainingValue & 0x7f) | 0x80);
             remainingValue >>>= 7;
+        }
+        if (remainingValue > 0) {
+            throw new Error("A MIDI variable-length quantity cannot exceed four bytes.");
         }
         byteAccumulator.push(...variableLengthBytes);
     }
