@@ -12,7 +12,7 @@ import { ResourceType } from "../types/ResourceType";
 import type { CampaignSaveData } from "./CampaignSave";
 import { EventBus, GameEventTypes, ScenarioCompletionPayload } from "./EventBus";
 import { GameState } from "./GameState";
-import { TurnManager } from "./TurnManager";
+import { TurnManager, TurnPhase } from "./TurnManager";
 
 export class GameSession {
     private static readonly SINGLETON_INSTANCE = new GameSession();
@@ -108,7 +108,11 @@ export class GameSession {
         if (
             scenario === null ||
             save.gameState.scenarioIdentifier !== scenario.getSystemName() ||
-            save.gameState.turnNumber !== save.turnManager.turnNumber
+            save.gameState.turnNumber !== save.turnManager.turnNumber ||
+            save.turnManager.turnNumber > scenario.getTurnCount() ||
+            !Number.isInteger(save.playProgress.phaseIndex) ||
+            save.playProgress.phaseIndex < 0 ||
+            save.playProgress.phaseIndex >= TurnPhase.getAllPhases().length
         ) {
             return false;
         }
