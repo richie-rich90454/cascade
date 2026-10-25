@@ -299,21 +299,30 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
         const isCompactLayout = screenWidth < 1100;
-        const contentLeftX = isCompactLayout ? 24 : 140;
-        const contentRightX = screenWidth < 820 ? screenWidth - 24 : screenWidth - (isCompactLayout ? 356 : 344);
+        const isShortViewport = screenHeight < 600;
+        const contentLeftX = isCompactLayout ? 16 : 24;
+        const contentRightInset = this.areInformationPanelsOpen ? (isCompactLayout ? 356 : 344) : 24;
+        const contentRightX = screenWidth - contentRightInset;
         const contentWidth = Math.max(120, Math.min(screenWidth - contentLeftX - 12, contentRightX - contentLeftX));
-        const phaseCardHeight =
-            this.scenarioNumber === 1
+        const phaseCardHeight = isShortViewport
+            ? this.scenarioNumber === 1
                 ? screenWidth < 460
-                    ? 272
-                    : isCompactLayout
-                      ? 232
-                      : this.isPhaseDetailsExpanded
-                        ? 232
-                        : 164
+                    ? 184
+                    : 88
                 : this.isPhaseDetailsExpanded
                   ? 216
-                  : 84;
+                  : 84
+            : this.scenarioNumber === 1
+              ? screenWidth < 460
+                  ? 272
+                  : isCompactLayout
+                    ? 232
+                    : this.isPhaseDetailsExpanded
+                      ? 232
+                      : 164
+              : this.isPhaseDetailsExpanded
+                ? 216
+                : 84;
         const phaseCardTopY = screenHeight - 64 - phaseCardHeight - 4;
         const rightColumnTopY = 96;
         const rightColumnBottomY = screenHeight - 64;
@@ -321,7 +330,12 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const rightPanelWidth = Math.min(324, Math.max(160, screenWidth - 24));
         const rightPanelLeftX = screenWidth - rightPanelWidth - 12;
         return {
-            map: new LayoutRect(contentLeftX, 96, contentWidth, Math.max(80, phaseCardTopY - 96 - 8)),
+            map: new LayoutRect(
+                contentLeftX,
+                96,
+                contentWidth,
+                Math.max(isShortViewport ? 48 : 80, phaseCardTopY - 96 - 8),
+            ),
             questTracker: new LayoutRect(rightPanelLeftX, rightColumnTopY, rightPanelWidth, rightColumnHeight),
             contextPanel: new LayoutRect(rightPanelLeftX, rightColumnTopY, rightPanelWidth, rightColumnHeight),
             phaseCard: new LayoutRect(
@@ -374,7 +388,32 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const mapPixelHeight = mapPixelWidth / 2;
         const mapLeftX = 0;
         const mapTopY = 0;
-        const mapContainer = this.add.container(layoutRects.map.leftX, layoutRects.map.topY);
+        const isPointerInsideMapViewport = (pointer: Phaser.Input.Pointer): boolean => {
+            const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
+            const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
+            return (
+                pointerCssX >= layoutRects.map.leftX &&
+                pointerCssX <= layoutRects.map.leftX + layoutRects.map.width &&
+                pointerCssY >= layoutRects.map.topY &&
+                pointerCssY <= layoutRects.map.topY + layoutRects.map.height
+            );
+        };
+        const mapImageLeftOffsetX = Math.max(0, (layoutRects.map.width - mapPixelWidth) / 2);
+        const mapContainer = this.add.container(layoutRects.map.leftX + mapImageLeftOffsetX, layoutRects.map.topY);
+        const mapViewportMaskGraphics = this.make.graphics({ x: 0, y: 0 }, false);
+        mapViewportMaskGraphics.fillStyle(0xffffff, 1);
+        mapViewportMaskGraphics.fillRect(
+            layoutRects.map.leftX,
+            layoutRects.map.topY,
+            layoutRects.map.width,
+            layoutRects.map.height,
+        );
+        const mapViewportMask = mapViewportMaskGraphics.createGeometryMask();
+        mapContainer.setMask(mapViewportMask);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            mapViewportMask.destroy();
+            mapViewportMaskGraphics.destroy();
+        });
         const historicalMapYear = this.getHistoricalMapYearForCurrentTurn();
         const historicalMapTextureKey = AssetManager.getInstance().getTextureKey(`world_map_${historicalMapYear}`);
         if (this.textures.exists(historicalMapTextureKey)) {
@@ -393,6 +432,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         provinceSelectionZone.on("pointerup", (pointer: Phaser.Input.Pointer) => {
             const pointerDownPosition = this.mapPointerDownPosition;
             this.mapPointerDownPosition = null;
+            if (!isPointerInsideMapViewport(pointer)) {
+                return;
+            }
             const devicePixelRatioValue = HighDpiConfigurator.getInstance().getDevicePixelRatio();
             const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
             const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
@@ -410,13 +452,19 @@ export class ScenarioPlayScene extends Phaser.Scene {
             }
         });
         mapContainer.add(provinceSelectionZone);
+        const isShortLandscapeMapView = this.scale.height < 600 && this.scale.width >= 460;
+        const mapHudWidth = isShortLandscapeMapView ? layoutRects.map.width : mapPixelWidth;
+        const mapHudHeight = isShortLandscapeMapView ? layoutRects.map.height : mapPixelHeight;
         const mapImageTopOffsetY = Math.max(0, (layoutRects.map.height - mapPixelHeight) / 2);
         const mapHudContainer = this.add
-            .container(layoutRects.map.leftX, layoutRects.map.topY + mapImageTopOffsetY)
+            .container(
+                isShortLandscapeMapView ? layoutRects.map.leftX : layoutRects.map.leftX + mapImageLeftOffsetX,
+                isShortLandscapeMapView ? layoutRects.map.topY : layoutRects.map.topY + mapImageTopOffsetY,
+            )
             .setDepth(UiPalette.UI_DEPTH_SIDEBAR);
         this.historicalMapYearLabel = this.add
             .text(
-                mapPixelWidth - 18,
+                mapHudWidth - 18,
                 14,
                 mapPixelWidth < 620 ? `Documented · ${historicalMapYear}` : `Documented borders · ${historicalMapYear}`,
                 {
@@ -454,6 +502,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
+        mapInstructions.setVisible(mapPixelWidth >= 300);
         mapHudContainer.add(mapInstructions);
         this.disputedMapLegendText = this.add.text(
             18,
@@ -472,7 +521,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
-        this.disputedMapLegendText.setVisible(true);
+        this.disputedMapLegendText.setVisible(mapPixelWidth >= 300);
         mapHudContainer.add(this.disputedMapLegendText);
         this.tibetHistoryNoteText = this.add.text(
             18,
@@ -491,7 +540,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
-        this.tibetHistoryNoteText.setVisible(historicalMapYear >= 1960);
+        this.tibetHistoryNoteText.setVisible(historicalMapYear >= 1960 && mapPixelWidth >= 300);
         this.tibetHistoryNoteText.setInteractive({ useHandCursor: true });
         this.tibetHistoryNoteText.on("pointerup", () => {
             this.showToast(
@@ -516,7 +565,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
                 wordWrap: { width: mapHudTextWidth, useAdvancedWrap: true },
             },
         );
-        this.taiwanHistoryNoteText.setVisible(historicalMapYear >= 1945);
+        this.taiwanHistoryNoteText.setVisible(historicalMapYear >= 1945 && mapPixelWidth >= 300);
         this.taiwanHistoryNoteText.setInteractive({ useHandCursor: true });
         this.taiwanHistoryNoteText.on("pointerup", () => {
             this.showToast(
@@ -524,21 +573,51 @@ export class ScenarioPlayScene extends Phaser.Scene {
             );
         });
         mapHudContainer.add(this.taiwanHistoryNoteText);
-        const zoomControlTopY = mapPixelHeight - 51;
+        const isTinyMap = mapPixelWidth < 300 && !isShortLandscapeMapView;
+        const zoomButtonSize = isTinyMap ? 34 : isShortLandscapeMapView ? 46 : 42;
+        const resetButtonWidth = isTinyMap ? 82 : isShortLandscapeMapView ? 90 : 78;
+        const zoomControlGap = isTinyMap ? 4 : 6;
+        const zoomControlWidth = zoomButtonSize * 2 + resetButtonWidth + zoomControlGap * 2;
+        const zoomControlLeftX = mapHudWidth - zoomControlWidth - (isTinyMap ? 6 : 8);
+        const zoomControlTopY = mapHudHeight - (isTinyMap ? 40 : isShortLandscapeMapView ? 54 : 51);
         mapHudContainer.add(
-            UiPanelFactory.createBrassButton(this, mapPixelWidth - 184, zoomControlTopY, 42, 38, "+", () => {
-                this.mapCameraController?.zoomIn();
-            }),
+            UiPanelFactory.createBrassButton(
+                this,
+                zoomControlLeftX,
+                zoomControlTopY,
+                zoomButtonSize,
+                isTinyMap ? 32 : isShortLandscapeMapView ? 42 : 38,
+                "+",
+                () => {
+                    this.mapCameraController?.zoomIn();
+                },
+            ),
         );
         mapHudContainer.add(
-            UiPanelFactory.createBrassButton(this, mapPixelWidth - 136, zoomControlTopY, 42, 38, "−", () => {
-                this.mapCameraController?.zoomOut();
-            }),
+            UiPanelFactory.createBrassButton(
+                this,
+                zoomControlLeftX + zoomButtonSize + zoomControlGap,
+                zoomControlTopY,
+                zoomButtonSize,
+                isTinyMap ? 32 : isShortLandscapeMapView ? 42 : 38,
+                "−",
+                () => {
+                    this.mapCameraController?.zoomOut();
+                },
+            ),
         );
         mapHudContainer.add(
-            UiPanelFactory.createBrassButton(this, mapPixelWidth - 86, zoomControlTopY, 78, 38, "World", () => {
-                this.mapCameraController?.resetToOverview();
-            }),
+            UiPanelFactory.createBrassButton(
+                this,
+                zoomControlLeftX + zoomButtonSize * 2 + zoomControlGap * 2,
+                zoomControlTopY,
+                resetButtonWidth,
+                isTinyMap ? 32 : isShortLandscapeMapView ? 42 : 38,
+                "Overview",
+                () => {
+                    this.mapCameraController?.resetToOverview();
+                },
+            ),
         );
         for (const province of allProvinces) {
             const ownerNation = gameState.getNation(province.getOwnerNationIdentifier());
@@ -562,7 +641,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const disputedAreaMapZone = this.add
             .zone(((94.4 + 180) / 360) * mapPixelWidth, ((90 - 28.2) / 180) * mapPixelHeight, 54, 28)
             .setInteractive({ useHandCursor: true });
-        disputedAreaMapZone.on("pointerup", () => {
+        disputedAreaMapZone.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+            if (!isPointerInsideMapViewport(pointer)) {
+                return;
+            }
             this.showToast(
                 "Modern reference only: Arunachal Pradesh is administered by India and claimed by China. The hatched area is approximate, not a historical border.",
             );
@@ -571,7 +653,10 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const taiwanStatusMapZone = this.add
             .zone(((121 + 180) / 360) * mapPixelWidth, ((90 - 23.7) / 180) * mapPixelHeight, 32, 24)
             .setInteractive({ useHandCursor: true });
-        taiwanStatusMapZone.on("pointerup", () => {
+        taiwanStatusMapZone.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+            if (!isPointerInsideMapViewport(pointer)) {
+                return;
+            }
             const selectedMapYear = this.getHistoricalMapYearForCurrentTurn();
             this.showToast(
                 selectedMapYear >= 1960
@@ -593,6 +678,9 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.mapCameraController.enablePanning();
         this.mapCameraController.enableZoom();
         this.mapCameraController.update();
+        if (isShortLandscapeMapView) {
+            this.mapCameraController.focusOnPoint(mapPixelWidth / 2, mapPixelHeight * 0.29, 2.8);
+        }
         this.applyMapMode(this.activeMapModeCode);
         this.input.keyboard?.on("keydown-LEFT", this.boundMapLeftKeyHandler);
         this.input.keyboard?.on("keydown-RIGHT", this.boundMapRightKeyHandler);
@@ -649,7 +737,13 @@ export class ScenarioPlayScene extends Phaser.Scene {
             gameSession.getGameState(),
             this.scenario?.getScenarioResourceCodes(),
         );
-        const scenarioHeaderComponent = new ScenarioHeaderComponent(this, 8, 52, 560);
+        const isNarrowPhone = screenWidth < 460;
+        const shortLandscapeWithRoom = screenHeight < 600 && !isNarrowPhone;
+        const phoneControlWidth = 92;
+        const phoneControlGap = 8;
+        const phoneControlLeftX = screenWidth - phoneControlWidth * 2 - phoneControlGap;
+        const scenarioHeaderWidth = isNarrowPhone ? Math.max(104, screenWidth - 216) : 560;
+        const scenarioHeaderComponent = new ScenarioHeaderComponent(this, 8, 52, scenarioHeaderWidth);
         if (this.scenario !== null) {
             scenarioHeaderComponent.setScenario(this.scenario);
         }
@@ -697,17 +791,26 @@ export class ScenarioPlayScene extends Phaser.Scene {
         contextPanelBlockingZone.setDepth(UiPalette.UI_DEPTH_SIDEBAR);
         contextPanelBlockingZone.setVisible(false);
         this.contextPanelBlockingZone = contextPanelBlockingZone;
-        this.mapModesToggleButton = UiPanelFactory.createBrassButton(this, 8, 144, 176, 38, "SHOW MAP MODES", () =>
-            this.setMapModesPanelOpen(!this.isMapModesPanelOpen),
+        const mapModesButtonWidth = isNarrowPhone ? phoneControlWidth : 176;
+        const objectivesButtonWidth = isNarrowPhone ? phoneControlWidth : 190;
+        const mobileControlsTopY = 54;
+        this.mapModesToggleButton = UiPanelFactory.createBrassButton(
+            this,
+            isNarrowPhone ? phoneControlLeftX : shortLandscapeWithRoom ? screenWidth - 382 : 8,
+            isNarrowPhone || shortLandscapeWithRoom ? mobileControlsTopY : 144,
+            mapModesButtonWidth,
+            38,
+            "Show map modes",
+            () => this.setMapModesPanelOpen(!this.isMapModesPanelOpen),
         );
         this.mapModesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
         this.objectivesToggleButton = UiPanelFactory.createBrassButton(
             this,
-            screenWidth - 198,
-            54,
-            190,
+            isNarrowPhone ? phoneControlLeftX + phoneControlWidth + phoneControlGap : screenWidth - 198,
+            mobileControlsTopY,
+            objectivesButtonWidth,
             38,
-            "SHOW OBJECTIVES",
+            "Show objectives",
             () => this.setInformationPanelsOpen(!this.areInformationPanelsOpen),
         );
         this.objectivesToggleButton.setDepth(UiPalette.UI_DEPTH_POPUP);
@@ -940,11 +1043,49 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const chapterTitle = this.getPowderKegChapterTitle(turnNumber);
         const action = this.getPowderKegNextAction(turnNumber);
         const chapterCardWidth = layoutRects.phaseCard.width;
+        const isShortViewport = this.scale.height < 600;
+        const isNarrowPhone = this.scale.width < 460;
+        const isShortLandscape = isShortViewport && !isNarrowPhone;
         const isCompact = chapterCardWidth < 560;
-        const actionButtonWidth = isCompact ? Math.min(224, chapterCardWidth - 40) : 224;
-        const actionButtonX = isCompact ? (chapterCardWidth - actionButtonWidth) / 2 : chapterCardWidth - 244;
-        const actionButtonY = isCompact ? 148 : 22;
-        const guideControlsY = isCompact ? (this.scale.width < 460 ? 198 : 196) : 112;
+        const actionButtonWidth = isShortViewport
+            ? isShortLandscape
+                ? 176
+                : isNarrowPhone
+                  ? chapterCardWidth - 40
+                  : 224
+            : isCompact
+              ? Math.min(224, chapterCardWidth - 40)
+              : 224;
+        const actionButtonHeight = isShortLandscape ? 36 : isShortViewport ? 32 : 44;
+        const actionButtonX = isShortViewport
+            ? isShortLandscape
+                ? chapterCardWidth - actionButtonWidth - 20
+                : isNarrowPhone
+                  ? 20
+                  : chapterCardWidth - 244
+            : isCompact
+              ? (chapterCardWidth - actionButtonWidth) / 2
+              : chapterCardWidth - 244;
+        const actionButtonY = isShortLandscape
+            ? 22
+            : isShortViewport
+              ? isNarrowPhone
+                  ? 104
+                  : 22
+              : isCompact
+                ? 148
+                : 22;
+        const guideControlsY = isShortViewport
+            ? isShortLandscape
+                ? 62
+                : isNarrowPhone
+                  ? 146
+                  : 106
+            : isCompact
+              ? isNarrowPhone
+                  ? 198
+                  : 196
+              : 112;
         const guideTextWidth = isCompact ? chapterCardWidth - 40 : chapterCardWidth - 276;
         const guideStepNumber = this.getPowderKegGuideStep();
         const progress = session.getPlayProgress();
@@ -969,20 +1110,32 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const chapterHeader = UiPanelFactory.createSectionHeader(
             this,
             18,
-            10,
-            `CHAPTER ${turnNumber} OF ${session.getTotalTurnCount()} · ${chapterTitle.toUpperCase()}${isCompact ? ` · ${guideStateLabel}` : ""}`,
-            isCompact ? 14 : 17,
+            isShortViewport ? (isShortLandscape ? 6 : 8) : 10,
+            `${isShortViewport && isNarrowPhone ? `CHAPTER ${turnNumber} OF ${session.getTotalTurnCount()}` : `CHAPTER ${turnNumber} OF ${session.getTotalTurnCount()} · ${chapterTitle}`}${isCompact && !isShortViewport ? ` · ${guideStateLabel}` : ""}`,
+            isShortViewport ? 13 : isCompact ? 14 : 17,
         );
-        chapterHeader.setWordWrapWidth(chapterCardWidth - 36, true);
+        HighDpiConfigurator.getInstance().setCssWordWrapWidth(
+            chapterHeader,
+            isShortViewport && !isNarrowPhone && !isShortLandscape ? chapterCardWidth - 276 : chapterCardWidth - 36,
+            true,
+        );
         phasePanel.add(chapterHeader);
-        const isNarrowPhone = this.scale.width < 460;
-        const summaryText =
-            isNarrowPhone && turnNumber === 1
-                ? "Map markers inspect historical locations. Select the highlighted chapter button to begin."
-                : (action?.instruction ??
-                  (turnNumber >= session.getTotalTurnCount()
-                      ? "The chapter activities are complete. Open the final debrief to review your evidence and finish the scenario."
-                      : `All required activities for ${chapterTitle} are complete. Advance to the next dated chapter when you are ready.`));
+        const summaryText = isShortLandscape
+            ? turnNumber === 1
+                ? "Inspect the map, then begin this chapter."
+                : "Read the activity prompt, then return for your next step."
+            : isShortViewport && !isNarrowPhone && turnNumber === 1
+              ? "The map is for inspection. Start the highlighted chapter to begin."
+              : isShortViewport && !isNarrowPhone
+                ? "Read the prompt, complete the activity, and return here for the next step."
+                : isShortViewport && isNarrowPhone && turnNumber === 1
+                  ? "Map markers inspect places. Use the highlighted button to begin."
+                  : isNarrowPhone && turnNumber === 1
+                    ? "Map markers inspect historical locations. Select the highlighted chapter button to begin."
+                    : (action?.instruction ??
+                      (turnNumber >= session.getTotalTurnCount()
+                          ? "The chapter activities are complete. Open the final debrief to review your evidence and finish the scenario."
+                          : `All required activities for ${chapterTitle} are complete. Advance to the next dated chapter when you are ready.`));
         const actionTitle =
             action?.title ??
             (turnNumber >= session.getTotalTurnCount() ? "Review your evidence" : "Chapter activities complete");
@@ -990,10 +1143,16 @@ export class ScenarioPlayScene extends Phaser.Scene {
             UiPanelFactory.createBodyText(
                 this,
                 20,
-                isNarrowPhone ? 54 : 42,
-                isCompact ? chapterCardWidth - 40 : chapterCardWidth - 276,
+                isShortLandscape ? 28 : isShortViewport ? (isNarrowPhone ? 44 : 48) : isNarrowPhone ? 54 : 42,
+                isShortLandscape
+                    ? actionButtonX - 36
+                    : isShortViewport && !isNarrowPhone
+                      ? chapterCardWidth - 276
+                      : isCompact
+                        ? chapterCardWidth - 40
+                        : chapterCardWidth - 276,
                 actionTitle,
-                isNarrowPhone ? 13 : isCompact ? 16 : 18,
+                isShortViewport ? 13 : isNarrowPhone ? 13 : isCompact ? 16 : 18,
                 UiPalette.HIGHLIGHT_BRASS_CSS,
             ),
         );
@@ -1001,10 +1160,16 @@ export class ScenarioPlayScene extends Phaser.Scene {
             UiPanelFactory.createBodyText(
                 this,
                 20,
-                isNarrowPhone ? 86 : 68,
-                isCompact ? chapterCardWidth - 40 : chapterCardWidth - 276,
+                isShortLandscape ? 48 : isShortViewport ? (isNarrowPhone ? 66 : 70) : isNarrowPhone ? 86 : 68,
+                isShortLandscape
+                    ? actionButtonX - 36
+                    : isShortViewport && !isNarrowPhone
+                      ? chapterCardWidth - 276
+                      : isCompact
+                        ? chapterCardWidth - 40
+                        : chapterCardWidth - 276,
                 summaryText,
-                isNarrowPhone ? 11 : isCompact ? 13 : 15,
+                isShortViewport ? 11 : isNarrowPhone ? 12 : isCompact ? 13 : 15,
                 UiPalette.PARCHMENT_CSS,
             ),
         );
@@ -1014,7 +1179,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             : progress.walkthroughPaused
               ? `WALKTHROUGH PAUSED · STEP ${guideStepNumber} OF 15`
               : `GUIDED STEP ${guideStepNumber} OF 15`;
-        if (!isCompact) {
+        if (!isCompact && !isShortViewport) {
             phasePanel.add(
                 UiPanelFactory.createBodyText(
                     this,
@@ -1038,7 +1203,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             actionButtonX,
             actionButtonY,
             actionButtonWidth,
-            44,
+            actionButtonHeight,
             actionLabel,
             () => {
                 if (action !== null) {
@@ -1055,7 +1220,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
         if (progress.walkthroughEnabled && !progress.walkthroughPaused && action !== null) {
             const spotlight = this.add.graphics();
             spotlight.lineStyle(3, UiPalette.HIGHLIGHT_BRASS, 1);
-            spotlight.strokeRect(actionButtonX - 4, actionButtonY - 4, actionButtonWidth + 8, 52);
+            spotlight.strokeRect(actionButtonX - 4, actionButtonY - 4, actionButtonWidth + 8, actionButtonHeight + 8);
             this.phaseCardContainer?.add(spotlight);
         }
 
@@ -1092,25 +1257,35 @@ export class ScenarioPlayScene extends Phaser.Scene {
             },
         ];
         controls.forEach((control, index) => {
-            const isNarrowCard = isCompact && this.scale.width < 460;
-            const controlWidth = isNarrowCard
-                ? chapterCardWidth - 40
-                : isCompact
-                  ? Math.min(142, (chapterCardWidth - 48) / 3)
-                  : 108;
+            const isNarrowCard = isCompact && isNarrowPhone && !isShortViewport;
+            const isShortPhone = isShortViewport && isNarrowPhone;
+            const isShortLandscape = isShortViewport && !isNarrowPhone;
+            const controlWidth = isShortLandscape
+                ? 108
+                : isShortPhone
+                  ? (chapterCardWidth - 48) / 2
+                  : isNarrowCard
+                    ? chapterCardWidth - 40
+                    : isCompact
+                      ? Math.min(142, (chapterCardWidth - 48) / 3)
+                      : 108;
             const controlGap = 8;
-            const controlX = isCompact
-                ? isNarrowCard
-                    ? 20
-                    : 20 + index * (controlWidth + controlGap)
-                : chapterCardWidth - 244 + index * 116;
+            const controlX = isShortLandscape
+                ? 20 + index * 116
+                : isShortPhone
+                  ? 20 + index * (controlWidth + controlGap)
+                  : isCompact
+                    ? isNarrowCard
+                        ? 20
+                        : 20 + index * (controlWidth + controlGap)
+                    : chapterCardWidth - 244 + index * 116;
             const controlY = guideControlsY + (isNarrowCard ? index * 32 : 0);
             const button = UiPanelFactory.createBrassButton(
                 this,
                 controlX,
                 controlY,
                 controlWidth,
-                isNarrowCard ? 28 : 30,
+                isShortPhone || isShortLandscape ? 24 : isNarrowCard ? 28 : 30,
                 control.label,
                 control.callback,
             );
