@@ -73,7 +73,7 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
             args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--window-size=1440,900"],
             defaultViewport: { width: 1440, height: 900, deviceScaleFactor: 2 },
         });
-        const browserPage = await browserInstance.newPage();
+        let browserPage = await browserInstance.newPage();
         browserPage.on("console", (consoleMessage) => {
             if (consoleMessage.type() === "error") {
                 consoleErrors.push(consoleMessage.text());
@@ -119,10 +119,13 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                 const scene = gameInstance?.scene.getScene(targetSceneKey);
                 if (scene === undefined) return null;
                 const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
                 const foundText: string[] = [];
                 while (pendingObjects.length > 0) {
                     const object = pendingObjects.pop();
-                    if (!object || object.visible === false || object.active === false) continue;
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (object.visible === false || object.active === false) continue;
                     if (typeof object.text === "string") {
                         const text = object.text.trim();
                         if (/[A-Z]/.test(text) && text === text.toLocaleUpperCase("en")) {
@@ -165,6 +168,136 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                 sceneKey,
                 data,
             );
+        };
+        const waitForActiveScene = async (sceneKey: string): Promise<void> => {
+            await browserPage.waitForFunction(
+                (targetSceneKey: string) => {
+                    const gameInstance = (
+                        window as unknown as {
+                            cascadeGame?: {
+                                scene: { getScenes: (active: boolean) => Array<{ scene: { key: string } }> };
+                            };
+                        }
+                    ).cascadeGame;
+                    return (
+                        gameInstance?.scene
+                            .getScenes(true)
+                            .some((activeScene) => activeScene.scene.key === targetSceneKey) ?? false
+                    );
+                },
+                { timeout: 15000 },
+                sceneKey,
+            );
+            await new Promise((resolveDelay) => setTimeout(resolveDelay, 400));
+        };
+        const assertSceneButtonsFit = async (sceneKey: string): Promise<void> => {
+            const layout = await browserPage.evaluate((targetSceneKey: string) => {
+                const gameInstance = (
+                    window as unknown as {
+                        cascadeGame?: {
+                            scale: { width: number; height: number; displayScale: { x: number; y: number } };
+                            scene: { getScene: (key: string) => { children: { list: unknown[] } } };
+                        };
+                    }
+                ).cascadeGame;
+                const scene = gameInstance?.scene.getScene(targetSceneKey);
+                if (gameInstance === undefined || scene === undefined) return null;
+                const pendingObjects = [...scene.children.list] as any[];
+                const visitedObjects = new Set<any>();
+                const buttonsOutsideViewport: Array<{ label: string; bounds: string }> = [];
+                while (pendingObjects.length > 0) {
+                    const object = pendingObjects.pop();
+                    if (!object || visitedObjects.has(object)) continue;
+                    visitedObjects.add(object);
+                    if (object.visible === false || object.active === false) continue;
+                    if (object.name === "cascade-ui-button" && Array.isArray(object.list)) {
+                        let currentParent = object.parentContainer;
+                        let isClippedByScrollMask = false;
+                        const visitedParents = new Set<any>();
+                        while (currentParent !== null && currentParent !== undefined) {
+                            if (visitedParents.has(currentParent)) {
+                                isClippedByScrollMask = true;
+                                break;
+                            }
+                            visitedParents.add(currentParent);
+                            if (currentParent.mask !== null && currentParent.mask !== undefined) {
+                                isClippedByScrollMask = true;
+                                break;
+                            }
+                            currentParent = currentParent.parentContainer;
+                        }
+                        const buttonBounds = object.getBounds();
+                        const right = buttonBounds.x + buttonBounds.width;
+                        const bottom = buttonBounds.y + buttonBounds.height;
+                        if (
+                            !isClippedByScrollMask &&
+                            (buttonBounds.x < -1 ||
+                                buttonBounds.y < -1 ||
+                                right > gameInstance.scale.width * gameInstance.scale.displayScale.x + 1 ||
+                                bottom > gameInstance.scale.height * gameInstance.scale.displayScale.y + 1)
+                        ) {
+                            const label = object.list.find((child: any) => typeof child?.text === "string");
+                            buttonsOutsideViewport.push({
+                                label: label?.text ?? "unlabeled button",
+                                bounds: `${buttonBounds.x},${buttonBounds.y},${buttonBounds.width},${buttonBounds.height}`,
+                            });
+                        }
+                    }
+                    if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                }
+                return {
+                    buttonsOutsideViewport,
+                    width: gameInstance.scale.width * gameInstance.scale.displayScale.x,
+                    height: gameInstance.scale.height * gameInstance.scale.displayScale.y,
+                };
+            }, sceneKey);
+            if (layout === null) {
+                throw new Error(`The browser regression loop could not inspect the ${sceneKey} layout.`);
+            }
+            if (layout.buttonsOutsideViewport.length > 0) {
+                throw new Error(
+                    `${sceneKey} has buttons outside the ${layout.width} × ${layout.height} viewport: ${JSON.stringify(layout.buttonsOutsideViewport)}`,
+                );
+            }
+        };
+        const activateUiButton = async (sceneKey: string, labelPart: string): Promise<void> => {
+            const activated = await browserPage.evaluate(
+                (target: { sceneKey: string; labelPart: string }) => {
+                    const gameInstance = (
+                        window as unknown as {
+                            cascadeGame?: { scene: { getScene: (key: string) => { children: { list: unknown[] } } } };
+                        }
+                    ).cascadeGame;
+                    const scene = gameInstance?.scene.getScene(target.sceneKey);
+                    if (scene === undefined) return false;
+                    const pendingObjects = [...scene.children.list] as any[];
+                    const visitedObjects = new Set<any>();
+                    while (pendingObjects.length > 0) {
+                        const object = pendingObjects.pop();
+                        if (!object || visitedObjects.has(object)) continue;
+                        visitedObjects.add(object);
+                        if (object.visible === false || object.active === false) continue;
+                        if (object.name === "cascade-ui-button" && Array.isArray(object.list)) {
+                            const label = object.list.find((child: any) => typeof child?.text === "string");
+                            const zone = object.list.find((child: any) => child?.input?.hitArea !== undefined);
+                            if (
+                                typeof label?.text === "string" &&
+                                label.text.toLocaleLowerCase("en").includes(target.labelPart.toLocaleLowerCase("en")) &&
+                                zone !== undefined
+                            ) {
+                                zone.emit("pointerup");
+                                return true;
+                            }
+                        }
+                        if (Array.isArray(object.list)) pendingObjects.push(...object.list);
+                    }
+                    return false;
+                },
+                { sceneKey, labelPart },
+            );
+            if (!activated) {
+                throw new Error(`Could not activate the ${labelPart} control in ${sceneKey}.`);
+            }
         };
 
         await captureScreenshot("01-main-menu.png");
@@ -241,9 +374,12 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
             const pendingObjects = [
                 ...(gameInstance?.scene.getScene("campaign_selector").children.list ?? []),
             ] as any[];
+            const visitedObjects = new Set<any>();
             while (pendingObjects.length > 0) {
                 const object = pendingObjects.pop();
-                if (!object || object.visible === false || object.active === false) continue;
+                if (!object || visitedObjects.has(object)) continue;
+                visitedObjects.add(object);
+                if (object.visible === false || object.active === false) continue;
                 if (Array.isArray(object.list)) {
                     let label: any = null;
                     let zone: any = null;
@@ -368,9 +504,12 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                 availableHeight: number;
             }> = [];
             const pendingObjects = [...(gameInstance?.scene.getScene("scenario_play").children.list ?? [])] as any[];
+            const visitedObjects = new Set<any>();
             while (pendingObjects.length > 0) {
                 const object = pendingObjects.pop();
-                if (!object || object.visible === false || object.active === false) continue;
+                if (!object || visitedObjects.has(object)) continue;
+                visitedObjects.add(object);
+                if (object.visible === false || object.active === false) continue;
                 if (object.name === "cascade-ui-button" && Array.isArray(object.list)) {
                     let label: any = null;
                     for (const child of object.list) {
@@ -410,6 +549,133 @@ async function runVisualChecks(): Promise<VisualCheckResult> {
                 `Scenario play button label is too small or clipped: ${JSON.stringify(clippedScenarioButton)}`,
             );
         }
+        await assertSceneButtonsFit("scenario_play");
+
+        browserPage = await browserInstance.newPage();
+        await browserPage.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+        browserPage.on("console", (consoleMessage) => {
+            if (consoleMessage.type() === "error") consoleErrors.push(consoleMessage.text());
+        });
+        browserPage.on("pageerror", (pageError) => consoleErrors.push(String(pageError)));
+        await browserPage.evaluateOnNewDocument(() => {
+            window.localStorage.setItem("cascade.tutorial.seen", "true");
+            window.localStorage.setItem("cascade.onboarding.seen", "true");
+        });
+        await browserPage.goto(`http://localhost:${DEVELOPMENT_SERVER_PORT}/`, { waitUntil: "load", timeout: 60000 });
+        await waitForActiveScene("main_menu");
+        await captureScreenshot("06-mobile-main-menu.png");
+        await assertSceneButtonsFit("main_menu");
+        await activateUiButton("main_menu", "Start a Campaign");
+        await waitForActiveScene("campaign_selector");
+        await captureScreenshot("07-mobile-campaign-selector.png");
+        await assertNoAllCapsUiText("campaign_selector");
+        await assertSceneButtonsFit("campaign_selector");
+        await switchToSingleScene("scenario_briefing", { scenarioNumber: 1 });
+        await waitForActiveScene("scenario_briefing");
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 5600));
+        await captureScreenshot("08-mobile-scenario-briefing.png");
+        await assertSceneButtonsFit("scenario_briefing");
+        await activateUiButton("scenario_briefing", "Begin Scenario");
+        await waitForActiveScene("scenario_play");
+        await captureScreenshot("09-mobile-scenario-play.png");
+        await assertNoAllCapsUiText("scenario_play");
+        await assertSceneButtonsFit("scenario_play");
+
+        browserPage = await browserInstance.newPage();
+        await browserPage.setViewport({ width: 844, height: 390, deviceScaleFactor: 2 });
+        browserPage.on("console", (consoleMessage) => {
+            if (consoleMessage.type() === "error") consoleErrors.push(consoleMessage.text());
+        });
+        browserPage.on("pageerror", (pageError) => consoleErrors.push(String(pageError)));
+        await browserPage.evaluateOnNewDocument(() => {
+            window.localStorage.setItem("cascade.tutorial.seen", "true");
+            window.localStorage.setItem("cascade.onboarding.seen", "true");
+        });
+        await browserPage.goto(`http://localhost:${DEVELOPMENT_SERVER_PORT}/`, { waitUntil: "load", timeout: 60000 });
+        await waitForActiveScene("main_menu");
+        await activateUiButton("main_menu", "Resume Campaign");
+        await waitForActiveScene("scenario_play");
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 700));
+        const shortViewportLayout = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scale: { height: number };
+                        scene: { getScene: (key: string) => { getLayoutRects: () => any } };
+                    };
+                }
+            ).cascadeGame;
+            if (gameInstance === undefined) return null;
+            const layout = gameInstance.scene.getScene("scenario_play").getLayoutRects();
+            return {
+                mapBottom: layout.map.topY + layout.map.height,
+                phaseTop: layout.phaseCard.topY,
+                phaseBottom: layout.phaseCard.topY + layout.phaseCard.height,
+                viewportBottom: gameInstance.scale.height,
+            };
+        });
+        if (
+            shortViewportLayout === null ||
+            shortViewportLayout.mapBottom > shortViewportLayout.phaseTop ||
+            shortViewportLayout.phaseBottom > shortViewportLayout.viewportBottom - 56
+        ) {
+            throw new Error(
+                `Short landscape scenario layout overlaps or exceeds its viewport: ${JSON.stringify(shortViewportLayout)}`,
+            );
+        }
+        await captureScreenshot("10-short-landscape-scenario-play.png");
+        await assertNoAllCapsUiText("scenario_play");
+        await assertSceneButtonsFit("scenario_play");
+        await activateUiButton("scenario_play", "+");
+        const zoomedMapScale = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: {
+                            getScene: (key: string) => { mapCameraController?: { getCurrentScale: () => number } };
+                        };
+                    };
+                }
+            ).cascadeGame;
+            return gameInstance?.scene.getScene("scenario_play").mapCameraController?.getCurrentScale() ?? 0;
+        });
+        if (zoomedMapScale <= 2.8) {
+            throw new Error(`The short landscape zoom control did not zoom in: scale ${zoomedMapScale}.`);
+        }
+        await activateUiButton("scenario_play", "Overview");
+        const overviewMapScale = await browserPage.evaluate(() => {
+            const gameInstance = (
+                window as unknown as {
+                    cascadeGame?: {
+                        scene: {
+                            getScene: (key: string) => { mapCameraController?: { getCurrentScale: () => number } };
+                        };
+                    };
+                }
+            ).cascadeGame;
+            return gameInstance?.scene.getScene("scenario_play").mapCameraController?.getCurrentScale() ?? 0;
+        });
+        if (overviewMapScale !== 1) {
+            throw new Error(`The landscape overview control did not restore the full map: scale ${overviewMapScale}.`);
+        }
+
+        browserPage = await browserInstance.newPage();
+        await browserPage.setViewport({ width: 320, height: 568, deviceScaleFactor: 2 });
+        browserPage.on("console", (consoleMessage) => {
+            if (consoleMessage.type() === "error") consoleErrors.push(consoleMessage.text());
+        });
+        browserPage.on("pageerror", (pageError) => consoleErrors.push(String(pageError)));
+        await browserPage.evaluateOnNewDocument(() => {
+            window.localStorage.setItem("cascade.tutorial.seen", "true");
+            window.localStorage.setItem("cascade.onboarding.seen", "true");
+        });
+        await browserPage.goto(`http://localhost:${DEVELOPMENT_SERVER_PORT}/`, { waitUntil: "load", timeout: 60000 });
+        await waitForActiveScene("main_menu");
+        await activateUiButton("main_menu", "Resume Campaign");
+        await waitForActiveScene("scenario_play");
+        await captureScreenshot("11-small-phone-scenario-play.png");
+        await assertNoAllCapsUiText("scenario_play");
+        await assertSceneButtonsFit("scenario_play");
 
         const dpiState = await browserPage.evaluate(() => {
             const gameCanvasElement = document.querySelector("canvas");
