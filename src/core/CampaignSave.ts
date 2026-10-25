@@ -19,4 +19,3 @@ export interface CampaignSaveData {
     hasVictoryResultBeenRecorded: boolean;
     savedAtIsoTimestamp: string;
 }
-
