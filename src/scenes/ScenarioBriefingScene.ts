@@ -103,7 +103,8 @@ export class ScenarioBriefingScene extends Phaser.Scene {
         const panelTopY = 96;
         const panelWidth = Math.max(180, screenWidth - panelLeftX * 2);
         const panelHeight = Math.max(140, screenHeight - 200);
-        this.briefingViewportHeightPx = Math.max(80, panelHeight - 72);
+        // Leave enough space for the last visible line to clear the mask edge.
+        this.briefingViewportHeightPx = Math.max(80, panelHeight - 180);
         UiPanelFactory.createPanelContainer(this, panelLeftX, panelTopY, panelWidth, panelHeight, PanelVariant.LEATHER);
 
         const contentContainer = this.add.container(panelLeftX, panelTopY);
@@ -363,8 +364,8 @@ export class ScenarioBriefingScene extends Phaser.Scene {
 
         const scrollHint = this.add.text(
             panelLeftX + panelWidth - 28,
-            panelTopY + panelHeight - 14,
-            "SCROLL TO READ · MOUSE WHEEL OR PAGE UP AND PAGE DOWN",
+            panelTopY + 8 + this.briefingViewportHeightPx + 32,
+            "Scroll to read · mouse wheel or Page Up and Page Down",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: "13px",
