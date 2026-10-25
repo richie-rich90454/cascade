@@ -133,7 +133,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
             this,
             titleCenterX,
             isVeryNarrow ? 10 : 18,
-            "SOURCE ANALYSIS",
+            "Source analysis",
             screenWidth < 520 ? 20 : 26,
         );
         sourceHeaderTitle.setOrigin(0.5, 0);
@@ -149,7 +149,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
             isVeryNarrow ? 58 : 12,
             backButtonWidth,
             44,
-            "BACK TO MAP",
+            "Back to map",
             () => {
                 this.scene.start(SceneKeys.SCENARIO_PLAY, new ScenarioSelectionPayload(this.scenarioNumber));
             },
@@ -196,7 +196,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
         this.analysisScrollHint = this.add.text(
             screenWidth - 24,
             screenHeight - 18,
-            "SCROLL TO READ · PAGE UP / DOWN",
+            "Scroll to read · Page Up / Down",
             {
                 fontFamily: FontFamilies.TYPEWRITER_BODY,
                 fontSize: "12px",
@@ -212,7 +212,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
                 ? this.add.text(
                       this.sourcePanelLeftX + this.sourcePanelWidthPx - 14,
                       this.sourcePanelTopY + sourcePanelHeight - 12,
-                      "SCROLL SOURCES · WHEEL OR PAGE UP / DOWN",
+                      "Scroll sources · wheel or Page Up / Down",
                       {
                           fontFamily: FontFamilies.TYPEWRITER_BODY,
                           fontSize: "11px",
@@ -286,7 +286,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
         const scenarioSources = this.getScenarioSources();
         const intelligenceManager = GameSession.getInstance().getIntelligenceManager();
         this.sourceListContainer.add(
-            UiPanelFactory.createSectionHeader(this, 8, 0, "PRIMARY SOURCES", this.isCompactLayout ? 16 : 18),
+            UiPanelFactory.createSectionHeader(this, 8, 0, "Primary sources", this.isCompactLayout ? 16 : 18),
         );
         if (this.isCompactLayout) {
             this.sourceListContainer.add(
@@ -295,14 +295,14 @@ export class SourceAnalysisScene extends Phaser.Scene {
                     8,
                     24,
                     this.sourcePanelWidthPx - 36,
-                    `DOCUMENT ${this.selectedSourceIndex + 1} OF ${Math.max(1, scenarioSources.length)}`,
+                    `Document ${this.selectedSourceIndex + 1} of ${Math.max(1, scenarioSources.length)}`,
                     12,
                     UiPalette.PARCHMENT_CSS,
                 ).setAlign("center"),
             );
             const buttonWidth = Math.max(64, Math.floor((this.sourcePanelWidthPx - 36) / 2));
             this.sourceListContainer.add(
-                UiPanelFactory.createBrassButton(this, 8, 52, buttonWidth, 40, "PREVIOUS SOURCE", () => {
+                UiPanelFactory.createBrassButton(this, 8, 52, buttonWidth, 40, "Previous source", () => {
                     this.selectSource(this.selectedSourceIndex - 1);
                 }),
             );
@@ -313,7 +313,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
                     52,
                     buttonWidth,
                     40,
-                    "NEXT SOURCE",
+                    "Next source",
                     () => this.selectSource(this.selectedSourceIndex + 1),
                 ),
             );
@@ -350,14 +350,16 @@ export class SourceAnalysisScene extends Phaser.Scene {
                     this.selectSource(sourceIndex);
                 },
             );
+            if (sourceIndex === this.selectedSourceIndex) {
+                const selectedOutline = this.add.graphics();
+                selectedOutline.lineStyle(3, UiPalette.HIGHLIGHT_BRASS, 1);
+                selectedOutline.strokeRect(2, 2, this.sourcePanelWidthPx - 28, 50);
+                listEntryContainer.add(selectedOutline);
+            }
             this.sourceRowsContainer?.add(listEntryContainer);
             const analysisResult = intelligenceManager.getSourceAnalysisResult(scenarioSource.sourceIdentifier);
             const statusText =
-                analysisResult === null
-                    ? "Not yet analyzed"
-                    : analysisResult
-                      ? "Analyzed - intelligence reliable"
-                      : "Analyzed - reading corrected";
+                analysisResult === null ? "Not yet read" : analysisResult ? "Reading confirmed" : "Try another reading";
             const statusColorCss =
                 analysisResult === null
                     ? UiPalette.AGED_PARCHMENT_CSS
