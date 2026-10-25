@@ -81,6 +81,10 @@ The [Unit 7 coverage guide](docs/unit-7-coverage.md) describes the learning-obje
 
 AP® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, this project.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, project conventions, and the checks to run before opening a pull request. GitHub issue forms are available for bug reports and feature ideas.
+
 ## License
 
 Cascade's application code is currently marked `UNLICENSED` in `package.json`; this repository does not yet grant a general license to reuse that code. Third-party materials retain their own license terms, listed in the credits and alongside the relevant assets.
