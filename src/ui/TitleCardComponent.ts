@@ -75,9 +75,10 @@ export class TitleCardComponent extends Phaser.GameObjects.Container {
         this.titleTextObject.setText(titleText);
         this.subtitleTextObject.setText(subtitleText);
         const safeTextWidth = Math.max(160, this.scene.scale.width - 64);
-        this.chapterTextObject.setWordWrapWidth(safeTextWidth, true);
-        this.titleTextObject.setWordWrapWidth(safeTextWidth, true);
-        this.subtitleTextObject.setWordWrapWidth(safeTextWidth, true);
+        const dpiConfigurator = HighDpiConfigurator.getInstance();
+        dpiConfigurator.setCssWordWrapWidth(this.chapterTextObject, safeTextWidth, true);
+        dpiConfigurator.setCssWordWrapWidth(this.titleTextObject, safeTextWidth, true);
+        dpiConfigurator.setCssWordWrapWidth(this.subtitleTextObject, safeTextWidth, true);
         this.fitTextToBounds(this.chapterTextObject, safeTextWidth, 54, 14);
         this.fitTextToBounds(this.titleTextObject, safeTextWidth, 106, 22);
         this.fitTextToBounds(this.subtitleTextObject, safeTextWidth, 48, 14);
