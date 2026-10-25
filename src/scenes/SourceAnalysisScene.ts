@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import { EventBus, GameEventTypes, SourceAnalysisPayload } from "../core/EventBus";
 import { GameSession } from "../core/GameSession";
+import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { SceneKeys } from "../core/SceneKeys";
 import { PrimarySource } from "../data/PrimarySource";
 import { PrimarySources } from "../data/PrimarySources";
@@ -136,7 +137,7 @@ export class SourceAnalysisScene extends Phaser.Scene {
             screenWidth < 520 ? 20 : 26,
         );
         sourceHeaderTitle.setOrigin(0.5, 0);
-        sourceHeaderTitle.setWordWrapWidth(titleWidth, true);
+        HighDpiConfigurator.getInstance().setCssWordWrapWidth(sourceHeaderTitle, titleWidth, true);
         sourceHeaderTitle.setAlign("center");
         sourceHeaderTitle.setDepth(UiPalette.UI_DEPTH_TOOLTIP + 102);
         const backButtonWidth = isVeryNarrow
