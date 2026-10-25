@@ -1,5 +1,5 @@
-import type { Scenario, ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
+import type { Scenario, ScenarioEvaluationResult } from "../domain/scenarios/Scenario";
 import { AssessmentManager } from "../managers/AssessmentManager";
 import { AudioManager } from "../managers/AudioManager";
 import { DiplomacyManager } from "../managers/DiplomacyManager";
@@ -9,10 +9,10 @@ import { IntelligenceManager } from "../managers/IntelligenceManager";
 import { LocalProfileManager } from "../managers/LocalProfileManager";
 import { MilitaryManager } from "../managers/MilitaryManager";
 import { ResourceType } from "../types/ResourceType";
+import type { CampaignSaveData } from "./CampaignSave";
 import { EventBus, GameEventTypes, ScenarioCompletionPayload } from "./EventBus";
 import { GameState } from "./GameState";
 import { TurnManager } from "./TurnManager";
-import type { CampaignSaveData } from "./CampaignSave";
 
 export class GameSession {
     private static readonly SINGLETON_INSTANCE = new GameSession();
@@ -129,11 +129,13 @@ export class GameSession {
             this.domesticManager = new DomesticManager();
             this.intelligenceManager = new IntelligenceManager(this.gameState);
             this.intelligenceManager.restoreSnapshot(save.intelligenceResults);
-            if (!TurnManager.getInstance().restoreState(
-                save.turnManager.turnNumber,
-                save.turnManager.phaseCode,
-                save.turnManager.isActive,
-            )) {
+            if (
+                !TurnManager.getInstance().restoreState(
+                    save.turnManager.turnNumber,
+                    save.turnManager.phaseCode,
+                    save.turnManager.isActive,
+                )
+            ) {
                 this.clearActiveSession();
                 return false;
             }
