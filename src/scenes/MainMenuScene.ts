@@ -57,7 +57,7 @@ export class MainMenuScene extends Phaser.Scene {
         this.fitTextToWidth(globalConflictTitle, this.scale.width - 40, 24);
         this.menuContentRoot.add(globalConflictTitle);
         const menuSubtitle = this.add
-            .text(screenCenterX, 212, "Global Conflict, c. 1900 to the Present", {
+            .text(screenCenterX, 212, "Unit 7 · c. 1900 to the Present", {
                 fontFamily: FontFamilies.BODY_SERIF,
                 fontSize: "26px",
                 fontStyle: "italic",
@@ -67,11 +67,18 @@ export class MainMenuScene extends Phaser.Scene {
         this.fitTextToWidth(menuSubtitle, this.scale.width - 40, 16);
         this.menuContentRoot.add(menuSubtitle);
         const menuCourseLabel = this.add
-            .text(screenCenterX, 246, "An AP World History: Modern Unit 7 Review Game", {
-                fontFamily: FontFamilies.BODY_SERIF,
-                fontSize: "18px",
-                color: UiPalette.AGED_PARCHMENT_CSS,
-            })
+            .text(
+                screenCenterX,
+                246,
+                this.scale.width < 540
+                    ? "Advanced Placement World History · Unit 7"
+                    : "Advanced Placement World History: Modern · Unit 7 review game",
+                {
+                    fontFamily: FontFamilies.BODY_SERIF,
+                    fontSize: "18px",
+                    color: UiPalette.AGED_PARCHMENT_CSS,
+                },
+            )
             .setOrigin(0.5, 0.5);
         this.fitTextToWidth(menuCourseLabel, this.scale.width - 40, 12);
         this.menuContentRoot.add(menuCourseLabel);
@@ -83,22 +90,25 @@ export class MainMenuScene extends Phaser.Scene {
             270,
             unitOverviewWidth,
             132,
-            PanelVariant.PARCHMENT,
+            PanelVariant.LEATHER,
+        );
+        unitOverviewPanel.add(
+            UiPanelFactory.createSectionHeader(this, 20, 12, "Your first round", 18, UiPalette.HIGHLIGHT_BRASS_CSS),
         );
         unitOverviewPanel.add(
             UiPanelFactory.createBodyText(
                 this,
                 20,
-                12,
+                42,
                 unitOverviewWidth - 40,
                 this.scale.width < 540
-                    ? "Choose a scenario, study the sources, make decisions, and explain the results. The first scenario has a step-by-step guide."
+                    ? "Read a source, make a policy choice, and explain its effects. The Powder Keg guides your first round."
                     : [
-                          "Choose a scenario, study its sources, make decisions, and explain the consequences.",
-                          "The Powder Keg is the guided first round. Start there if this is your first time playing.",
+                          "Read a historical source, make a policy choice, and explain its effects.",
+                          "The Powder Keg includes a step-by-step guide for your first round.",
                       ].join("\n"),
-                this.scale.width < 540 ? 13 : 16,
-                UiPalette.NEAR_BLACK_LEATHER_CSS,
+                this.scale.width < 540 ? 14 : 16,
+                UiPalette.PARCHMENT_CSS,
             ),
         );
         this.menuContentRoot.add(unitOverviewPanel);
@@ -110,17 +120,17 @@ export class MainMenuScene extends Phaser.Scene {
         const currentScenario = GameSession.getInstance().getCurrentScenario();
         if (savedCampaign !== null || currentScenario !== null) {
             buttonEntries.push({
-                labelText: "RESUME CAMPAIGN",
+                labelText: "Resume campaign",
                 onActivated: () => this.resumeSavedCampaign(),
             });
         }
         buttonEntries.push(
-            { labelText: "START A CAMPAIGN", onActivated: () => this.scene.start(SceneKeys.CAMPAIGN_SELECTOR) },
-            { labelText: "HOW TO PLAY", onActivated: () => this.showHowToPlayOverlay() },
-            { labelText: "PROGRESS CHECK", onActivated: () => this.scene.start(SceneKeys.PROGRESS_CHECK) },
-            { labelText: "TEACHER DASHBOARD", onActivated: () => this.scene.start(SceneKeys.TEACHER_DASHBOARD) },
-            { labelText: "SETTINGS", onActivated: () => this.scene.start(SceneKeys.SETTINGS) },
-            { labelText: "STUDENT PROFILES", onActivated: () => this.scene.start(SceneKeys.STUDENT_PROFILES) },
+            { labelText: "Choose a campaign", onActivated: () => this.scene.start(SceneKeys.CAMPAIGN_SELECTOR) },
+            { labelText: "How to play", onActivated: () => this.showHowToPlayOverlay() },
+            { labelText: "Progress check", onActivated: () => this.scene.start(SceneKeys.PROGRESS_CHECK) },
+            { labelText: "Teacher dashboard", onActivated: () => this.scene.start(SceneKeys.TEACHER_DASHBOARD) },
+            { labelText: "Settings", onActivated: () => this.scene.start(SceneKeys.SETTINGS) },
+            { labelText: "Student profiles", onActivated: () => this.scene.start(SceneKeys.STUDENT_PROFILES) },
         );
         buttonEntries.forEach((buttonEntry, buttonIndex) => {
             this.menuContentRoot?.add(
@@ -136,20 +146,25 @@ export class MainMenuScene extends Phaser.Scene {
             );
         });
 
-        const creditText = UiPanelFactory.createTypewriterText(
-            this,
-            screenCenterX,
-            MainMenuScene.CONTENT_HEIGHT_FOR_SCALING_PX - 24,
-            this.scale.width,
-            "Cascade - an education-centric grand strategy game",
-            14,
-            UiPalette.FIELD_GRAY_CSS,
+        const footerWidth = Math.min(560, this.scale.width - 40);
+        const footerTag = this.add.container(screenCenterX, MainMenuScene.CONTENT_HEIGHT_FOR_SCALING_PX - 24);
+        footerTag.add(
+            this.add
+                .rectangle(0, 0, footerWidth, 34, UiPalette.NEAR_BLACK_LEATHER, 0.82)
+                .setStrokeStyle(1, UiPalette.DEEP_BRASS, 0.8),
         );
-        creditText.setOrigin(0.5, 0.5);
-        creditText.setStroke(UiPalette.NEAR_BLACK_LEATHER_CSS, 3);
-        creditText.setBackgroundColor(UiPalette.NEAR_BLACK_LEATHER_CSS);
-        creditText.setPadding(10, 5, 10, 5);
-        this.menuContentRoot.add(creditText);
+        footerTag.add(
+            this.add
+                .text(0, 0, "Read the sources · weigh choices · explain consequences", {
+                    fontFamily: FontFamilies.TYPEWRITER_BODY,
+                    fontSize: this.scale.width < 540 ? "12px" : "13px",
+                    color: UiPalette.PARCHMENT_CSS,
+                    align: "center",
+                    wordWrap: { width: footerWidth - 20, useAdvancedWrap: true },
+                })
+                .setOrigin(0.5),
+        );
+        this.menuContentRoot.add(footerTag);
 
         const profileManager = LocalProfileManager.getInstance();
         const profileStatus = profileManager.getRecoveryMessage();
