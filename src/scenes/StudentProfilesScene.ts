@@ -254,7 +254,7 @@ export class StudentProfilesScene extends Phaser.Scene {
         actions.className = "profile-dialog-actions";
         const cancel = document.createElement("button");
         cancel.type = "button";
-        cancel.textContent = "CANCEL";
+        cancel.textContent = "Cancel";
         const confirm = document.createElement("button");
         confirm.type = "submit";
         confirm.textContent = confirmLabel;
@@ -324,7 +324,7 @@ export class StudentProfilesScene extends Phaser.Scene {
         actions.className = "profile-dialog-actions";
         const cancel = document.createElement("button");
         cancel.type = "button";
-        cancel.textContent = "CANCEL";
+        cancel.textContent = "Cancel";
         const confirm = document.createElement("button");
         confirm.type = "button";
         confirm.className = "danger";
