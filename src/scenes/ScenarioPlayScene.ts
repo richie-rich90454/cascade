@@ -9,7 +9,6 @@ import {
     MechanicCompletedPayload,
     NavigationRequestedPayload,
     NewspaperRequestPayload,
-    SourceAnalysisPayload,
     TelegramRequestPayload,
 } from "../core/EventBus";
 import { GameSession } from "../core/GameSession";
@@ -471,7 +470,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
             .text(
                 mapHudWidth - 18,
                 14,
-                mapPixelWidth < 620 ? `Documented · ${historicalMapYear}` : `Documented borders · ${historicalMapYear}`,
+                this.scenarioNumber === 1 && this.scale.width < 460
+                    ? `Europe view · ${historicalMapYear}`
+                    : mapPixelWidth < 620
+                      ? `Documented · ${historicalMapYear}`
+                      : `Documented borders · ${historicalMapYear}`,
                 {
                     fontFamily: FontFamilies.TYPEWRITER_BODY,
                     fontSize: mapPixelWidth < 620 ? "12px" : "14px",
@@ -489,7 +492,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             mapPixelHeight - (mapPixelWidth < 620 ? 95 : 58),
             this.scenarioNumber === 1
                 ? mapPixelWidth < 400
-                    ? "Tap a marker to inspect"
+                    ? "Tap a marker · drag to explore"
                     : mapPixelWidth < 620
                       ? "Markers inspect · chapter buttons make policy choices"
                       : "Map markers inspect history · chapter buttons make policy choices"
@@ -685,6 +688,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.mapCameraController.update();
         if (isShortLandscapeMapView) {
             this.mapCameraController.focusOnPoint(mapPixelWidth / 2, mapPixelHeight * 0.29, 2.8);
+        } else if (this.scenarioNumber === 1 && this.scale.width < 460) {
+            this.mapCameraController.focusOnPoint(mapPixelWidth * 0.57, mapPixelHeight / 2, 1.55);
         }
         this.applyMapMode(this.activeMapModeCode);
         this.input.keyboard?.on("keydown-LEFT", this.boundMapLeftKeyHandler);
@@ -1593,20 +1598,11 @@ export class ScenarioPlayScene extends Phaser.Scene {
 
     private openDecisionOverlay(decisionRecord: DecisionRecord): void {
         const gameState = GameSession.getInstance().getGameState();
-        this.openMechanicOverlay(
-            `DECISION: ${decisionRecord.decisionTitle.toUpperCase()}`,
-            (overlayPanel, panelWidth, panelHeight) => {
-                const decisionPanelComponent = new DecisionPanelComponent(
-                    this,
-                    12,
-                    50,
-                    panelWidth - 24,
-                    panelHeight - 80,
-                );
-                decisionPanelComponent.setDecision(decisionRecord, gameState);
-                overlayPanel.add(decisionPanelComponent);
-            },
-        );
+        this.openMechanicOverlay("Decision", (overlayPanel, panelWidth, panelHeight) => {
+            const decisionPanelComponent = new DecisionPanelComponent(this, 12, 50, panelWidth - 24, panelHeight - 80);
+            overlayPanel.add(decisionPanelComponent);
+            decisionPanelComponent.setDecision(decisionRecord, gameState);
+        });
     }
 
     private findNextPendingDecision(gameState: ReturnType<GameSession["getGameState"]>): DecisionRecord | null {
@@ -2128,6 +2124,8 @@ export class ScenarioPlayScene extends Phaser.Scene {
         this.mechanicOverlayContainer.add(overlayRectangle);
         const panelWidth = Math.min(1080, screenWidth - 100);
         const panelHeight = Math.min(680, screenHeight - 100);
+        const compactOverlay = panelWidth < 420;
+        const closeButtonWidth = compactOverlay ? 84 : 130;
         const overlayPanel = UiPanelFactory.createPanelContainer(
             this,
             (screenWidth - panelWidth) / 2,
@@ -2136,11 +2134,17 @@ export class ScenarioPlayScene extends Phaser.Scene {
             panelHeight,
             PanelVariant.LEATHER,
         );
-        overlayPanel.add(UiPanelFactory.createSectionHeader(this, 20, 16, overlayTitleText, 22));
+        overlayPanel.add(UiPanelFactory.createSectionHeader(this, 20, 16, overlayTitleText, compactOverlay ? 18 : 22));
         overlayPanel.add(
-            UiPanelFactory.createBrassButton(this, panelWidth - 150, 14, 130, 38, "CLOSE", () => {
-                this.closeMechanicOverlay();
-            }),
+            UiPanelFactory.createBrassButton(
+                this,
+                panelWidth - closeButtonWidth - 12,
+                12,
+                closeButtonWidth,
+                38,
+                "Close",
+                () => this.closeMechanicOverlay(),
+            ),
         );
         buildOverlayContent(overlayPanel, panelWidth, panelHeight);
         this.mechanicOverlayContainer.add(overlayPanel);
@@ -2595,11 +2599,18 @@ export class ScenarioPlayScene extends Phaser.Scene {
         };
         this.boundDecisionHandler = (payload: unknown) => {
             const decisionMadePayload = payload as DecisionMadePayload;
-            this.lastConsequenceText = `Decision recorded: ${decisionMadePayload.chosenOptionIdentifier}. The consequence is shown in the resolution phase.`;
+            const recordedDecision = this.scenario
+                ?.getDecisionRecords()
+                .find((decision) => decision.decisionIdentifier === decisionMadePayload.decisionIdentifier);
+            const recordedOption = recordedDecision?.options.find(
+                (option) => option.optionIdentifier === decisionMadePayload.chosenOptionIdentifier,
+            );
+            this.lastConsequenceText =
+                recordedOption === undefined
+                    ? "Your policy choice was recorded. Compare its outcome with the documented history."
+                    : `Policy choice: ${recordedOption.optionLabelText}\n${recordedOption.consequenceText}\nCompare this outcome with the documented record and sources.`;
             GameSession.getInstance().getAudioManager().playSoundEffect("sfx_diplomacy");
-            this.closeMechanicOverlay();
             this.renderPhaseCard();
-            this.showToast("Decision recorded. Progress updated.");
             this.refreshQuestTracker();
         };
         this.boundMechanicHandler = (payload: unknown) => {
@@ -2609,13 +2620,7 @@ export class ScenarioPlayScene extends Phaser.Scene {
             this.refreshQuestTracker();
             this.checkForVictory();
         };
-        this.boundSourceHandler = (payload: unknown) => {
-            const sourceAnalysisPayload = payload as SourceAnalysisPayload;
-            if (sourceAnalysisPayload.wasAnalysisCorrect) {
-                this.showToast("Intelligence confirmed: the source was read correctly.");
-            } else {
-                this.showToast("The source was misread. Review the model answers and try again.");
-            }
+        this.boundSourceHandler = () => {
             this.refreshQuestTracker();
             this.checkForVictory();
         };
