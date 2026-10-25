@@ -1,3 +1,4 @@
+import { GameSession } from "../core/GameSession";
 import { GameState } from "../core/GameState";
 import { CED_UNIT_SEVEN_TOPICS, getCedUnitSevenCoverageIssues } from "../data/CedUnitSevenCoverage";
 import { ProgressCheckBank } from "../data/ProgressCheckBank";
@@ -72,6 +73,33 @@ function runGameLogicSelfCheck(): void {
                 registeredScenario.getTurnCount() >= 5,
                 `scenario ${scenarioNumber} must span at least five turns`,
             );
+            const initialState = new GameState();
+            registeredScenario.registerInitialState(initialState);
+            initialState.setTurnNumber(1);
+            const initialSnapshot = initialState.createSnapshot();
+            const restoredState = new GameState();
+            registeredScenario.registerInitialState(restoredState);
+            restoredState.setTurnNumber(1);
+            assertCondition(
+                restoredState.restoreSnapshot(initialSnapshot),
+                `scenario ${scenarioNumber} must restore a complete initial save`,
+            );
+            if (scenarioNumber === 1) {
+                const corruptedSnapshot = structuredClone(initialSnapshot);
+                const secondProvince = corruptedSnapshot.provinces[1];
+                if (secondProvince !== undefined) {
+                    corruptedSnapshot.provinces[0].identifier = secondProvince.identifier;
+                }
+                const stateBeforeRejectedRestore = JSON.stringify(restoredState.createSnapshot());
+                assertCondition(
+                    !restoredState.restoreSnapshot(corruptedSnapshot),
+                    "a save with duplicate province identities must be rejected",
+                );
+                assertCondition(
+                    JSON.stringify(restoredState.createSnapshot()) === stateBeforeRejectedRestore,
+                    "a rejected save must not partially change the playable world",
+                );
+            }
         }
     }
 
@@ -144,6 +172,32 @@ function runGameLogicSelfCheck(): void {
     const victoryEvaluation = scenarioOne.evaluateVictory(gameState);
     assertCondition(victoryEvaluation.isVictory, "scenario one must be won when all ten learning criteria are met");
     assertCondition(victoryEvaluation.earnedScore === 10, "scenario one victory must award ten of ten criteria");
+
+    const gameSession = GameSession.getInstance();
+    gameSession.startScenario(scenarioOne);
+    const validCampaignSave = gameSession.createCampaignSnapshot();
+    assertCondition(validCampaignSave !== null, "an active scenario must produce a resumable campaign save");
+    if (validCampaignSave !== null) {
+        assertCondition(gameSession.restoreCampaign(validCampaignSave), "a valid campaign save must restore");
+        const stateBeforeInvalidRestore = JSON.stringify(gameSession.getGameState().createSnapshot());
+        const campaignSaveBeyondScenario = structuredClone(validCampaignSave);
+        campaignSaveBeyondScenario.turnManager.turnNumber = scenarioOne.getTurnCount() + 1;
+        campaignSaveBeyondScenario.gameState.turnNumber = campaignSaveBeyondScenario.turnManager.turnNumber;
+        assertCondition(
+            !gameSession.restoreCampaign(campaignSaveBeyondScenario),
+            "a campaign save beyond its scenario timeline must be rejected",
+        );
+        const campaignSaveWithInvalidPhase = structuredClone(validCampaignSave);
+        campaignSaveWithInvalidPhase.playProgress.phaseIndex = 99;
+        assertCondition(
+            !gameSession.restoreCampaign(campaignSaveWithInvalidPhase),
+            "a campaign save with an invalid phase must be rejected before it reaches the interface",
+        );
+        assertCondition(
+            JSON.stringify(gameSession.getGameState().createSnapshot()) === stateBeforeInvalidRestore,
+            "a campaign rejected before restore must leave the active game state intact",
+        );
+    }
 
     const assessmentManager = AssessmentManager.getInstance();
     const scenarioOneRubricItems = Rubrics.getRubricItemsForScenario(1);
