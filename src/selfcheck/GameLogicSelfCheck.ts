@@ -6,6 +6,7 @@ import { getWorldProvinceCoordinate } from "../data/WorldProvinceGeography";
 import { ScenarioRegistry } from "../domain/ScenarioRegistry";
 import { ScenarioOne } from "../domain/scenarios/ScenarioOne";
 import { AssessmentManager } from "../managers/AssessmentManager";
+import { MidiManager } from "../managers/MidiManager";
 import { ResourceType } from "../types/ResourceType";
 import { formatUiDisplayCase } from "../ui/UiTextCase";
 
@@ -28,6 +29,34 @@ function runGameLogicSelfCheck(): void {
         formatUiDisplayCase("LOCAL PROFILE · STUDENT · CAMPAIGN SAVED") === "Local Profile · Student · Campaign Saved",
         "all-caps phrases must be normalized even when used in mixed-case interface contexts",
     );
+
+    const midiManager = new MidiManager();
+    const validMidiBytes = new Uint8Array([
+        0x4d, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x01, 0xe0, 0x4d, 0x54, 0x72, 0x6b,
+        0x00, 0x00, 0x00, 0x1e, 0x00, 0xff, 0x51, 0x03, 0x07, 0xa1, 0x20, 0x00, 0xc0, 0x00, 0x00, 0x90, 0x3c, 0x64,
+        0x83, 0x60, 0xff, 0x51, 0x03, 0x03, 0xd0, 0x90, 0x00, 0x80, 0x3c, 0x00, 0x00, 0xff, 0x2f, 0x00,
+    ]);
+    const parsedMidi = midiManager.parseMidiArrayBuffer(validMidiBytes.buffer, "tempo-change-check");
+    assertCondition(parsedMidi.notes.length === 1, "MIDI parsing must preserve valid note events");
+    assertCondition(
+        Math.abs((parsedMidi.notes[0]?.durationSeconds ?? 0) - 0.5) < 0.001,
+        "MIDI tempo changes must advance event time using the tempo active during each delta",
+    );
+    assertCondition(
+        parsedMidi.initialTempoMicrosecondsPerQuarter === 500000,
+        "parsed MIDI metadata must retain the initial default tempo",
+    );
+    let malformedMidiRejected = false;
+    const malformedMidiBytes = new Uint8Array([
+        0x4d, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x01, 0xe0, 0x4d, 0x54, 0x72, 0x6b,
+        0x00, 0x00, 0x00, 0x05, 0x80, 0x80, 0x80, 0x80, 0x00,
+    ]);
+    try {
+        midiManager.parseMidiArrayBuffer(malformedMidiBytes.buffer, "overlong-variable-length-check");
+    } catch (error) {
+        malformedMidiRejected = error instanceof Error && error.message.includes("four bytes");
+    }
+    assertCondition(malformedMidiRejected, "malformed overlong MIDI values must fail with a bounded parser error");
 
     const scenarioRegistry = ScenarioRegistry.getInstance();
     assertCondition(scenarioRegistry.getAllScenarios().length === 10, "registry must contain exactly ten scenarios");
