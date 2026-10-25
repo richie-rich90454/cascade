@@ -9,6 +9,7 @@ import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
 import { ScrollRegion, UiPointerRouting } from "./UiPointerRouting";
 import { UiScrollInput } from "./UiScrollInput";
+import { formatUiDisplayCase } from "./UiTextCase";
 
 export class QuestObjectiveRecord {
     public readonly objectiveIdentifier: string;
@@ -83,7 +84,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
         });
         this.progressLabelText.setOrigin(1, 0);
         this.add(this.progressLabelText);
-        this.scrollHintText = scene.add.text(16, 61, "SCROLL FOR MORE", {
+        this.scrollHintText = scene.add.text(16, 61, "Scroll for more", {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: "11px",
             color: UiPalette.AGED_PARCHMENT_CSS,
@@ -544,7 +545,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
             cardGraphics.lineStyle(1, UiPalette.FIELD_GRAY, 0.7);
             cardGraphics.strokeRect(0.5, 0.5, rowWidth - 13, cardHeight - 1);
             card.add(cardGraphics);
-            const label = this.scene.add.text(12, 8, group.label, {
+            const label = this.scene.add.text(12, 8, formatUiDisplayCase(group.label), {
                 fontFamily: FontFamilies.SMALL_CAPS,
                 fontSize: "13px",
                 color: UiPalette.PARCHMENT_CSS,
@@ -626,7 +627,7 @@ export class QuestTrackerComponent extends Phaser.GameObjects.Container {
     }
 
     private createObjectiveSectionLabel(labelText: string, offsetY: number, colorCss: string): Phaser.GameObjects.Text {
-        const sectionLabel = this.scene.add.text(16, offsetY, labelText, {
+        const sectionLabel = this.scene.add.text(16, offsetY, formatUiDisplayCase(labelText), {
             fontFamily: FontFamilies.SMALL_CAPS,
             fontSize: "14px",
             color: colorCss,
