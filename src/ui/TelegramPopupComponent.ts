@@ -4,6 +4,7 @@ import { prefersReducedMotion } from "../core/AccessibilityPreferences";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
+import { formatUiDisplayCase } from "./UiTextCase";
 
 export class TelegramPopupComponent extends Phaser.GameObjects.Container {
     private static readonly POPUP_OVERLAY_ALPHA = 0.62;
@@ -54,7 +55,7 @@ export class TelegramPopupComponent extends Phaser.GameObjects.Container {
         const scene = this.scene;
         const innerWidthPx = this.panelWidthPx - TelegramPopupComponent.PANEL_PADDING_PX * 2;
 
-        const headerTextObject = scene.add.text(0, 0, "TELEGRAM", {
+        const headerTextObject = scene.add.text(0, 0, "Telegram", {
             fontFamily: FontFamilies.TYPEWRITER_HEADER,
             fontSize: "24px",
             color: UiPalette.NEAR_BLACK_LEATHER_CSS,
@@ -78,7 +79,7 @@ export class TelegramPopupComponent extends Phaser.GameObjects.Container {
             wordWrap: { width: innerWidthPx, useAdvancedWrap: true },
         });
 
-        const bodyTextObject = scene.add.text(0, 0, bodyLines.join("\n"), {
+        const bodyTextObject = scene.add.text(0, 0, formatUiDisplayCase(bodyLines.join("\n")), {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: "15px",
             color: UiPalette.NEAR_BLACK_LEATHER_CSS,
