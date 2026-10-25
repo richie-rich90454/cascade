@@ -147,7 +147,7 @@ function buildSubjectColorMap(sourceByYear: Map<number, GeoJsonFeatureCollection
     }
 
     const colorBySubject = new Map<string, string>();
-    while (colorBySubject.size < neighborsBySubject.size) {
+    for (let remainingSubjectCount = neighborsBySubject.size; remainingSubjectCount > 0; remainingSubjectCount -= 1) {
         const uncoloredSubjects = [...neighborsBySubject.keys()].filter((name) => !colorBySubject.has(name));
         uncoloredSubjects.sort((firstName, secondName) => {
             const getSaturation = (name: string): number =>
@@ -164,6 +164,9 @@ function buildSubjectColorMap(sourceByYear: Map<number, GeoJsonFeatureCollection
             );
         });
         const subjectName = uncoloredSubjects[0];
+        if (subjectName === undefined) {
+            throw new Error("The map color assignment stopped before every subject received a color.");
+        }
         const assignedNeighborColors = new Set(
             [...(neighborsBySubject.get(subjectName) ?? [])]
                 .map((neighborName) => colorBySubject.get(neighborName))
