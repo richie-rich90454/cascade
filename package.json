@@ -10,8 +10,8 @@
         "build": "tsc --noEmit && vite build",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
-        "format": "oxfmt",
-        "format:check": "oxfmt --check",
+        "format": "oxfmt .opencode/tools src docs .github README.md CONTRIBUTING.md CHANGELOG.md CODE_OF_CONDUCT.md GOVERNANCE.md SECURITY.md SUPPORT.md package.json pnpm-lock.yaml",
+        "format:check": "oxfmt --check .opencode/tools src docs .github README.md CONTRIBUTING.md CHANGELOG.md CODE_OF_CONDUCT.md GOVERNANCE.md SECURITY.md SUPPORT.md package.json pnpm-lock.yaml",
         "generate:svg": "tsx .opencode/tools/GenerateSvg.ts",
         "generate:maps": "tsx .opencode/tools/GenerateHistoricalMaps.ts",
         "generate:midi": "tsx .opencode/tools/GenerateMidi.ts",
@@ -34,5 +34,6 @@
         "tsx": "^4.23.15",
         "typescript": "~5.9.2",
         "vite": "^8.3.4"
-    }
+    },
+    "packageManager": "pnpm@12.14.0"
 }
