@@ -8,13 +8,14 @@ import { FontFamilies } from "../managers/FontManager";
 import { LocalProfileManager } from "../managers/LocalProfileManager";
 import { UiPalette } from "../ui/UiPalette";
 import { PanelVariant, UiPanelFactory } from "../ui/UiPanelFactory";
+import { formatUiDisplayCase } from "../ui/UiTextCase";
 
 export class MainMenuScene extends Phaser.Scene {
     private static readonly BUTTON_WIDTH_PX = 320;
     private static readonly BUTTON_HEIGHT_PX = 44;
     private static readonly BUTTON_VERTICAL_GAP_PX = 6;
-    private static readonly BUTTON_STACK_TOP_Y = 416;
-    private static readonly CONTENT_HEIGHT_FOR_SCALING_PX = 812;
+    private static readonly BUTTON_STACK_TOP_Y = 450;
+    private static readonly CONTENT_HEIGHT_FOR_SCALING_PX = 866;
 
     private menuContentRoot: Phaser.GameObjects.Container | null;
 
@@ -38,7 +39,7 @@ export class MainMenuScene extends Phaser.Scene {
         const screenCenterX = this.scale.width / 2;
 
         const cascadeTitle = this.add
-            .text(screenCenterX, 84, "CASCADE", {
+            .text(screenCenterX, 84, "Cascade", {
                 fontFamily: FontFamilies.GOTHIC,
                 fontSize: "96px",
                 color: UiPalette.HIGHLIGHT_BRASS_CSS,
@@ -47,7 +48,7 @@ export class MainMenuScene extends Phaser.Scene {
         this.fitTextToWidth(cascadeTitle, this.scale.width - 40, 34);
         this.menuContentRoot.add(cascadeTitle);
         const globalConflictTitle = this.add
-            .text(screenCenterX, 148, "GLOBAL CONFLICT", {
+            .text(screenCenterX, 148, "Global Conflict", {
                 fontFamily: FontFamilies.GOTHIC,
                 fontSize: "72px",
                 color: UiPalette.BRASS_TAN_CSS,
@@ -81,7 +82,7 @@ export class MainMenuScene extends Phaser.Scene {
             screenCenterX - unitOverviewWidth / 2,
             270,
             unitOverviewWidth,
-            104,
+            132,
             PanelVariant.PARCHMENT,
         );
         unitOverviewPanel.add(
@@ -91,13 +92,12 @@ export class MainMenuScene extends Phaser.Scene {
                 12,
                 unitOverviewWidth - 40,
                 this.scale.width < 540
-                    ? "AP World History Unit 7 · Global Conflict, c. 1900 to the present · 8–10% of the exam."
+                    ? "Choose a scenario, study the sources, make decisions, and explain the results. The first scenario has a step-by-step guide."
                     : [
-                          "Unit 7: Global Conflict, c. 1900 to the present.",
-                          "This unit represents 8-10% of your AP Exam score and takes approximately 9-12 class periods.",
-                          "The Personal Progress Check 7 includes about 25 multiple-choice questions, 2 short-answer questions, and 1 document-based question.",
+                          "Choose a scenario, study its sources, make decisions, and explain the consequences.",
+                          "The Powder Keg is the guided first round. Start there if this is your first time playing.",
                       ].join("\n"),
-                this.scale.width < 540 ? 12 : 13,
+                this.scale.width < 540 ? 13 : 16,
                 UiPalette.NEAR_BLACK_LEATHER_CSS,
             ),
         );
@@ -105,9 +105,7 @@ export class MainMenuScene extends Phaser.Scene {
 
         const buttonWidth = Math.min(MainMenuScene.BUTTON_WIDTH_PX, this.scale.width - 48);
         const buttonLeftX = screenCenterX - buttonWidth / 2;
-        const buttonEntries: Array<{ labelText: string; onActivated: () => void }> = [
-            { labelText: "HOW TO PLAY", onActivated: () => this.showHowToPlayOverlay() },
-        ];
+        const buttonEntries: Array<{ labelText: string; onActivated: () => void }> = [];
         const savedCampaign = LocalProfileManager.getInstance().getActiveCampaign();
         const currentScenario = GameSession.getInstance().getCurrentScenario();
         if (savedCampaign !== null || currentScenario !== null) {
@@ -117,7 +115,8 @@ export class MainMenuScene extends Phaser.Scene {
             });
         }
         buttonEntries.push(
-            { labelText: "CAMPAIGN SELECT", onActivated: () => this.scene.start(SceneKeys.CAMPAIGN_SELECTOR) },
+            { labelText: "START A CAMPAIGN", onActivated: () => this.scene.start(SceneKeys.CAMPAIGN_SELECTOR) },
+            { labelText: "HOW TO PLAY", onActivated: () => this.showHowToPlayOverlay() },
             { labelText: "PROGRESS CHECK", onActivated: () => this.scene.start(SceneKeys.PROGRESS_CHECK) },
             { labelText: "TEACHER DASHBOARD", onActivated: () => this.scene.start(SceneKeys.TEACHER_DASHBOARD) },
             { labelText: "SETTINGS", onActivated: () => this.scene.start(SceneKeys.SETTINGS) },
@@ -155,11 +154,12 @@ export class MainMenuScene extends Phaser.Scene {
         const profileManager = LocalProfileManager.getInstance();
         const profileStatus = profileManager.getRecoveryMessage();
         const activeProfile = profileManager.getActiveProfile();
-        const statusText =
+        const statusText = formatUiDisplayCase(
             profileStatus.length > 0
                 ? profileStatus
-                : `LOCAL PROFILE · ${activeProfile.displayName}${profileManager.getActiveCampaign() === null ? "" : " · CAMPAIGN SAVED"}`;
-        const saveStatus = this.add.text(screenCenterX, 386, statusText, {
+                : `Local profile · ${activeProfile.displayName}${profileManager.getActiveCampaign() === null ? "" : " · campaign saved"}`,
+        );
+        const saveStatus = this.add.text(screenCenterX, 420, statusText, {
             fontFamily: FontFamilies.TYPEWRITER_BODY,
             fontSize: "14px",
             color: profileManager.canSaveLocally() ? UiPalette.PARCHMENT_CSS : UiPalette.ALERT_TEXT_ON_DARK_CSS,
