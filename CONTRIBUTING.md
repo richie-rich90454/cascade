@@ -37,7 +37,9 @@ The visual check opens a local Edge or Chrome browser and exercises the menu, ca
 
 - Keep the first action on each screen clear. Prefer one recommended next step and keep secondary tools out of the way.
 - Write interface text in sentence case or title case. Do not use all-caps labels, and spell out terms when a student may not know an abbreviation.
+- Give panels a full outline or a distinct surface. Do not add a narrow vertical bar along a container's left edge.
 - Check resizing, scrolling, keyboard focus, text scaling, and reduced motion when changing a screen. Text and controls must remain readable and inside their panels.
+- Keep loops bounded by a collection or validated input size. Any state progression needs a clear exit, and malformed assets or saves must fail with a useful error instead of hanging.
 - Keep documented historical outcomes distinct from player choices and alternate-history consequences.
 - Treat civilians and affected communities with care. Do not make rewards depend on deaths or atrocities.
 - Keep historical map geometry in data files. Do not use generated illustrations as geographic boundaries.
@@ -52,3 +54,7 @@ The visual check opens a local Edge or Chrome browser and exercises the menu, ca
 - List the checks you ran and any checks you could not run.
 - Update curriculum coverage, credits, or save-data notes when the change affects them.
 - Do not include real student information, local save files, secrets, or unrelated generated output.
+
+## Project health
+
+Pull requests run the checks in [the GitHub Actions workflow](.github/workflows/ci.yml). Dependabot checks the JavaScript dependencies and GitHub Actions versions each week. Keep policy and support links in the README current when these files move.
