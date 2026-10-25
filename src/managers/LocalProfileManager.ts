@@ -273,7 +273,8 @@ export class LocalProfileManager {
                         ? (legacy.topicAttemptsByCedTopicCode as AssessmentSnapshot["topicAttemptsByCedTopicCode"])
                         : {},
                 };
-                this.recoveryMessage = "Your previous journal and assessment records were moved to the default profile.";
+                this.recoveryMessage =
+                    "Your previous journal and assessment records were moved to the default profile.";
             }
         } catch {
             this.recoveryMessage = "An older assessment save could not be migrated. The original data was preserved.";
@@ -286,7 +287,9 @@ export class LocalProfileManager {
             if (!isRecord(value) || value.version !== 1 || !Array.isArray(value.profiles)) {
                 return null;
             }
-            const profiles = value.profiles.filter((candidate): candidate is StudentProfile => this.isValidProfile(candidate));
+            const profiles = value.profiles.filter((candidate): candidate is StudentProfile =>
+                this.isValidProfile(candidate),
+            );
             if (
                 profiles.length === 0 ||
                 profiles.length !== value.profiles.length ||
@@ -323,13 +326,21 @@ export class LocalProfileManager {
     }
 
     private isValidCampaign(value: unknown): value is CampaignSaveData {
-        if (!isRecord(value) || !isRecord(value.gameState) || !isRecord(value.turnManager) || !isRecord(value.playProgress)) {
+        if (
+            !isRecord(value) ||
+            !isRecord(value.gameState) ||
+            !isRecord(value.turnManager) ||
+            !isRecord(value.playProgress)
+        ) {
             return false;
         }
         const gameState = value.gameState;
         const resourceQuantities = gameState.resourceQuantities;
         const isValidResourceRecord =
-            isRecord(resourceQuantities) && Object.values(resourceQuantities).every((quantity) => typeof quantity === "number" && Number.isFinite(quantity));
+            isRecord(resourceQuantities) &&
+            Object.values(resourceQuantities).every(
+                (quantity) => typeof quantity === "number" && Number.isFinite(quantity),
+            );
         const isValidStringList = (item: unknown): item is string[] =>
             Array.isArray(item) && item.every((value) => typeof value === "string");
         const isValidGameState =
@@ -340,38 +351,41 @@ export class LocalProfileManager {
             isValidResourceRecord &&
             isValidStringList(gameState.scenarioFlags) &&
             Array.isArray(gameState.nations) &&
-            gameState.nations.every((nation) =>
-                isRecord(nation) &&
-                typeof nation.identifier === "string" &&
-                [nation.treasury, nation.manpower, nation.legitimacy, nation.stability].every(
-                    (number) => typeof number === "number" && Number.isFinite(number),
-                ) &&
-                typeof nation.capitalProvinceIdentifier === "string" &&
-                typeof nation.primaryColorHex === "string" &&
-                typeof nation.accentColorHex === "string" &&
-                isValidStringList(nation.controlledProvinceIdentifiers) &&
-                isValidStringList(nation.alliedNationIdentifiers) &&
-                isValidStringList(nation.nationsAtWarWithIdentifiers),
+            gameState.nations.every(
+                (nation) =>
+                    isRecord(nation) &&
+                    typeof nation.identifier === "string" &&
+                    [nation.treasury, nation.manpower, nation.legitimacy, nation.stability].every(
+                        (number) => typeof number === "number" && Number.isFinite(number),
+                    ) &&
+                    typeof nation.capitalProvinceIdentifier === "string" &&
+                    typeof nation.primaryColorHex === "string" &&
+                    typeof nation.accentColorHex === "string" &&
+                    isValidStringList(nation.controlledProvinceIdentifiers) &&
+                    isValidStringList(nation.alliedNationIdentifiers) &&
+                    isValidStringList(nation.nationsAtWarWithIdentifiers),
             ) &&
             Array.isArray(gameState.provinces) &&
-            gameState.provinces.every((province) =>
-                isRecord(province) &&
-                typeof province.identifier === "string" &&
-                typeof province.ownerNationIdentifier === "string" &&
-                typeof province.victoryPointValue === "number" &&
-                Number.isFinite(province.victoryPointValue) &&
-                typeof province.isCapital === "boolean" &&
-                typeof province.supplyValue === "number" &&
-                Number.isFinite(province.supplyValue),
+            gameState.provinces.every(
+                (province) =>
+                    isRecord(province) &&
+                    typeof province.identifier === "string" &&
+                    typeof province.ownerNationIdentifier === "string" &&
+                    typeof province.victoryPointValue === "number" &&
+                    Number.isFinite(province.victoryPointValue) &&
+                    typeof province.isCapital === "boolean" &&
+                    typeof province.supplyValue === "number" &&
+                    Number.isFinite(province.supplyValue),
             ) &&
             Array.isArray(gameState.units) &&
-            gameState.units.every((unit) =>
-                isRecord(unit) &&
-                typeof unit.identifier === "string" &&
-                typeof unit.stationedProvinceIdentifier === "string" &&
-                [unit.strengthValue, unit.organizationValue, unit.experienceValue].every(
-                    (number) => typeof number === "number" && Number.isFinite(number),
-                ),
+            gameState.units.every(
+                (unit) =>
+                    isRecord(unit) &&
+                    typeof unit.identifier === "string" &&
+                    typeof unit.stationedProvinceIdentifier === "string" &&
+                    [unit.strengthValue, unit.organizationValue, unit.experienceValue].every(
+                        (number) => typeof number === "number" && Number.isFinite(number),
+                    ),
             );
         return (
             value.version === 1 &&
@@ -421,7 +435,8 @@ export class LocalProfileManager {
             return true;
         } catch {
             this.isSaveAvailable = false;
-            this.recoveryMessage = "The browser could not save progress. Free storage space or enable local storage to continue safely.";
+            this.recoveryMessage =
+                "The browser could not save progress. Free storage space or enable local storage to continue safely.";
             return false;
         }
     }
@@ -454,8 +469,10 @@ export class LocalProfileManager {
     }
 
     private createIdentifier(): string {
-        const randomPart = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+        const randomPart =
+            typeof crypto !== "undefined" && "randomUUID" in crypto
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random()}`;
         return `student-${randomPart}`;
     }
 }
-
