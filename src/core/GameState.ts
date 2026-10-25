@@ -300,6 +300,55 @@ export class GameState {
         ) {
             return false;
         }
+        const nationIdentifiers = new Set(this.getAllNations().map((nation) => nation.getIdentifier()));
+        const provinceIdentifiers = new Set(this.getAllProvinces().map((province) => province.getIdentifier()));
+        const unitIdentifiers = new Set(this.getAllUnits().map((unit) => unit.getIdentifier()));
+        const matchesRegisteredIdentifiers = <T extends { identifier: string }>(
+            records: T[],
+            registeredIdentifiers: Set<string>,
+        ): boolean => {
+            const restoredIdentifiers = new Set(records.map((record) => record.identifier));
+            return (
+                restoredIdentifiers.size === records.length &&
+                restoredIdentifiers.size === registeredIdentifiers.size &&
+                Array.from(registeredIdentifiers).every((identifier) => restoredIdentifiers.has(identifier))
+            );
+        };
+        const hasUniqueKnownIdentifiers = (identifiers: string[], knownIdentifiers: Set<string>): boolean =>
+            new Set(identifiers).size === identifiers.length &&
+            identifiers.every((identifier) => knownIdentifiers.has(identifier));
+        if (
+            !matchesRegisteredIdentifiers(snapshot.nations, nationIdentifiers) ||
+            !matchesRegisteredIdentifiers(snapshot.provinces, provinceIdentifiers) ||
+            !matchesRegisteredIdentifiers(snapshot.units, unitIdentifiers) ||
+            (snapshot.playerNationIdentifier.length > 0 && !nationIdentifiers.has(snapshot.playerNationIdentifier)) ||
+            snapshot.nations.some(
+                (nation) =>
+                    (nation.capitalProvinceIdentifier.length > 0 &&
+                        !provinceIdentifiers.has(nation.capitalProvinceIdentifier)) ||
+                    !hasUniqueKnownIdentifiers(nation.controlledProvinceIdentifiers, provinceIdentifiers) ||
+                    !hasUniqueKnownIdentifiers(nation.alliedNationIdentifiers, nationIdentifiers) ||
+                    !hasUniqueKnownIdentifiers(nation.nationsAtWarWithIdentifiers, nationIdentifiers) ||
+                    nation.alliedNationIdentifiers.includes(nation.identifier) ||
+                    nation.nationsAtWarWithIdentifiers.includes(nation.identifier),
+            ) ||
+            snapshot.provinces.some((province) => !nationIdentifiers.has(province.ownerNationIdentifier)) ||
+            snapshot.units.some((unit) => {
+                const registeredUnit = this.getUnit(unit.identifier);
+                return (
+                    !provinceIdentifiers.has(unit.stationedProvinceIdentifier) ||
+                    registeredUnit === null ||
+                    !nationIdentifiers.has(registeredUnit.getOwningNationIdentifier()) ||
+                    unit.strengthValue < 0 ||
+                    unit.strengthValue > 100 ||
+                    unit.organizationValue < 0 ||
+                    unit.organizationValue > 100 ||
+                    unit.experienceValue < 0
+                );
+            })
+        ) {
+            return false;
+        }
         this.turnNumber = snapshot.turnNumber;
         this.playerNationIdentifier = snapshot.playerNationIdentifier;
         this.resourceQuantities.clear();
