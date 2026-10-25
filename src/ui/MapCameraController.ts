@@ -73,6 +73,11 @@ export class MapCameraController {
             }
             const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
             const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
+            const pointerDownCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.downX);
+            const pointerDownCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.downY);
+            if (!this.isPointInsideViewport(pointerDownCssX, pointerDownCssY)) {
+                return;
+            }
             if (UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)) {
                 return;
             }
@@ -107,7 +112,10 @@ export class MapCameraController {
             }
             const pointerCssX = HighDpiConfigurator.getInstance().toCssPixels(pointer.x);
             const pointerCssY = HighDpiConfigurator.getInstance().toCssPixels(pointer.y);
-            if (UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)) {
+            if (
+                !this.isPointInsideViewport(pointerCssX, pointerCssY) ||
+                UiPointerRouting.isPointOverAnyScrollRegion(pointerCssX, pointerCssY)
+            ) {
                 return;
             }
             this.zoomByFactor(
@@ -146,6 +154,15 @@ export class MapCameraController {
 
     public getCurrentScale(): number {
         return this.mapScaleValue;
+    }
+
+    private isPointInsideViewport(x: number, y: number): boolean {
+        return (
+            x >= this.viewportLeftX &&
+            x <= this.viewportLeftX + this.viewportWidth &&
+            y >= this.viewportTopY &&
+            y <= this.viewportTopY + this.viewportHeight
+        );
     }
 
     private zoomByFactor(factor: number, anchorX?: number, anchorY?: number): void {
