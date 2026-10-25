@@ -5,6 +5,7 @@ import { HighDpiConfigurator } from "../core/HighDpiConfigurator";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
+import { formatUiDisplayCase } from "./UiTextCase";
 
 export class BottomBarComponent extends Phaser.GameObjects.Container {
     private readonly turnTextObject: Phaser.GameObjects.Text;
@@ -48,11 +49,16 @@ export class BottomBarComponent extends Phaser.GameObjects.Container {
         this.add(this.turnTextObject);
         this.add(this.phaseTextObject);
 
-        const playLoopText = scene.add.text(width / 2 - 196, height / 2, "READ  →  ANALYZE  →  CHOOSE  →  EXPLAIN", {
-            fontFamily: FontFamilies.SMALL_CAPS,
-            fontSize: "13px",
-            color: UiPalette.AGED_PARCHMENT_CSS,
-        });
+        const playLoopText = scene.add.text(
+            width / 2 - 196,
+            height / 2,
+            formatUiDisplayCase("READ  →  ANALYZE  →  CHOOSE  →  EXPLAIN"),
+            {
+                fontFamily: FontFamilies.SMALL_CAPS,
+                fontSize: "13px",
+                color: UiPalette.AGED_PARCHMENT_CSS,
+            },
+        );
         playLoopText.setOrigin(0, 0.5);
         playLoopText.setVisible(width >= 1100);
         this.add(playLoopText);
