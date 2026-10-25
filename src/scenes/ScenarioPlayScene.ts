@@ -1167,40 +1167,50 @@ export class ScenarioPlayScene extends Phaser.Scene {
         const actionTitle =
             action?.title ??
             (turnNumber >= session.getTotalTurnCount() ? "Review your evidence" : "Chapter activities complete");
-        phasePanel.add(
-            UiPanelFactory.createBodyText(
-                this,
-                20,
-                isShortLandscape ? 28 : isShortViewport ? (isNarrowPhone ? 44 : 48) : isNarrowPhone ? 54 : 42,
-                isShortLandscape
-                    ? actionButtonX - 36
-                    : isShortViewport && !isNarrowPhone
-                      ? chapterCardWidth - 276
-                      : isCompact
-                        ? chapterCardWidth - 40
-                        : chapterCardWidth - 276,
-                actionTitle,
-                isShortViewport ? 13 : isNarrowPhone ? 13 : isCompact ? 16 : 18,
-                UiPalette.HIGHLIGHT_BRASS_CSS,
-            ),
+        const chapterCopyWidth = isShortLandscape
+            ? actionButtonX - 36
+            : isShortViewport && !isNarrowPhone
+              ? chapterCardWidth - 276
+              : isCompact
+                ? chapterCardWidth - 40
+                : chapterCardWidth - 276;
+        const chapterTitleY = isShortLandscape
+            ? 28
+            : isShortViewport
+              ? isNarrowPhone
+                  ? 44
+                  : 48
+              : isNarrowPhone
+                ? 54
+                : 42;
+        const chapterActionTitle = isNarrowPhone || isShortLandscape ? "Your next step" : actionTitle;
+        const chapterSummary = isShortLandscape
+            ? "Follow the activity prompt, then return here."
+            : isNarrowPhone
+              ? "Open the highlighted activity, follow its prompt, then return here."
+              : summaryText;
+        const chapterTitleTextObject = UiPanelFactory.createBodyText(
+            this,
+            20,
+            chapterTitleY,
+            chapterCopyWidth,
+            chapterActionTitle,
+            isShortViewport ? 13 : isNarrowPhone ? 13 : isCompact ? 16 : 18,
+            UiPalette.HIGHLIGHT_BRASS_CSS,
         );
-        phasePanel.add(
-            UiPanelFactory.createBodyText(
-                this,
-                20,
-                isShortLandscape ? 48 : isShortViewport ? (isNarrowPhone ? 66 : 70) : isNarrowPhone ? 86 : 68,
-                isShortLandscape
-                    ? actionButtonX - 36
-                    : isShortViewport && !isNarrowPhone
-                      ? chapterCardWidth - 276
-                      : isCompact
-                        ? chapterCardWidth - 40
-                        : chapterCardWidth - 276,
-                summaryText,
-                isShortViewport ? 11 : isNarrowPhone ? 12 : isCompact ? 13 : 15,
-                UiPalette.PARCHMENT_CSS,
-            ),
+        chapterTitleTextObject.setName("scenario-chapter-action-title");
+        phasePanel.add(chapterTitleTextObject);
+        const chapterSummaryTextObject = UiPanelFactory.createBodyText(
+            this,
+            20,
+            chapterTitleY + chapterTitleTextObject.displayHeight + 4,
+            chapterCopyWidth,
+            chapterSummary,
+            isShortViewport ? 11 : isNarrowPhone ? 12 : isCompact ? 13 : 15,
+            UiPalette.PARCHMENT_CSS,
         );
+        chapterSummaryTextObject.setName("scenario-chapter-summary");
+        phasePanel.add(chapterSummaryTextObject);
 
         const guideCopy = !progress.walkthroughEnabled
             ? "WALKTHROUGH SKIPPED · REPLAY ANYTIME"
