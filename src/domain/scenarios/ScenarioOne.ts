@@ -707,7 +707,9 @@ export class ScenarioOne extends Scenario {
         if (completedDecisionCount === decisions.length) {
             satisfiedCriteria.push("Made all five policy choices across the dated chapters");
         } else {
-            unmetCriteria.push(`Make all five policy choices (${completedDecisionCount} of ${decisions.length} complete)`);
+            unmetCriteria.push(
+                `Make all five policy choices (${completedDecisionCount} of ${decisions.length} complete)`,
+            );
         }
         return this.buildEvaluationResult(1, satisfiedCriteria, unmetCriteria, 10, 0);
     }
