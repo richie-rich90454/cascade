@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest a focused improvement to learning, accessibility, or play.
+title: "[Feature]: "
+labels:
+    - enhancement
+body:
+    - type: textarea
+      id: need
+      attributes:
+          label: What student or teacher need does this address?
+          description: Describe the task that is difficult today.
+      validations:
+          required: true
+    - type: textarea
+      id: proposal
+      attributes:
+          label: What would you change?
+          description: A small, concrete example is helpful.
+      validations:
+          required: true
+    - type: textarea
+      id: outcome
+      attributes:
+          label: How would you know it helped?
+          description: Describe the visible result or learning improvement.
