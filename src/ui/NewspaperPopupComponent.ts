@@ -4,6 +4,7 @@ import { AssetManager } from "../managers/AssetManager";
 import { FontFamilies } from "../managers/FontManager";
 import { UiPalette } from "./UiPalette";
 import { PanelVariant, UiPanelFactory } from "./UiPanelFactory";
+import { formatUiDisplayCase } from "./UiTextCase";
 
 export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
     private static readonly POPUP_OVERLAY_ALPHA = 0.62;
@@ -66,7 +67,7 @@ export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
         }
         const mastheadTextObject =
             mastheadImage === null
-                ? scene.add.text(0, 0, "THE CASCADE HERALD", {
+                ? scene.add.text(0, 0, "The Cascade Herald", {
                       fontFamily: FontFamilies.TYPEWRITER_HEADER,
                       fontSize: "34px",
                       color: UiPalette.NEAR_BLACK_LEATHER_CSS,
@@ -77,11 +78,17 @@ export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
             mastheadHeightPx = mastheadTextObject.displayHeight;
         }
 
-        const datelineTextObject = scene.add.text(0, 0, `SPECIAL EDITION — 1914 — DISPATCHES FROM ${nationCode}`, {
-            fontFamily: FontFamilies.TYPEWRITER_BODY,
-            fontSize: "13px",
-            color: UiPalette.DEEP_PARCHMENT_CSS,
-        });
+        const nationDisplayName = NewspaperPopupComponent.getNationDisplayName(nationCode);
+        const datelineTextObject = scene.add.text(
+            0,
+            0,
+            `Special edition — 1914 — dispatches from ${nationDisplayName}`,
+            {
+                fontFamily: FontFamilies.TYPEWRITER_BODY,
+                fontSize: "13px",
+                color: UiPalette.DEEP_PARCHMENT_CSS,
+            },
+        );
         datelineTextObject.setOrigin(0.5, 0);
 
         const headlineTextObject = scene.add.text(0, 0, headlineText, {
@@ -206,6 +213,21 @@ export class NewspaperPopupComponent extends Phaser.GameObjects.Container {
             return null;
         }
         return this.scene.add.image(0, 0, textureKey);
+    }
+
+    private static getNationDisplayName(nationCode: string): string {
+        const displayNameByNationCode: Record<string, string> = {
+            AUH: "Austria-Hungary",
+            ENG: "Britain",
+            FRA: "France",
+            GER: "Germany",
+            JAP: "Japan",
+            OTT: "Ottoman Empire",
+            RUS: "Russia",
+            SOV: "Soviet Union",
+            USA: "the United States",
+        };
+        return displayNameByNationCode[nationCode] ?? formatUiDisplayCase(nationCode);
     }
 
     private dismiss(): void {
