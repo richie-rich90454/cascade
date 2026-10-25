@@ -6,7 +6,7 @@
 
 ## A clear first session
 
-Start at the main menu, choose **Campaign Select**, then open **The Powder Keg**. Its guided first scenario takes about 25–30 minutes. The walkthrough points to the next useful action and can be paused, skipped, or replayed.
+Start at the main menu, choose **Start a Campaign**, then select **The Powder Keg**. Its guided first scenario takes about 25–30 minutes. The walkthrough points to the next useful action and can be paused, skipped, or replayed.
 
 The learning loop is simple:
 
@@ -84,6 +84,16 @@ AP® is a trademark registered by the College Board, which is not affiliated wit
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, project conventions, and the checks to run before opening a pull request. GitHub issue forms are available for bug reports and feature ideas.
+
+## Community and project policies
+
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Support guide](SUPPORT.md)
+- [Governance](GOVERNANCE.md)
+- [Changelog](CHANGELOG.md)
+- [Development architecture](docs/architecture.md)
+- [Third-party credits and licenses](docs/credits-and-licenses.md)
 
 ## License
 
