@@ -29,7 +29,7 @@
     },
     "devDependencies": {
         "@types/node": "^26.6.5",
-        "oxfmt": "^0.72.0",
+        "oxfmt": "^0.78.0",
         "puppeteer-core": "^25.13.0",
         "tsx": "^4.23.15",
         "typescript": "~5.9.2",
